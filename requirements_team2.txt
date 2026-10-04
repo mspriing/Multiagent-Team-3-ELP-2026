@@ -1,0 +1,5 @@
+streamlit>=1.40,<2
+langgraph>=0.2,<2
+tavily-python>=0.5,<1
+openai>=1.50,<3
+python-dotenv>=1.0,<2
