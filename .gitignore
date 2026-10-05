@@ -3,3 +3,5 @@
 venv/
 __pycache__/
 *.pyc
+team2_evidence.db
+team2_evidence.db-*
