@@ -20,6 +20,7 @@ Run:
 
 import json
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import TypedDict
 
@@ -389,6 +390,21 @@ Rules:
 """.strip()
 
 
+def is_traceable_passage(record: dict, source_content: str) -> bool:
+    """Reject missing quotes and source instructions presented as facts."""
+    passage = record.get("evidence", "")
+    if not isinstance(passage, str):
+        return False
+    normalized_passage = " ".join(passage.split()).casefold()
+    normalized_content = " ".join(source_content.split()).casefold()
+    if not normalized_passage or normalized_passage not in normalized_content:
+        return False
+    return not re.match(
+        r"^(use|consider|review|evaluate|consult|check|ensure)\s+",
+        passage.strip(), re.I,
+    )
+
+
 def extract_specialist_evidence(specialist_results: list[dict]) -> list[dict]:
     """Convert specialist source results into the shared Evidence Record format."""
     records = []
@@ -420,6 +436,8 @@ def extract_specialist_evidence(specialist_results: list[dict]) -> list[dict]:
                 raise ValueError("Evidence extraction must return a records list.")
             for record in extracted:
                 if not isinstance(record, dict):
+                    continue
+                if not is_traceable_passage(record, source_payload["content"]):
                     continue
                 # Source metadata is authoritative; model-generated metadata is not.
                 record["source"] = source_payload["title"]

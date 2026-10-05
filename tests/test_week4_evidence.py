@@ -59,7 +59,7 @@ class TestWeek4Evidence(unittest.TestCase):
                     calls.append(("search", role))
                 return {"results": [{
                     "title": role + " Source", "url": "https://example.test/" + role,
-                    "content": "Verified source fact for " + role,
+                    "content": "Verified source fact for " + role + ". Use these resources before deciding.",
                     "published_date": "2026-10-01",
                 }]}
 
@@ -72,13 +72,18 @@ class TestWeek4Evidence(unittest.TestCase):
                     payload = json.loads(messages[1]["content"].split("\n\n")[-1])
                     with lock:
                         calls.append(("extract", payload["agent"]))
-                    return self.reply(json.dumps({"records": [{
+                    valid = {
                         "claim": "A fact about " + payload["agent"],
                         "source": "Model-invented source", "url": "https://wrong.test",
                         "publication_date": "invented", "source_type": "web",
                         "evidence": "Verified source fact for " + payload["agent"],
                         "confidence": "high", "related_company": None, "report_section": None,
-                    }]}))
+                    }
+                    return self.reply(json.dumps({"records": [
+                        valid,
+                        {**valid, "claim": "Unsupported", "evidence": "Passage absent from source"},
+                        {**valid, "claim": "Recommendation as fact", "evidence": "Use these resources before deciding."},
+                    ]}))
                 return self.reply(json.dumps({"tasks": [
                     {"agent": role, "objective": role + " objective", "output_fields": ["finding"]}
                     for role in ROLES
