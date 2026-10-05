@@ -1,0 +1,7 @@
+streamlit
+langgraph
+tavily-python
+openai
+python-dotenv
+urllib3>=2.8.0,<3
+Brotli>=1.2.0
