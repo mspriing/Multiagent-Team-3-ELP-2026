@@ -1,7 +1,8 @@
-streamlit
-langgraph
-tavily-python
-openai
-python-dotenv
+streamlit>=1.40,<2
+langgraph>=0.2,<2
+tavily-python>=0.5,<1
+openai>=1.50,<3
+python-dotenv>=1.0,<2
 urllib3>=2.8.0,<3
 Brotli>=1.2.0
+
