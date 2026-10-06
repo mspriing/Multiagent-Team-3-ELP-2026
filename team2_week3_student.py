@@ -57,13 +57,6 @@ Competitor, Market, and Tech/Regulatory.
 
 Each specialist must receive a distinct, non-overlapping objective. Include a short
 output_fields list describing what that specialist should return.
-Make every objective specific to the user's named companies, market, geography,
-and decision where those details are present. Assign competitor offerings,
-positioning, partnerships, and differentiators only to Competitor; market size,
-demand, customer adoption, and buyer segments only to Market; and technical
-capabilities, standards, regulation, and official policy only to Tech/Regulatory.
-When the question does not name a geography or time period, do not invent one.
-Give each specialist two or three concrete output fields that fit its scope.
 
 Return only valid JSON in exactly this shape:
 {
@@ -177,40 +170,57 @@ def supervisor_node(state: ResearchState) -> dict:
 # ---------------- Week 3 specialist execution ----------------
 def research_assignment(assignment: dict, original_question: str) -> dict:
     """Execute ONE specialist's assignment."""
-    agent = assignment["agent"]
-    objective = assignment["objective"]
-    output_fields = assignment["output_fields"]
+    # TODO 1:
+    # 1. Read:
+    #       agent = assignment["agent"]
+    #       objective = assignment["objective"]
+    #       output_fields = assignment["output_fields"]
+    agent= assignment["agent"]
+    objective= assignment["objective"]
+    output_fields= assignment["output_fields"]
 
-    response = tavily.search(query=objective, search_depth="advanced", max_results=5)
+    # 2. Search Tavily using the specialist's objective.
+    response = tavily.search(query=objective)
     tavily_results = response.get("results", [])
-    source_text = "\n\n".join(
-        f"Title: {result.get('title', 'Untitled')}\n"
-        f"URL: {result.get('url', '')}\n"
-        f"Content: {result.get('content', '')}"
-        for result in tavily_results
-    )
 
-    prompt = (
-        f"Original question:\n{original_question}\n\n"
-        f"Your objective:\n{objective}\n\n"
-        f"Requested output fields:\n{json.dumps(output_fields)}\n\n"
-        f"Tavily sources:\n{source_text or 'No sources returned.'}\n\n"
-        "Use only the sources above for factual claims and cite their URLs. "
-        "If evidence is missing, say so rather than inventing an answer."
-    )
-    model_response = deepseek.chat.completions.create(
+    # 3. Format the returned Tavily results into readable source text containing
+    #    title, URL, and content.
+    formatted_sources = []
+    for result in tavily_results:
+        title = result.get("title", "Untitled")
+        url = result.get("url", "")
+        content = result.get("content", "")
+        formatted_sources.append(f"Title: {title}\nURL: {url}\nContent: {content}")
+    source_text = "\n\n".join(formatted_sources)
+
+    # 4. Call DeepSeek with SPECIALIST_PROMPTS[agent].
+    #    Give the model:
+    #       - the original question
+    #       - this specialist's objective
+    #       - requested output_fields
+    #       - Tavily source text
+    response = deepseek.chat.completions.create(
         model="deepseek-flash",
-        messages=[
-            {"role": "system", "content": SPECIALIST_PROMPTS[agent]},
-            {"role": "user", "content": prompt},
-        ],
-        temperature=0.3,
+        messages=[{"role": "user", "content": f"Original Question: {original_question} \n Specialist Objective: {objective} \n Output Fields: {output_fields} \n Tavily Source Text: {source_text}"}]
     )
+    
+    # 5. Return ONE dictionary in exactly this shape:
+    #
+    #    {
+    #        "agent": agent,
+    #        "objective": objective,
+    #        "output_fields": output_fields,
+    #        "research": model_response_text,
+    #        "sources": tavily_results,
+    #    }
+    #
+    # This function should execute only ONE specialist. Do not loop over all
+    # assignments here.
     return {
         "agent": agent,
         "objective": objective,
         "output_fields": output_fields,
-        "research": model_response.choices[0].message.content,
+        "research": response.choices[0].message.content,
         "sources": tavily_results,
     }
 
@@ -219,13 +229,28 @@ def specialists_node(state: ResearchState) -> dict:
     """Run all three independent specialist assignments in parallel."""
     specialist_results = []
 
+    # TODO 2:
+    # Use ThreadPoolExecutor(max_workers=3).
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [
-            executor.submit(research_assignment, assignment, state["question"])
-            for assignment in state["assignments"]
-        ]
-        for future in as_completed(futures):
-            specialist_results.append(future.result())
+        future_to_agent = {
+            executor.submit(research_assignment, assignment, state["question"]): assignment["agent"] for assignment in state["assignments"]
+        }
+    # Submit research_assignment(assignment, state["question"]) once for each
+    # assignment in state["assignments"].
+    
+    # Use as_completed(...) to collect the finished results and append each one
+    # to specialist_results.
+    # Important:
+    # - The specialists should execute independently.
+    # - Do not call them one-by-one in a normal sequential for-loop.
+    # - Week 4 will add the shared evidence store; do not build it here.
+    for future in as_completed(future_to_agent):
+        agent = future_to_agent[future]
+        try:
+            result = future.result()
+            specialist_results.append(result)
+        except Exception as e:
+            st.error(f"Specialist {agent} failed: {e}")
 
     return {"specialist_results": specialist_results}
 
