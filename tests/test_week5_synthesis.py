@@ -63,7 +63,8 @@ class TestWeek5Synthesis(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertEqual(result["report_id"], 1)
         self.assertEqual(result["evidence_records"], records)
-        self.assertEqual(result["report_markdown"].count("\n## "), 9)
+        self.assertTrue(result["report_markdown"].startswith("# DRAFT — Unreviewed research report"))
+        self.assertEqual(result["report_markdown"].count("\n## "), 10)
         self.assertIn("## Sources / References", result["report_markdown"])
         self.assertIn("[E1] Fixture source", result["report_markdown"])
         with sqlite3.connect(self.app["EVIDENCE_DB"]) as conn:

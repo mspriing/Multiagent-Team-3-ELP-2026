@@ -713,7 +713,7 @@ def build_references(evidence_records: list[dict]) -> str:
 
 # WHAT THIS DOES — REPORT FORMAT: Assembles nine model sections and the tenth Sources / References section.
 def render_report_markdown(report: dict, evidence_records: list[dict]) -> str:
-    blocks = []
+    blocks = ["# DRAFT — Unreviewed research report"]
     for key, title in REPORT_SECTION_KEYS:
         blocks.append(f"## {title}\n\n{report.get(key, '')}")
     blocks.append("## Sources / References\n\n" + build_references(evidence_records))
