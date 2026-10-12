@@ -30,3 +30,18 @@ Run fixture checks without API calls:
 ```bash
 python -m unittest discover -s tests -v
 ```
+
+## Week 5 branch: draft synthesis report
+
+`team2_week4.py` now also runs Supervisor → Specialists → Shared Evidence →
+Synthesis when **Run Full Synthesis Pipeline** is clicked. It writes a ten-section
+draft report to the `reports` table in the same `team2_evidence.db` file as the
+Week 4 `evidence` table. The first nine sections come from DeepSeek using only
+the current run's numbered evidence; Python builds Sources / References from
+the evidence URLs. The Week 3 and Week 4 buttons remain available.
+
+Start Streamlit with the same API key configuration described above. A live run
+uses Tavily and DeepSeek credits. The fixture suite checks the full graph and
+both SQLite tables without calling external services. Citation verification
+and a Reviewer/Critic are planned for Week 6; review factual support before
+sharing a draft.
