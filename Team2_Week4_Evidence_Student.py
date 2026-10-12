@@ -11,8 +11,6 @@ layer and stores the shared evidence store in a small SQLite database.
 # ---------------- Week 4: Shared Evidence Store ----------------
 
 import sqlite3
-
-from team2_week3_student import ResearchState, call_model_json, specialists_node, supervisor_node
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -24,6 +22,8 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from openai import OpenAI
 from tavily import TavilyClient
+
+from team2_week3_student import ResearchState, call_model_json, specialists_node, supervisor_node
 
 
 EVIDENCE_DB = "team2_evidence.db"
@@ -52,10 +52,6 @@ def init_evidence_db():
 
 def save_evidence_records(records: list[dict]):
     """Save validated specialist evidence to SQLite."""
-    # TODO 0 — SAVE TO SQLITE
-    #
-    # Insert each record into the evidence table using parameterized SQL.
-    # Use INSERT OR IGNORE so the same claim + URL is not stored twice.
     with sqlite3.connect(EVIDENCE_DB) as conn:
         for record in records:
             conn.execute("""
@@ -87,20 +83,13 @@ def load_evidence_records() -> list[dict]:
 
 init_evidence_db()
 
-# TODO 1 — WEEK 4 STATE
-#
-# Extend the existing Week 3 ResearchState with:
-#     evidence_records: list[dict]
-#
-# Hint:
-#     class Week4ResearchState(ResearchState):
-#         ...
 
 class Week4ResearchState(ResearchState):
     question: str
     assignments: list[dict]
     specialist_results: list[dict]
     evidence_records: list[dict]
+
 
 EVIDENCE_SYSTEM_PROMPT = """
 You are the evidence extraction step in a business research workflow.
@@ -138,17 +127,6 @@ def extract_specialist_evidence(specialist_results: list[dict]) -> list[dict]:
     """Convert specialist source results into the shared Evidence Record format."""
     records = []
 
-    # TODO 2 — EVIDENCE EXTRACTION
-    #
-    # For each specialist in specialist_results:
-    #   1. Read agent and objective.
-    #   2. Loop through specialist["sources"].
-    #   3. Build source_payload with:
-    #        agent, objective, title, url, content, published_date
-    #   4. Call call_model_json(EVIDENCE_SYSTEM_PROMPT, prompt).
-    #   5. Add every returned record to records.
-    #
-    # Every specialist must produce the SAME Evidence Record structure.
     for specialist in specialist_results:
         agent = specialist.get("agent")
         objective = specialist.get("objective")
@@ -182,21 +160,11 @@ def extract_specialist_evidence(specialist_results: list[dict]) -> list[dict]:
 def validate_shared_evidence(records: list[dict]) -> list[dict]:
     """Validate records and remove exact duplicate claim/source pairs."""
     required = ["claim", "source", "url", "publication_date", "source_type", "evidence"]
-
     validated = []
-
-    # TODO 3 — VALIDATION + DUPLICATES
-    #
-    # Keep only dictionaries with non-empty:
-    #   claim, source, url, source_type, evidence
-    #
-    # Remove exact duplicates using:
-    #   (claim.lower(), url)
-    #
-    # Hint: use a set called seen.
     seen = set()
+
     for record in records:
-        if all(record.get(field) for field in required):
+        if all(record.get(field) for field in ["claim", "source", "url", "source_type", "evidence"]):
             key = (record["claim"].lower(), record["url"])
             if key not in seen:
                 seen.add(key)
@@ -207,12 +175,6 @@ def validate_shared_evidence(records: list[dict]) -> list[dict]:
 
 def evidence_store_node(state: ResearchState) -> dict:
     """Week 4: build and persist the shared evidence store."""
-    # TODO 4 — CONNECT SPECIALISTS TO SHARED STORE + DATABASE
-    #
-    # 1. Extract records from state["specialist_results"].
-    # 2. Validate them.
-    # 3. Save validated records to SQLite.
-    # 4. Return {"evidence_records": ...}.
     specialist_results = state.get("specialist_results", [])
     extracted_records = extract_specialist_evidence(specialist_results)
     validated_records = validate_shared_evidence(extracted_records)
@@ -239,8 +201,6 @@ def build_week4_graph() -> CompiledStateGraph:
     graph.add_edge("evidence_store", END)
 
     return graph.compile()
-    
-
 
 
 week4_graph = build_week4_graph()
@@ -272,5 +232,5 @@ if st.button("Build Shared Evidence Store", type="primary") and question.strip()
 
         stored_records = load_evidence_records()
         st.subheader("Shared Evidence Store (SQLite)")
-        st.dataframe(stored_records, use_container_width=True)
+        st.dataframe(stored_records, width="stretch")
         st.caption(f"{len(stored_records)} evidence records stored in {EVIDENCE_DB}")
