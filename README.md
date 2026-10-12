@@ -1,22 +1,51 @@
-# Multiagent-Team-3-ELP-2026 
+# Multi-Agent AI Research Assistant
 
-## Week 3: parallel specialist research
+A full-stack AI application that uses multiple specialized agents to research, analyze, and respond to user questions.
 
-`team2_week3_student.py` is the supplied Team 2 Week 3 starter, completed with independent Competitor, Market, and Tech/Regulatory research. The Supervisor assigns the work, Tavily searches each objective, DeepSeek writes each specialist brief, and the three specialists run concurrently.
+## Workflow
 
-### Run locally
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements_team2.txt
-cp .env.example .env
+```text
+User
+ ↓
+React Frontend
+ ↓
+FastAPI Backend
+ ↓
+LangGraph
+ ↓
+Supervisor
+ ↓
+Researcher → Analyst → Writer
+ ↓
+Final Response
 ```
 
-Enter your own `TAVILY_API_KEY` and `DEEPSEEK_API_KEY` values in `.env`, then run:
+## Tech Stack
 
-```bash
-streamlit run team2_week3_student.py
-```
+- **Frontend:** React, TypeScript, Vite
+- **Backend:** Python, FastAPI
+- **AI:** DeepSeek API
+- **Agent Framework:** LangGraph
 
-Never commit `.env` or share API keys. The `.gitignore` excludes `.env` and virtual environments. API calls may use account credits. Week 3 does not include a synthesis agent or shared evidence store.
+## Agents
+
+- **Supervisor:** Routes requests to the appropriate agent
+- **Researcher:** Gathers and organizes relevant information
+- **Analyst:** Analyzes research and identifies key conclusions
+- **Writer:** Produces the final user-friendly response
+
+## Current Features
+
+- DeepSeek-powered AI agents
+- Multi-agent LangGraph workflow
+- Supervisor routing
+- Shared state between agents
+- React ↔ FastAPI communication
+
+## Next Steps
+
+- Add Tavily web search
+- Add conversation memory
+- Improve error handling
+- Improve frontend response formatting
+- Add testing and deployment
