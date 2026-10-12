@@ -1,3 +1,4 @@
+
 from graph.state import AgentState
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -12,8 +13,11 @@ client = OpenAI(
 
 
 def analysis_agent(state: AgentState):
-    # Get the research produced by the researcher agent
-    research = state["research"]
+    # Get the user's original question
+    message = state["message"]
+
+    # Get the research produced by the Researcher Agent
+    research = state.get("research", "")
 
     # Send the research to DeepSeek for analysis
     response = client.chat.completions.create(
@@ -22,22 +26,36 @@ def analysis_agent(state: AgentState):
             {
                 "role": "system",
                 "content": (
-                    "You are an analysis agent. "
-                    "Analyze the provided research, identify the most "
-                    "important information, and draw useful conclusions."
+                    "You are an expert analysis agent. "
+                    "Analyze the research in relation to the user's "
+                    "original question. "
+                    "Identify the most important findings, patterns, "
+                    "trends, and relationships. "
+                    "Compare information from different sources when "
+                    "appropriate. "
+                    "Evaluate the reliability and relevance of evidence. "
+                    "Distinguish facts from interpretations. "
+                    "Identify contradictions and missing information. "
+                    "Draw useful, evidence-based conclusions. "
+                    "Do not invent facts or unsupported claims. "
+                    "Preserve source URLs for important findings. "
+                    "Organize your analysis clearly for a writer agent."
                 )
             },
             {
                 "role": "user",
-                "content": research
+                "content": (
+                    f"Original user question:\n{message}\n\n"
+                    f"Research findings:\n{research}"
+                )
             }
         ]
     )
 
-    # Get DeepSeek's response
+    # Extract DeepSeek's analysis
     analysis_result = response.choices[0].message.content
 
-    # Store the result in the LangGraph state
+    # Save the analysis in LangGraph state
     return {
         "analysis": analysis_result
     }
