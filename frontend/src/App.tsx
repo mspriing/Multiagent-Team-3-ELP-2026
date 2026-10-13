@@ -49,11 +49,11 @@ function App() {
       setResponse(data.response ?? "No response received.");
 
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong."
-      );
+    if (err instanceof TypeError) {
+      setError("Unable to connect to the server. Please try again later.");
+      } else {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    }
     } finally {
       // Stop loading whether successful or not
       setLoading(false);
@@ -100,8 +100,10 @@ function App() {
 
       {response && (
         <div className="response-container">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {response}
+          <ReactMarkdown
+          remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
+          >
+          {response}
           </ReactMarkdown>
         </div>
       )}

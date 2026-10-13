@@ -60,10 +60,13 @@ def research_agent(state: AgentState):
         queries = [message]
 
     # STEP 2: Search Tavily for each query
+
     all_results = []
     seen_urls = set()
 
     for query in queries:
+        print(f"[RESEARCHER] Searching Tavily: {query}")
+
         search_results = tavily.search(
             query=query,
             search_depth="advanced",
@@ -81,7 +84,7 @@ def research_agent(state: AgentState):
                     "url": url,
                     "content": result.get("content", "")
                 })
-
+    print(f"[RESEARCHER] Total unique sources found: {len(all_results)}")
     # STEP 3: Summarize research using DeepSeek
     response = client.chat.completions.create(
         model="deepseek-chat",

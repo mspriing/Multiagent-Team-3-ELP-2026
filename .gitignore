@@ -7,3 +7,6 @@ __pycache__/
 # React / Node
 node_modules/
 dist/
+
+.env.*
+!.env.example
