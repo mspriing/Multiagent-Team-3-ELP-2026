@@ -42,6 +42,23 @@ the evidence URLs. The Week 3 and Week 4 buttons remain available.
 
 Start Streamlit with the same API key configuration described above. A live run
 uses Tavily and DeepSeek credits. The fixture suite checks the full graph and
-both SQLite tables without calling external services. Citation verification
-and a Reviewer/Critic are planned for Week 6; review factual support before
-sharing a draft.
+both SQLite tables without calling external services.
+
+## Weeks 6–7: reviewed synthesis and bounded research loop
+
+`team2_week4.py` includes the Week 6 reviewer and the Week 7 gap/conflict
+check in the same combined Streamlit app. Start it with your existing API key
+configuration and click **Run Week 7 Research Loop**. The graph researches an
+actionable gap or conflict at most once, merges the new evidence with the
+original evidence, then synthesizes and reviews the report. The final report
+appears only when the reviewer passes it; otherwise the draft stays in an
+unapproved expander. The Week 3–6 buttons remain available.
+
+Run the fixture suite without external API calls:
+
+```bash
+python -m unittest discover -s tests -q
+```
+
+A live run uses Tavily and DeepSeek credits. The automated checks use fixture
+responses and do not establish the factual accuracy of a live report.

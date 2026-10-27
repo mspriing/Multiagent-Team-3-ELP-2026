@@ -1053,3 +1053,143 @@ if st.button("Run Reviewed Synthesis Pipeline", type="primary") and question.str
         st.error(f"The reviewed pipeline could not finish; no report was approved: {error}")
     else:
         display_week6_result(result)
+
+
+"""ELP Week 7 — Team 2: one bounded gap and conflict research pass."""
+
+W7_T2_GAP_PROMPT = """
+You are the existing supervisor's GAP AND CONFLICT CHECK, not a new agent.
+Given the user's research question and evidence store, identify at most ONE
+material research gap or meaningful contradiction that targeted research could fix.
+Return JSON ONLY:
+  {"needs_research": boolean, "reason": string,
+   "targeted_question": string, "conflicts": [string], "gaps": [string]}
+Missing evidence and genuinely conflicting facts matter; duplicate coverage
+alone does not require searching. Do not invent missing facts or resolve a
+conflict by guessing. Recommend NO further research when already adequate.
+""".strip()
+
+
+def week7_t2_find_gaps(state: dict) -> dict:
+    """Fail closed on malformed gap checks so they cannot cause extra searches."""
+    prompt = (
+        f"Original research question:\n{state['question']}\n\n"
+        "Shared Evidence Store:\n"
+        + json.dumps(build_evidence_packet(state["evidence_records"]), ensure_ascii=False, indent=2)
+    )
+    raw = call_model_json(W7_T2_GAP_PROMPT, prompt)
+    valid = isinstance(raw, dict) and type(raw.get("needs_research")) is bool
+    if valid:
+        valid = all(isinstance(raw.get(key), str) for key in ("reason", "targeted_question"))
+        valid = valid and all(
+            isinstance(raw.get(key), list)
+            and all(isinstance(item, str) and item.strip() for item in raw[key])
+            for key in ("conflicts", "gaps")
+        )
+        valid = valid and len(raw["conflicts"]) + len(raw["gaps"]) <= 1
+    if not valid:
+        check = {
+            "needs_research": False, "reason": "Invalid gap check; no additional research was authorized.",
+            "targeted_question": "", "conflicts": [], "gaps": [],
+        }
+    else:
+        check = {key: raw[key] for key in (
+            "needs_research", "reason", "targeted_question", "conflicts", "gaps"
+        )}
+        if check["needs_research"] and not (
+            check["reason"].strip() and check["targeted_question"].strip()
+            and (check["conflicts"] or check["gaps"])
+        ):
+            check["needs_research"] = False
+            check["reason"] = "No actionable material gap or conflict was identified."
+            check["targeted_question"] = ""
+    return {"gap_check": check, "additional_research_performed": False}
+
+
+def week7_t2_route(state: dict) -> str:
+    check = state.get("gap_check", {})
+    if (isinstance(check, dict) and check.get("needs_research") is True
+            and isinstance(check.get("reason"), str) and check["reason"].strip()
+            and isinstance(check.get("targeted_question"), str)
+            and check["targeted_question"].strip()
+            and any(isinstance(check.get(key), list)
+                    and all(isinstance(item, str) and item.strip() for item in check[key])
+                    and check[key]
+                    for key in ("conflicts", "gaps"))):
+        return "additional"
+    return "synthesis"
+
+
+def week7_t2_additional_research(state: dict) -> dict:
+    """Run the existing three specialists once and merge their validated evidence."""
+    target = state["gap_check"]["targeted_question"].strip()
+    targeted_state = {**state, "question": target}
+    assignments = supervisor_node(targeted_state)["assignments"]
+    targeted_state["assignments"] = assignments
+    new_results = specialists_node(targeted_state)["specialist_results"]
+    targeted_state["specialist_results"] = new_results
+    new_records = evidence_store_node(targeted_state)["evidence_records"]
+    old_records = list(state["evidence_records"])
+    merged = validate_shared_evidence(old_records + new_records)
+    return {
+        "evidence_records": merged,
+        "specialist_results": list(state["specialist_results"]) + new_results,
+        "additional_research_performed": True,
+        "new_evidence_count": len(merged) - len(old_records),
+    }
+
+
+class Week7ResearchState(Week6ResearchState):
+    gap_check: dict
+    additional_research_performed: bool
+    new_evidence_count: int
+
+
+def build_week7_graph():
+    graph = StateGraph(Week7ResearchState)
+    graph.add_node("supervise", supervisor_node)
+    graph.add_node("specialists", specialists_node)
+    graph.add_node("evidence_store", evidence_store_node)
+    graph.add_node("gap_check", week7_t2_find_gaps)
+    graph.add_node("additional", week7_t2_additional_research)
+    graph.add_node("synthesize", synthesis_node)
+    graph.add_node("reviewer", reviewer_node)
+    graph.add_edge(START, "supervise")
+    graph.add_edge("supervise", "specialists")
+    graph.add_edge("specialists", "evidence_store")
+    graph.add_edge("evidence_store", "gap_check")
+    graph.add_conditional_edges("gap_check", week7_t2_route, {
+        "additional": "additional", "synthesis": "synthesize",
+    })
+    graph.add_edge("additional", "synthesize")
+    graph.add_edge("synthesize", "reviewer")
+    graph.add_edge("reviewer", END)
+    return graph.compile()
+
+
+week7_graph = build_week7_graph()
+
+st.divider()
+st.subheader("Week 7 — Interactive Research Loop")
+st.caption("Gap and conflict check → at most one targeted research pass → synthesis → review")
+if st.button("Run Week 7 Research Loop", type="primary") and question.strip():
+    week7_state: Week7ResearchState = {
+        "question": question.strip(),
+        "assignments": [], "specialist_results": [], "evidence_records": [],
+        "report": {}, "report_markdown": "", "report_id": 0,
+        "review": {}, "initial_review": {}, "final_report_markdown": "",
+        "revision_performed": False,
+        "gap_check": {}, "additional_research_performed": False,
+        "new_evidence_count": 0,
+    }
+    try:
+        with st.spinner("Checking gaps, researching if needed, and reviewing the report..."):
+            result = week7_graph.invoke(week7_state)
+    except Exception as error:
+        st.error(f"The Week 7 research loop could not finish; no report was approved: {error}")
+    else:
+        st.subheader("Gap and conflict check")
+        st.json(result["gap_check"])
+        st.write("Additional research performed:", result["additional_research_performed"])
+        st.write("New evidence records:", result["new_evidence_count"])
+        display_week6_result(result)
