@@ -1,4 +1,12 @@
+
 from typing import TypedDict
+
+
+class EvidenceSource(TypedDict):
+    title: str
+    url: str
+    content: str
+
 
 class AgentState(TypedDict):
     message: str
@@ -7,3 +15,4 @@ class AgentState(TypedDict):
     analysis: str
     final_answer: str
     next_agent: str
+    evidence: list[EvidenceSource]

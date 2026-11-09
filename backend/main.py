@@ -17,9 +17,11 @@ from database import (
     init_db,
     create_conversation,
     save_message,
+    save_evidence,
     get_messages,
     get_conversations,
-    get_conversation
+    get_conversation,
+    get_evidence
 )
 
 load_dotenv()
@@ -100,8 +102,21 @@ def chat(request: ChatRequest):
             "research": "",
             "analysis": "",
             "final_answer": "",
-            "next_agent": ""
+            "next_agent": "",
+            "evidence": []
         })
+
+        # Debug: Check how many evidence sources were retrieved
+        evidence = result.get("evidence", [])
+
+        logger.info("Evidence sources retrieved: %d", len(evidence))
+
+        for source in evidence:
+            logger.info(
+                "Source: %s | %s",
+                source["title"],
+                source["url"]
+            )
 
         # 5. Validate the agents' response
         final_answer = result.get("final_answer")
@@ -120,13 +135,34 @@ def chat(request: ChatRequest):
                 message[:100]
             )
 
-        save_message(conversation_id, "user", message)
-        save_message(conversation_id, "assistant", final_answer)
+        # Save the user's question
+        save_message(conversation_id, "user", request.message)
+
+        # Save the AI response and capture its database ID
+        assistant_message_id = save_message(
+            conversation_id,
+            "assistant",
+            final_answer
+        )
+
+        # Retrieve evidence collected by the Researcher Agent
+        evidence = result.get("evidence", [])
+
+        # Save evidence linked to this specific AI response
+        save_evidence(assistant_message_id, evidence)
+
+        logger.info(
+            "Saved %d evidence sources for message %d",
+            len(evidence),
+            assistant_message_id
+        )
 
         # 7. Return the result to React
         return {
             "response": final_answer,
-            "conversation_id": conversation_id
+            "conversation_id": conversation_id,
+            "message_id": assistant_message_id,
+            "evidence": get_evidence(assistant_message_id)
         }
 
     except HTTPException:
@@ -160,6 +196,12 @@ def retrieve_conversation(conversation_id: str):
 
     # Retrieve all messages belonging to it
     messages = get_messages(conversation_id)
+
+    for message in messages:
+        if message["role"] == "assistant":
+            message["evidence"] = get_evidence(message["id"])
+        else:
+            message["evidence"] = []
 
     return {
         "conversation": conversation,

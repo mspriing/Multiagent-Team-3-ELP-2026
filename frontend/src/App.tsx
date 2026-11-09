@@ -11,10 +11,20 @@ type Conversation = {
   created_at: string;
 };
 
+// Structure of a research source
+type EvidenceSource = {
+  id?: number;
+  title: string;
+  url: string;
+  content: string;
+};
+
 // Structure of a user or AI message
 type ChatMessage = {
+  id?: number;
   role: "user" | "assistant";
   content: string;
+  evidence?: EvidenceSource[];
 };
 
 const API_URL = "http://127.0.0.1:8000";
@@ -41,6 +51,9 @@ function App() {
   // Error messages
   const [error, setError] = useState("");
 
+  // Whether the sidebar is visible
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   // STEP 1: Retrieve all saved conversations
   const fetchConversations = async () => {
     try {
@@ -51,7 +64,6 @@ function App() {
       }
 
       const data: Conversation[] = await result.json();
-
       setConversations(data);
     } catch (err) {
       console.error("Error loading conversations:", err);
@@ -84,7 +96,7 @@ function App() {
       // Set the active conversation
       setConversationId(id);
 
-      // Load its previous messages
+      // Load its previous messages and evidence
       setMessages(data.messages);
 
       // Clear the input
@@ -104,24 +116,15 @@ function App() {
   const newChat = () => {
     if (loading || opening) return;
 
-    // Reset the active conversation
     setConversationId(null);
-
-    // Clear displayed messages
     setMessages([]);
-
-    // Clear input and errors
     setMessage("");
     setError("");
   };
 
+  // Close the current conversation without deleting it
   const closeConversation = () => {
-    if (loading || opening) return;
-
-      setConversationId(null);
-      setMessages([]);
-      setMessage("");
-      setError("");
+    newChat();
   };
 
   // STEP 4: Send a message to the agents
@@ -162,7 +165,8 @@ function App() {
         throw new Error("Invalid response from backend");
       }
 
-      // Add the user question and AI answer to the chat
+      // Add the user question and AI answer
+      // including evidence for the assistant response
       setMessages((previous) => [
         ...previous,
         {
@@ -170,8 +174,12 @@ function App() {
           content: submittedMessage,
         },
         {
+          id: data.message_id,
           role: "assistant",
           content: data.response,
+          evidence: Array.isArray(data.evidence)
+            ? data.evidence
+            : [],
         },
       ]);
 
@@ -201,128 +209,220 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="app-layout">
 
-      {/* Application header */}
-      <header className="app-header">
-        <h1>Multi-Agent AI</h1>
-        <p>Research powered by multiple AI agents</p>
-      </header>
+      {/* LEFT SIDEBAR */}
+      {sidebarOpen && (
+        <aside className="sidebar">
 
-      {/* Saved conversations */}
-      <div className="conversation-list">
-        <div className="conversation-header">
-          <h2>Previous Conversations</h2>
+          <div className="sidebar-header">
+            <h2>Multi-Agent AI</h2>
+
+            <button
+              type="button"
+              className="sidebar-toggle"
+              onClick={() => setSidebarOpen(false)}
+              title="Close sidebar"
+              aria-label="Close sidebar"
+            >
+              ☰
+            </button>
+          </div>
 
           <button
             type="button"
+            className="new-chat-button"
             onClick={newChat}
             disabled={loading || opening}
-            className="new-chat-button"
           >
             + New Chat
           </button>
-        </div>
 
-        {conversations.length === 0 && (
-          <p>No saved conversations yet.</p>
-        )}
+          <h3>Previous Conversations</h3>
 
-        {conversations.map((conversation) => (
-          <div
-            key={conversation.id}
-            className="conversation-row"
-          >
+          <div className="sidebar-conversations">
+            {conversations.length === 0 && (
+              <p>No saved conversations yet.</p>
+            )}
+
+            {conversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className="conversation-row"
+              >
+                <button
+                  type="button"
+                  onClick={() =>
+                    openConversation(conversation.id)
+                  }
+                  disabled={loading || opening}
+                  className={`conversation-item ${
+                    conversationId === conversation.id
+                      ? "active"
+                      : ""
+                  }`}
+                >
+                  {conversation.title}
+                </button>
+
+                {conversationId === conversation.id && (
+                  <button
+                    type="button"
+                    className="close-conversation"
+                    onClick={closeConversation}
+                    disabled={loading || opening}
+                    title="Close conversation"
+                    aria-label="Close conversation"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </aside>
+      )}
+
+      {/* MAIN CHAT AREA */}
+      <main className="main-chat">
+
+        {/* Header */}
+        <header className="app-header">
+
+          {!sidebarOpen && (
             <button
               type="button"
-              onClick={() => openConversation(conversation.id)}
-              disabled={loading || opening}
-              className={`conversation-item ${
-                conversationId === conversation.id ? "active" : ""
-              }`}
+              className="sidebar-toggle"
+              onClick={() => setSidebarOpen(true)}
+              title="Open sidebar"
+              aria-label="Open sidebar"
             >
-              {conversation.title}
+              ☰
             </button>
+          )}
 
-            {conversationId === conversation.id && (
-              <button
-                type="button"
-                className="close-conversation"
-                onClick={closeConversation}
-                disabled={loading || opening}
-                aria-label="Close conversation"
-                title="Close conversation"
-              >
-                ×
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
+          <h1>Multi-Agent AI</h1>
+          <p>Research powered by multiple AI agents</p>
+        </header>
 
-      {/* Display all messages in the active conversation */}
-      <div className="chat-history">
-        {messages.map((chatMessage, index) => (
-          <div
-            key={index}
-            className={`chat-message ${chatMessage.role}`}
-          >
-            <ReactMarkdown
-              remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
+        {/* Conversation messages */}
+        <div className="chat-history">
+          {messages.map((chatMessage, index) => (
+            <div
+              key={chatMessage.id ?? index}
+              className={`chat-message ${chatMessage.role}`}
             >
-              {chatMessage.content}
-            </ReactMarkdown>
+
+              {/* Render user or AI message */}
+              <ReactMarkdown
+                remarkPlugins={[
+                  [remarkGfm, { singleTilde: false }]
+                ]}
+              >
+                {chatMessage.content}
+              </ReactMarkdown>
+
+              {/* EVIDENCE LEDGER */}
+              {chatMessage.role === "assistant" &&
+                chatMessage.evidence &&
+                chatMessage.evidence.length > 0 && (
+
+                  <details className="evidence-ledger">
+                    <summary className="evidence-toggle">
+                      View Sources ({chatMessage.evidence.length})
+                    </summary>
+
+                    <div className="evidence-content">
+                      <p className="evidence-description">
+                        Sources retrieved by the Researcher Agent.
+                        These are not individually verified citations.
+                      </p>
+
+                      {chatMessage.evidence.map((source, sourceIndex) => (
+                        <div
+                          key={source.id ?? sourceIndex}
+                          className="evidence-source"
+                        >
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="evidence-link"
+                          >
+                            {source.title || source.url}
+                          </a>
+
+                          {source.content && (
+                            <p className="evidence-excerpt">
+                              {source.content}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom input area */}
+        <div className="chat-bottom">
+
+          {/* Loading indicators */}
+          {loading && (
+            <div className="loading-message">
+              Your AI agents are working...
+            </div>
+          )}
+
+          {opening && (
+            <div className="loading-message">
+              Loading conversation...
+            </div>
+          )}
+
+          {/* Error messages */}
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+
+          {/* Message input */}
+          <div className="input-section">
+            <input
+              type="text"
+              placeholder="Ask a research question..."
+              value={message}
+              onChange={(event) =>
+                setMessage(event.target.value)
+              }
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  sendMessage();
+                }
+              }}
+              disabled={loading || opening}
+            />
+
+            <button
+              type="button"
+              onClick={sendMessage}
+              disabled={
+                loading ||
+                opening ||
+                !message.trim()
+              }
+            >
+              {loading ? "Researching..." : "Send"}
+            </button>
           </div>
-        ))}
-      </div>
 
-      {/* Message input */}
-      <div className="input-section">
-        <input
-          type="text"
-          placeholder="Ask a research question..."
-          value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              sendMessage();
-            }
-          }}
-          disabled={loading || opening}
-        />
-
-        <button
-          type="button"
-          onClick={sendMessage}
-          disabled={loading || opening || !message.trim()}
-        >
-          {loading ? "Researching..." : "Send"}
-        </button>
-      </div>
-
-      {/* Loading indicators */}
-      {loading && (
-        <div className="loading-message">
-          Your AI agents are working...
         </div>
-      )}
-
-      {opening && (
-        <div className="loading-message">
-          Loading conversation...
-        </div>
-      )}
-
-      {/* Error messages */}
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
-
+      </main>
     </div>
   );
 }
-
 
 export default App;

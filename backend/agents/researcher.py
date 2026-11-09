@@ -162,7 +162,8 @@ def research_agent(state: AgentState):
 
     research_result = response.choices[0].message.content
 
-    # STEP 4: Save research in LangGraph state
+    # STEP 4: Save research and evidence in LangGraph state
     return {
-        "research": research_result
+        "research": research_result,
+        "evidence": all_results
     }
