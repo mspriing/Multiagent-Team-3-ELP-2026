@@ -1,15 +1,30 @@
 
 from graph.workflow import graph
-from openai import OpenAI
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
+from database import (
+    init_db,
+    create_conversation,
+    save_message,
+    get_messages
+)
 import logging
-import os
 
-# Set up logging to track backend errors
+from database import (
+    init_db,
+    create_conversation,
+    save_message,
+    get_messages,
+    get_conversations,
+    get_conversation
+)
+
+load_dotenv()
+
+# Configure backend logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,18 +34,10 @@ class ChatRequest(BaseModel):
     conversation_id: str | None = None
 
 
-load_dotenv()
-
-# DeepSeek client
-deepseek_client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_API_KEY"),
-    base_url="https://api.deepseek.com"
-)
-
 app = FastAPI()
 
-# Store separate conversation histories in memory
-conversations = {}
+# Initialize SQLite tables when the backend starts
+init_db()
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,8 +59,10 @@ def root():
 @app.post("/chat")
 def chat(request: ChatRequest):
 
-    # 1. Check for an empty message
-    if not request.message.strip():
+    # 1. Validate the user's question
+    message = request.message.strip()
+
+    if not message:
         raise HTTPException(
             status_code=400,
             detail="Message cannot be empty."
@@ -62,57 +71,97 @@ def chat(request: ChatRequest):
     # 2. Create or reuse a conversation ID
     conversation_id = request.conversation_id or str(uuid4())
 
-    if conversation_id not in conversations:
-        conversations[conversation_id] = []
-
-    history = conversations[conversation_id]
-
     try:
-        # 3. Run the multi-agent workflow
+        # 3. Retrieve existing conversation history
+        if request.conversation_id:
+            # Reject IDs that do not belong to a saved conversation
+            # (get_messages alone cannot distinguish an empty chat
+            # from a nonexistent conversation).
+            from database import get_connection
+
+            with get_connection() as connection:
+                exists = connection.execute(
+                    "SELECT 1 FROM conversations WHERE id = ?",
+                    (conversation_id,)
+                ).fetchone()
+
+            if not exists:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Conversation not found."
+                )
+
+        history = get_messages(conversation_id)
+
+        # 4. Run the multi-agent workflow
         result = graph.invoke({
-            "message": request.message,
-            "history": history.copy(),
+            "message": message,
+            "history": history,
             "research": "",
             "analysis": "",
-            "final_answer": ""
+            "final_answer": "",
+            "next_agent": ""
         })
 
-        # 4. Check whether the writer returned an answer
+        # 5. Validate the agents' response
         final_answer = result.get("final_answer")
 
-        if not final_answer:
+        if not final_answer or not final_answer.strip():
             raise HTTPException(
                 status_code=500,
                 detail="The agents did not generate a response."
             )
 
-        # 5. Save the user's message and AI's response
-        history.append({
-            "role": "user",
-            "content": request.message
-        })
+        # 6. Save conversation and messages
+        # Only create the conversation after successful generation.
+        if not request.conversation_id:
+            create_conversation(
+                conversation_id,
+                message[:100]
+            )
 
-        history.append({
-            "role": "assistant",
-            "content": final_answer
-        })
+        save_message(conversation_id, "user", message)
+        save_message(conversation_id, "assistant", final_answer)
 
-        # 6. Return the answer and conversation ID to React
+        # 7. Return the result to React
         return {
             "response": final_answer,
             "conversation_id": conversation_id
         }
 
     except HTTPException:
-        # Preserve errors we intentionally raised
         raise
 
     except Exception:
-        # 7. Log unexpected errors for debugging
         logger.exception("Multi-agent workflow failed")
 
-        # 8. Return a safe error message to React
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again."
         )
+
+
+@app.get("/conversations")
+def list_conversations():
+    # Return all saved conversations
+    return get_conversations()
+
+
+@app.get("/conversations/{conversation_id}")
+def retrieve_conversation(conversation_id: str):
+    # Find the requested conversation
+    conversation = get_conversation(conversation_id)
+
+    if conversation is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found."
+        )
+
+    # Retrieve all messages belonging to it
+    messages = get_messages(conversation_id)
+
+    return {
+        "conversation": conversation,
+        "messages": messages
+    }

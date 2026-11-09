@@ -48,7 +48,7 @@ def supervisor_agent(state: AgentState):
 
     # Safety fallback in case DeepSeek returns something unexpected
     if next_agent not in ["researcher", "analyst", "writer"]:
-        next_agent = "writer"
+        next_agent = "researcher"
 
     print(f"SUPERVISOR → {next_agent.upper()}")
 
