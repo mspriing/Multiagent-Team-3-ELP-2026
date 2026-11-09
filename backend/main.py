@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from uuid import uuid4
 import logging
 import os
 
@@ -12,8 +13,11 @@ import os
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class ChatRequest(BaseModel):
     message: str
+    conversation_id: str | None = None
+
 
 load_dotenv()
 
@@ -24,6 +28,9 @@ deepseek_client = OpenAI(
 )
 
 app = FastAPI()
+
+# Store separate conversation histories in memory
+conversations = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,16 +59,25 @@ def chat(request: ChatRequest):
             detail="Message cannot be empty."
         )
 
+    # 2. Create or reuse a conversation ID
+    conversation_id = request.conversation_id or str(uuid4())
+
+    if conversation_id not in conversations:
+        conversations[conversation_id] = []
+
+    history = conversations[conversation_id]
+
     try:
-        # 2. Run the multi-agent workflow
+        # 3. Run the multi-agent workflow
         result = graph.invoke({
             "message": request.message,
+            "history": history.copy(),
             "research": "",
             "analysis": "",
             "final_answer": ""
         })
 
-        # 3. Check whether the writer returned an answer
+        # 4. Check whether the writer returned an answer
         final_answer = result.get("final_answer")
 
         if not final_answer:
@@ -70,9 +86,21 @@ def chat(request: ChatRequest):
                 detail="The agents did not generate a response."
             )
 
-        # 4. Return the answer to React
+        # 5. Save the user's message and AI's response
+        history.append({
+            "role": "user",
+            "content": request.message
+        })
+
+        history.append({
+            "role": "assistant",
+            "content": final_answer
+        })
+
+        # 6. Return the answer and conversation ID to React
         return {
-            "response": final_answer
+            "response": final_answer,
+            "conversation_id": conversation_id
         }
 
     except HTTPException:
@@ -80,10 +108,10 @@ def chat(request: ChatRequest):
         raise
 
     except Exception:
-        # 5. Log unexpected errors for debugging
+        # 7. Log unexpected errors for debugging
         logger.exception("Multi-agent workflow failed")
 
-        # 6. Return a safe error message to React
+        # 8. Return a safe error message to React
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again."

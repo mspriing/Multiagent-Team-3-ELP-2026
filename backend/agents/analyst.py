@@ -16,6 +16,9 @@ def analysis_agent(state: AgentState):
     # Get the user's original question
     message = state["message"]
 
+    # Get previous conversation messages
+    history = state.get("history", [])
+
     # Get the research produced by the Researcher Agent
     research = state.get("research", "")
 
@@ -27,6 +30,7 @@ def analysis_agent(state: AgentState):
                 "role": "system",
                 "content": (
                     "You are an expert analysis agent. "
+                    "Use conversation history to understand follow-up questions. "
                     "Analyze the research in relation to the user's "
                     "original question. "
                     "Identify the most important findings, patterns, "
@@ -42,6 +46,7 @@ def analysis_agent(state: AgentState):
                     "Organize your analysis clearly for a writer agent."
                 )
             },
+            *history,
             {
                 "role": "user",
                 "content": (

@@ -13,6 +13,12 @@ client = OpenAI(
 
 def supervisor_agent(state: AgentState):
     message = state["message"]
+    history = state.get("history", [])
+
+    # Always research the first question in a conversation
+    if not history:
+        print("SUPERVISOR → RESEARCHER (new conversation)")
+        return {"next_agent": "researcher"}
 
     response = client.chat.completions.create(
         model="deepseek-chat",
@@ -21,14 +27,16 @@ def supervisor_agent(state: AgentState):
                 "role": "system",
                 "content": (
                     "You are a supervisor for a multi-agent system. "
-                    "Decide which agent should handle the user's request. "
-                    "Choose exactly one of these options: researcher, analyst, writer. "
-                    "Use researcher when information or research is needed. "
-                    "Use analyst when the user wants analysis or comparison. "
-                    "Use writer when the user mainly needs a written response. "
-                    "Respond with only the agent name."
+                    "Use conversation history to understand follow-up questions. "
+                    "Choose exactly one agent: researcher, analyst, or writer. "
+                    "Choose researcher when new facts, research, or sources are needed. "
+                    "Choose analyst when analyzing or comparing information already discussed. "
+                    "Choose writer when summarizing, rewriting, or reformatting an existing answer. "
+                    "When uncertain, choose researcher. "
+                    "Respond with only one word: researcher, analyst, or writer."
                 )
             },
+            *history,
             {
                 "role": "user",
                 "content": message

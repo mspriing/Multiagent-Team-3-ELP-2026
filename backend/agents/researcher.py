@@ -22,20 +22,31 @@ tavily = TavilyClient(
 
 def research_agent(state: AgentState):
     message = state["message"]
+    history = state.get("history", [])
 
+    
+    
     # STEP 1: Generate focused search queries
     query_response = client.chat.completions.create(
         model="deepseek-chat",
+        response_format={"type": "json_object"},
+        max_tokens=300,
+        temperature=0,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "You are a search query generator. "
-                    "Generate exactly 3 focused web search queries "
-                    "that will help answer the user's question. "
-                    "Return ONLY a JSON array of strings."
+                "You are a search query generator. "
+                "Use conversation history only to understand references. "
+                "Focus exclusively on the latest user question. "
+                "Generate exactly 3 specific standalone search queries. "
+                "Respond immediately with a valid JSON object. "
+                "Do not include explanations or whitespace before the JSON. "
+                'Your entire response must follow this format: '
+                '{"queries": ["query 1", "query 2", "query 3"]}'
                 )
             },
+            *history,
             {
                 "role": "user",
                 "content": message
@@ -43,11 +54,16 @@ def research_agent(state: AgentState):
         ]
     )
 
+    # Print DeepSeek's response for debugging
+    print("[RESEARCHER] Raw DeepSeek response:")
+    print(query_response.choices[0].message.content)
+
+
+    
     # Parse the generated queries
     try:
-        queries = json.loads(
-            query_response.choices[0].message.content
-        )
+        data = json.loads(query_response.choices[0].message.content)
+        queries = data["queries"]
 
         if (
             not isinstance(queries, list)
@@ -56,13 +72,17 @@ def research_agent(state: AgentState):
         ):
             raise ValueError("Invalid search queries")
 
-    except (json.JSONDecodeError, ValueError, TypeError):
-        queries = [message]
+    except (json.JSONDecodeError, ValueError, TypeError, KeyError) as e:
+        raise ValueError(f"Invalid search queries: {e}") from e
+
 
     # STEP 2: Search Tavily for each query
 
     all_results = []
     seen_urls = set()
+
+    print(f"[RESEARCHER] History messages: {len(history)}")
+
 
     for query in queries:
         print(f"[RESEARCHER] Searching Tavily: {query}")
@@ -85,6 +105,7 @@ def research_agent(state: AgentState):
                     "content": result.get("content", "")
                 })
     print(f"[RESEARCHER] Total unique sources found: {len(all_results)}")
+
     # STEP 3: Summarize research using DeepSeek
     response = client.chat.completions.create(
         model="deepseek-chat",
@@ -93,6 +114,7 @@ def research_agent(state: AgentState):
                 "role": "system",
                 "content": (
                     "You are a research agent. "
+                    "Use conversation history to understand the current question. "
                     "Analyze the provided web search results. "
                     "Identify the most relevant and reliable information. "
                     "Ignore unrelated results. "
@@ -103,6 +125,7 @@ def research_agent(state: AgentState):
                     "If evidence is insufficient, state what is missing."
                 )
             },
+            *history,
             {
                 "role": "user",
                 "content": (
@@ -115,6 +138,7 @@ def research_agent(state: AgentState):
     )
 
     research_result = response.choices[0].message.content
+
 
     # STEP 4: Save research in LangGraph state
     return {

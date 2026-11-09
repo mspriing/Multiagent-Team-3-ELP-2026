@@ -1,3 +1,4 @@
+
 from langgraph.graph import StateGraph, START, END
 
 from graph.state import AgentState
@@ -18,10 +19,18 @@ workflow.add_node("writer", writer_agent)
 # Start with supervisor
 workflow.add_edge(START, "supervisor")
 
-# Supervisor sends request to researcher
-workflow.add_edge("supervisor", "researcher")
+# Route based on the supervisor's decision
+workflow.add_conditional_edges(
+    "supervisor",
+    lambda state: state["next_agent"],
+    {
+        "researcher": "researcher",
+        "analyst": "analyst",
+        "writer": "writer"
+    }
+)
 
-# Agent pipeline
+# Continue through the pipeline
 workflow.add_edge("researcher", "analyst")
 workflow.add_edge("analyst", "writer")
 

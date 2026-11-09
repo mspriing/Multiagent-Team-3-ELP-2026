@@ -16,6 +16,9 @@ def writer_agent(state: AgentState):
     # Get the original user question
     message = state["message"]
 
+    # Get previous conversation messages
+    history = state.get("history", [])
+
     # Get the research produced by the Researcher Agent
     research = state.get("research", "")
 
@@ -30,8 +33,9 @@ def writer_agent(state: AgentState):
                 "role": "system",
                 "content": (
                     "You are an expert writing agent. "
+                    "Use conversation history to understand follow-up questions. "
                     "Write a clear, accurate, and well-organized "
-                    "final answer to the user's original question. "
+                    "final answer to the user's current question. "
                     "Use the provided research and analysis. "
                     "Begin with a direct answer to the question. "
                     "Organize the response using Markdown headings, "
@@ -45,6 +49,7 @@ def writer_agent(state: AgentState):
                     "Avoid unnecessary repetition and overly long responses."
                 )
             },
+            *history,
             {
                 "role": "user",
                 "content": (

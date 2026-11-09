@@ -11,6 +11,9 @@ function App() {
   // What the backend sends back
   const [response, setResponse] = useState("");
 
+  // Tracks the current conversation
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
   // Whether the agents are currently working
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +29,7 @@ function App() {
     setResponse("");
 
     try {
-      // Send the user's question to FastAPI
+      // Send the question and conversation ID to FastAPI
       const result = await fetch("http://127.0.0.1:8000/chat", {
         method: "POST",
         headers: {
@@ -34,6 +37,7 @@ function App() {
         },
         body: JSON.stringify({
           message: message,
+          conversation_id: conversationId,
         }),
       });
 
@@ -48,12 +52,15 @@ function App() {
       // Save the AI's final answer
       setResponse(data.response ?? "No response received.");
 
+      // Save the conversation ID for future questions
+      setConversationId(data.conversation_id);
+
     } catch (err) {
-    if (err instanceof TypeError) {
-      setError("Unable to connect to the server. Please try again later.");
+      if (err instanceof TypeError) {
+        setError("Unable to connect to the server. Please try again later.");
       } else {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    }
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+      }
     } finally {
       // Stop loading whether successful or not
       setLoading(false);
@@ -101,9 +108,9 @@ function App() {
       {response && (
         <div className="response-container">
           <ReactMarkdown
-          remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
+            remarkPlugins={[[remarkGfm, { singleTilde: false }]]}
           >
-          {response}
+            {response}
           </ReactMarkdown>
         </div>
       )}
