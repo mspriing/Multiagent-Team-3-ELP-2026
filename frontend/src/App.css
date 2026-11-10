@@ -97,6 +97,7 @@
   .groups { grid-template-columns: 1fr 1fr; column-gap: clamp(1rem, .8rem + .8vw, 1.6rem); }
   .grp { grid-template-rows: auto 1fr; }
   .grp.wide { grid-column: 1 / -1; }
+  .groups.stacked { grid-template-columns: minmax(0, 52rem); }
 }
 
 /* Answer text on a white card */

@@ -39,14 +39,20 @@ export function splitSections(md: string, dropSources: boolean): Section[] {
   const out: Section[] = [];
   let cur: Section = { label: "Short answer", body: "" };
   let inFence = false;
+  let sawText = false;
   for (const line of md.split("\n")) {
     if (/^\s*```/.test(line)) inFence = !inFence;
-    const h = !inFence && line.match(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/);
+    // Divider lines only separated sections in plain text; the cards already do that
+    if (!inFence && /^\s{0,3}([-*_])(\s*\1){2,}\s*$/.test(line)) continue;
+    const h = !inFence && line.match(/^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$/);
     if (h) {
+      // A title at the very top repeats the question, so the first card keeps the "Short answer" label
+      if (!sawText && h[1].length === 1 && out.length === 0) continue;
       if (cur.body.trim()) out.push(cur);
-      cur = { label: h[1].replace(/\*\*/g, "").trim(), body: "" };
+      cur = { label: h[2].replace(/\*\*/g, "").trim(), body: "" };
       continue;
     }
+    if (line.trim()) sawText = true;
     cur.body += line + "\n";
   }
   if (cur.body.trim()) out.push(cur);
@@ -54,3 +60,6 @@ export function splitSections(md: string, dropSources: boolean): Section[] {
   return kept.length ? kept : out;
 }
 
+// Long answers read best as one column; short ones sit two to a row like the design
+export const isLongAnswer = (sections: Section[]) =>
+  sections.length > 6 || sections.slice(1).some(s => s.body.length > 700);

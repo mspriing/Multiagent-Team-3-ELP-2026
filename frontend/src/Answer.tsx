@@ -3,7 +3,7 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Icon } from "./Icon";
 
-import { excerptOf, hostOf, splitSections, urlKey, type EvidenceSource } from "./answerText";
+import { excerptOf, hostOf, isLongAnswer, splitSections, urlKey, type EvidenceSource } from "./answerText";
 
 type Props = {
   turnId: string;
@@ -48,11 +48,12 @@ export function Answer({ turnId, content, evidence, onCopy }: Props) {
   };
 
   const count = sections.length;
-  const wide = (i: number) => i === 0 || (i === count - 1 && (count - 1) % 2 === 1);
+  const stacked = isLongAnswer(sections);
+  const wide = (i: number) => stacked || i === 0 || (i === count - 1 && (count - 1) % 2 === 1);
 
   return (
     <>
-      <div className="groups">
+      <div className={`groups${stacked ? " stacked" : ""}`}>
         {sections.map((s, i) => (
           <section key={i} className={`grp${i === 0 ? " lead" : ""}${wide(i) ? " wide" : ""}`}>
             <h3 className="glabel">{s.label}</h3>

@@ -255,6 +255,9 @@ function App() {
         },
       ]);
 
+      // The answer replaces the "working" placeholder in the same render
+      setPendingQuestion("");
+
       // Preserve the conversation ID
       setConversationId(data.conversation_id);
 
@@ -342,7 +345,8 @@ function App() {
       else if (where === "bottom") window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "smooth" });
       else {
         // Bring the newest question to the top, just under the nav
-        const turn = document.querySelector<HTMLElement>(".thread .turn:last-of-type");
+        const answered = document.querySelectorAll<HTMLElement>(".thread .turn.answered");
+        const turn = answered[answered.length - 1];
         const nav = document.querySelector<HTMLElement>(".nav")?.offsetHeight ?? 68;
         if (turn) window.scrollTo({ top: Math.max(0, turn.getBoundingClientRect().top + window.scrollY - nav - 24), behavior: "instant" });
       }
@@ -494,7 +498,7 @@ function App() {
               {view === "thread" && (
                 <section className="thread" aria-live="polite">
                   {turns.map((turn) => (
-                    <article className="turn" key={turn.key}>
+                    <article className="turn answered" key={turn.key}>
                       {turn.question && <h2 className="qh">{turn.question}</h2>}
                       {turn.answer && (
                         <Answer turnId={turn.key} content={turn.answer.content}

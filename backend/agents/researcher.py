@@ -27,19 +27,40 @@ def research_agent(state: AgentState):
     # STEP 1: Generate focused search queries
     queries = None
 
+    # Follow-up questions ("which of those...") only make sense with the
+    # conversation so far. Passing the full earlier answers in JSON mode makes
+    # DeepSeek stall on whitespace until max_tokens, so send a short summary:
+    # the earlier questions and the start of the latest answer.
+    earlier_questions = [
+        m["content"] for m in history if m.get("role") == "user"
+    ][-3:]
+    last_answer = next(
+        (m["content"] for m in reversed(history) if m.get("role") == "assistant"),
+        ""
+    )
+    context = ""
+    if earlier_questions or last_answer:
+        context = (
+            "Earlier questions in this conversation:\n"
+            + "\n".join(f"- {q}" for q in earlier_questions)
+            + (f"\n\nStart of the latest answer:\n{last_answer[:1500]}" if last_answer else "")
+            + "\n\n"
+        )
+
     # Retry if DeepSeek returns invalid JSON
     for attempt in range(2):
         query_response = client.chat.completions.create(
             model="deepseek-chat",
             response_format={"type": "json_object"},
-            max_tokens=500,
+            max_tokens=300,
             temperature=0,
             messages=[
                 {
                     "role": "system",
                     "content": (
                         "You are a search query generator. "
-                        "Use conversation history only to understand references. "
+                        "Use the conversation summary only to understand references "
+                        "such as 'those' or 'it'. "
                         "Focus exclusively on the latest user question. "
                         "Generate exactly 3 specific standalone search queries. "
                         "Respond immediately with a valid JSON object. "
@@ -48,16 +69,15 @@ def research_agent(state: AgentState):
                         '{"queries": ["query 1", "query 2", "query 3"]}'
                     )
                 },
-                *history,
                 {
                     "role": "user",
-                    "content": message
+                    "content": f"{context}Latest question: {message}"
                 }
             ]
         )
 
         # Print DeepSeek's response for debugging
-        raw_response = query_response.choices[0].message.content
+        raw_response = (query_response.choices[0].message.content or "").strip()
 
         print(f"[RESEARCHER] Attempt {attempt + 1}")
         print("[RESEARCHER] Raw DeepSeek response:")
@@ -89,15 +109,24 @@ def research_agent(state: AgentState):
             print(f"[RESEARCHER] Invalid JSON: {e}")
             print("[RESEARCHER] Retrying if attempts remain...")
 
-    # Fallback if both attempts fail
+    # Fallback if both attempts fail. For a follow-up, pair it with the
+    # previous question so the search still knows what "those" refers to.
     if queries is None:
         print("[RESEARCHER] Using fallback search queries")
 
-        queries = [
-            message,
-            f"{message} explanation",
-            f"{message} detailed information"
-        ]
+        if earlier_questions:
+            previous = earlier_questions[-1]
+            queries = [
+                f"{previous} {message}",
+                previous,
+                message
+            ]
+        else:
+            queries = [
+                message,
+                f"{message} explanation",
+                f"{message} detailed information"
+            ]
 
     # STEP 2: Search Tavily for each query
     all_results = []
@@ -108,11 +137,16 @@ def research_agent(state: AgentState):
     for query in queries:
         print(f"[RESEARCHER] Searching Tavily: {query}")
 
-        search_results = tavily.search(
-            query=query,
-            search_depth="advanced",
-            max_results=5
-        )
+        # One failed search (timeout, rate limit) should not fail the question
+        try:
+            search_results = tavily.search(
+                query=query,
+                search_depth="advanced",
+                max_results=5
+            )
+        except Exception as e:
+            print(f"[RESEARCHER] Tavily search failed: {e}")
+            continue
 
         for result in search_results.get("results", []):
             url = result.get("url")
