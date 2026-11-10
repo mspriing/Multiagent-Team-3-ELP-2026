@@ -196,6 +196,8 @@
 .ag .q { background: var(--mid-8); border-radius: 12px; padding: .55rem .75rem; font-size: .875rem; font-weight: 500; line-height: 1.4; }
 .ag ul { margin: 0; padding-left: 1.1rem; display: grid; gap: .3rem; font-size: .9375rem; line-height: 1.45; color: rgb(31 32 41 / .86); }
 .ag .ok { display: inline-flex; align-items: center; gap: .4rem; justify-self: start; background: var(--deep); color: var(--white); border-radius: 999px; padding: .4rem .8rem; font-size: .8125rem; font-weight: 600; }
+.ag .more .in > span.ok { color: var(--white); }
+.ag .ok .icon { color: var(--lime); font-size: 1rem; }
 .ag.on { background: var(--white); color: var(--deep); }
 .ag.on .ic { background: var(--deep); color: var(--lime); }
 .ag.on .nm span { color: var(--mid-70); }
