@@ -81,12 +81,16 @@
 .send.busy, .send.busy:disabled { background: rgb(52 54 69 / .16); color: var(--deep); cursor: progress; }
 
 /* Docked question box under a conversation */
-.dock { position: sticky; bottom: 0; padding: 0 var(--pad) 1.25rem; pointer-events: none; z-index: 10; }
-.dock .qcard { pointer-events: auto; width: min(100%, 52rem); margin: 0 auto; gap: .6rem; padding: .85rem .9rem; }
+/* A dark frosted shelf sits behind the box, so answers fade out and blur as they scroll under it */
+.dock { position: sticky; bottom: 0; padding: 2.75rem var(--pad) 1.25rem; margin-top: -2.75rem; pointer-events: none; z-index: 10; isolation: isolate; }
+.dock::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(31 32 41 / 0), rgb(31 32 41 / .82) 2.75rem, rgb(31 32 41 / .92)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 2.75rem); mask-image: linear-gradient(180deg, transparent, #000 2.75rem); }
+.dock .qcard { pointer-events: auto; width: min(100%, 62rem); margin: 0 auto; gap: .6rem; padding: .85rem .9rem; }
+/* When the answers stack in one narrower column, the box lines up with that column */
+.main:has(.groups.stacked) .dock .qcard { max-width: 52rem; margin-left: max(0px, (100% - 62rem) / 2); }
 .dock textarea { min-height: 1.5em; font-size: 1.0625rem; max-height: 40vh; overflow-y: auto; }
 
 /* ---------- Conversation ---------- */
-.thread { width: min(100% - 2 * var(--pad), 62rem); margin: 0 auto; padding: clamp(2.5rem, 2rem + 2vw, 4rem) 0 3rem; display: grid; gap: clamp(3.5rem, 3rem + 2vw, 5rem); align-content: start; }
+.thread { width: min(100% - 2 * var(--pad), 62rem); margin: 0 auto; padding: clamp(2.5rem, 2rem + 2vw, 4rem) 0 4.5rem; display: grid; gap: clamp(3.5rem, 3rem + 2vw, 5rem); align-content: start; }
 .turn { display: grid; gap: 1.6rem; scroll-margin-top: calc(var(--nav-h) + 1.5rem); }
 .turn .qh { font-size: clamp(1.45rem, 1.15rem + 1vw, 2rem); line-height: 1.18; letter-spacing: -.03em; max-width: 34ch; overflow-wrap: anywhere; white-space: pre-wrap; }
 .groups { display: grid; gap: clamp(1.2rem, 1rem + .8vw, 1.8rem); }
@@ -169,10 +173,11 @@
 /* ---------- Homepage sections under the new chat ---------- */
 .built { background: var(--white); color: var(--deep); padding: clamp(1.6rem, 1.2rem + 1vw, 2.2rem) 0; }
 .built .mask { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(90deg, transparent, #000 14%, #000 86%, transparent); }
-.built .track { display: flex; gap: clamp(2.5rem, 2rem + 2vw, 4rem); width: max-content; animation: mq 40s linear infinite; align-items: center; }
-.logo { display: inline-flex; align-items: center; gap: .65rem; font-size: clamp(1.0625rem, 1rem + .3vw, 1.3rem); font-weight: 600; letter-spacing: -.02em; white-space: nowrap; color: var(--deep); }
+.built .track { display: flex; width: max-content; animation: mq 40s linear infinite; align-items: center; }
+.logo { display: inline-flex; align-items: center; gap: .65rem; font-size: clamp(1.0625rem, 1rem + .3vw, 1.3rem); font-weight: 600; letter-spacing: -.02em; white-space: nowrap; color: var(--deep); margin-right: clamp(2.5rem, 2rem + 2vw, 4rem); }
 .logo svg { width: clamp(1.5rem, 1.3rem + .5vw, 1.9rem); height: auto; aspect-ratio: 1; fill: currentColor; }
-@keyframes mq { to { transform: translateX(-50%); } }
+/* The track holds three copies of the list, so moving one third loops without a jump */
+@keyframes mq { to { transform: translateX(-33.3333%); } }
 .wrap { width: min(100% - 2 * var(--pad), 72rem); margin-inline: auto; }
 .s-how { background: var(--mid); }
 .howpin { height: 260vh; position: relative; }
@@ -230,7 +235,7 @@
   .dhead { display: flex; align-items: center; justify-content: space-between; }
   .after { grid-template-columns: 1fr; }
   .after .pill { justify-self: start; margin-top: 0; }
-  .dock { padding: 0 .75rem .75rem; }
+  .dock { padding: 2rem .75rem .75rem; margin-top: -2rem; }
   .toast, .app[data-view="thread"] .toast { top: calc(var(--nav-h) + .75rem); bottom: auto; transform: translateY(-220%); }
   .toast.on, .app[data-view="thread"] .toast.on { transform: none; }
   .newview h1 { max-width: 12ch; }
@@ -247,4 +252,5 @@
 @media (max-width: 380px) {
   .brand .name { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .built .track { animation: none; } }
+/* Keep the logo strip moving, slower, when the computer asks for reduced motion */
+@media (prefers-reduced-motion: reduce) { .built .track { animation: mq 90s linear infinite !important; } }
