@@ -28,7 +28,8 @@ type Turn = { key: string; question: string; answer?: ChatMessage };
 // Why a request failed: "net" when the server can't be reached, "server" when it answered with an error
 type SendError = { kind: "net" | "server"; question: string };
 
-const API_URL = "http://127.0.0.1:8000";
+// The backend address: set VITE_API_URL when hosting (for example on Vercel); locally it is port 8000
+const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
 const SUGGESTIONS = [
   "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.",

@@ -5,13 +5,8 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
-from database import (
-    init_db,
-    create_conversation,
-    save_message,
-    get_messages
-)
 import logging
+import os
 
 from database import (
     init_db,
@@ -38,15 +33,20 @@ class ChatRequest(BaseModel):
 
 app = FastAPI()
 
-# Initialize SQLite tables when the backend starts
+# Create the database tables when the backend starts
 init_db()
+
+# Sites allowed to call this backend: the local dev servers, plus any listed in
+# ALLOWED_ORIGINS (comma separated), such as the frontend's Vercel address
+allowed_origins = ["http://localhost:5173", "http://localhost:5174"] + [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-    ],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -79,15 +79,7 @@ def chat(request: ChatRequest):
             # Reject IDs that do not belong to a saved conversation
             # (get_messages alone cannot distinguish an empty chat
             # from a nonexistent conversation).
-            from database import get_connection
-
-            with get_connection() as connection:
-                exists = connection.execute(
-                    "SELECT 1 FROM conversations WHERE id = ?",
-                    (conversation_id,)
-                ).fetchone()
-
-            if not exists:
+            if get_conversation(conversation_id) is None:
                 raise HTTPException(
                     status_code=404,
                     detail="Conversation not found."

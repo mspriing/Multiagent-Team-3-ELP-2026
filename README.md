@@ -70,3 +70,12 @@ You need Python 3.10 or newer (`python3 --version`; on a Mac, `brew install pyth
    ```
 
 4. Open http://localhost:5173. A new question takes about a minute: the Researcher runs three web searches before the Analyst and Writer answer. Conversations are saved in `backend/conversations.db`.
+
+## Host it on Vercel
+
+The app runs as two Vercel projects from this repository.
+
+1. **Backend** (Root Directory `backend`). Vercel detects FastAPI from `main.py`; `backend/vercel.json` gives each research request up to 300 seconds. Add a Neon Postgres database from the project's Storage tab, which sets `DATABASE_URL`, so saved conversations persist. Then set `DEEPSEEK_API_KEY`, `TAVILY_API_KEY`, and `ALLOWED_ORIGINS` (the frontend's address, such as `https://your-site.vercel.app`).
+2. **Frontend** (Root Directory `frontend`). Set `VITE_API_URL` to the backend's address, then deploy.
+
+Without `DATABASE_URL`, the backend keeps using the local SQLite file, so running it on your own computer works the same as before.
