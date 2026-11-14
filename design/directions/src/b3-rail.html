@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, B3 Rail</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<style>
+/*__BCSS__*/
+/* B3 Rail: one rounded window of light holds the question; the four agents stand in a rail of solid tiles
+   beside it, filling the height. While they work the window widens; for the answer a white sheet slides
+   up over the window and the rail turns into the sources. */
+.app{display:grid;grid-template-columns:minmax(0,1fr) var(--rail,30%);gap:16px;padding:16px;height:100dvh;transition:grid-template-columns 1.1s var(--ease)}
+body[data-state=working]{--rail:24%}
+.window{position:relative;overflow:hidden;border-radius:28px;background:var(--deep);display:grid;grid-template-rows:auto 1fr}
+.window > :not(.fx):not(.anshead):not(.sheet){position:relative}
+.brand{font-weight:600;font-size:1.15rem;letter-spacing:-.01em;text-align:center;padding:var(--pad) var(--pad) 0}
+.win{display:grid;place-items:center;text-align:center;padding:var(--pad)}
+.win > *{width:min(100%,46rem);justify-items:center}
+.hero h1{font-size:var(--t-hero);line-height:1}
+.lead{font-size:var(--t-lead);line-height:1.5;color:var(--w-72);max-width:40ch;margin:1.1rem auto 2.2rem}
+.qcard{width:100%;text-align:left}
+.go{width:3.25rem;height:3.25rem;border-radius:14px;background:var(--deep);color:var(--lime);display:grid;place-items:center;flex:none;transition:transform .15s}
+.go svg{width:1.35rem;height:1.35rem}
+.go[disabled]{cursor:not-allowed}
+.go:active{transform:translateY(1px)}
+.clock{font-size:clamp(5rem,3rem + 7vw,10.5rem);font-weight:500;letter-spacing:-.045em;line-height:.9;font-variant-numeric:tabular-nums}
+.wq{font-size:clamp(1.15rem,1rem + .5vw,1.45rem);line-height:1.35;color:var(--w-72);max-width:42ch;margin:1.3rem auto 0}
+.err h1{font-size:var(--t-h2);line-height:1.1;max-width:18ch}
+.err .lead{margin-bottom:1.8rem}
+.btns{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center}
+.r-lime{background:var(--lime);color:var(--deep);border-radius:14px;padding:.9rem 1.5rem;font-weight:600}
+.r-white{background:var(--white);color:var(--deep);border-radius:14px;padding:.9rem 1.5rem;font-weight:600}
+.r-deep{background:var(--deep);color:var(--white);border-radius:14px;padding:.9rem 1.5rem;font-weight:600}
+.r-tint{background:var(--mid-8);color:var(--deep);border-radius:14px;padding:.9rem 1.5rem;font-weight:600}
+
+/* The answer: the window becomes a head strip and a white sheet rises over the rest */
+.anshead{position:absolute!important;z-index:1;inset:0 0 auto 0;padding:var(--pad);text-align:center}
+.anshead h1{font-size:clamp(1.3rem,1.05rem + .9vw,1.9rem);line-height:1.2;max-width:44ch;margin:0 auto}
+.sheet{position:absolute!important;z-index:1;inset:auto 0 0 0;height:calc(100% - var(--head,9.5rem));background:var(--white);color:var(--deep);border-radius:28px 28px 0 0;overflow:auto;padding:clamp(1.5rem,1rem + 2vw,3rem)}
+.sheet-in{width:min(100%,46rem);margin:0 auto} .sheet .doc{max-width:none}
+.sheet .btns{justify-content:flex-start;margin-bottom:2rem}
+
+.rail{display:grid;gap:16px;min-height:0}
+.rail .crew{grid-template-rows:repeat(4,1fr);gap:16px;height:100%;transition:opacity .8s var(--ease)}
+.rail .tile{border-radius:22px;padding:clamp(1.1rem,.8rem + 1vw,1.8rem);align-content:space-between}
+.rail .tile b{font-size:clamp(1.25rem,1rem + .8vw,1.75rem);letter-spacing:-.03em}
+.rail .tile span{font-size:clamp(.875rem,.8rem + .2vw,1rem)}
+body[data-state=error] .rail .tile{opacity:.45}
+.rail-srcs{padding:clamp(1.2rem,.9rem + 1vw,1.8rem) 0;display:grid;align-content:start;gap:1rem;overflow:auto}
+.rail-srcs h2{font-size:1.25rem}
+.rail-srcs{grid-template-rows:auto 1fr;height:100%;padding-bottom:0!important}
+.rail-srcs .srcs{display:flex;flex-direction:column;gap:16px}
+.rail-srcs .src{border-radius:22px;padding:1.2rem 1.4rem;gap:.35rem}
+.rail-srcs .src b{font-size:1.15rem;letter-spacing:-.02em}
+
+@media (max-width:767px){
+  .app{grid-template-columns:1fr;grid-template-rows:auto auto;height:auto;min-height:100dvh;padding:10px;gap:10px}
+  .window{min-height:calc(100dvh - 20px - 13rem)}
+  body[data-state=working] .window{min-height:calc(100dvh - 20px - 13rem)}
+  body[data-state=answer] .window{min-height:0;display:block}
+  .rail .crew{grid-template-columns:1fr 1fr;grid-template-rows:auto;gap:10px}
+  .rail .tile{border-radius:18px;padding:.9rem 1rem;min-height:6rem}
+  .rail .tile b{font-size:1.1rem} .rail .tile span{font-size:.8125rem} .ic{width:2.1rem;height:2.1rem;font-size:1.25rem;margin-bottom:.6rem}
+  .rail-srcs{height:auto} .rail-srcs .src{flex:none}
+  .qcard .qrow{flex-direction:column;align-items:stretch} .qcard .go{align-self:flex-end}
+  .anshead{position:relative!important;padding:2rem 1.25rem 1.5rem}
+  .sheet{position:relative!important;height:auto;border-radius:22px;overflow:visible}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="window">
+    <canvas class="fx" id="fx"></canvas>
+    <div class="brand st s-ask s-working s-error" style="--d:block">Multi-Agent AI</div>
+    <div class="win st s-ask s-working s-error" style="--d:grid">
+      <div class="hero st s-ask" style="--d:grid">
+        <h1>Ask once.<br>Four agents answer.</h1>
+        <p class="lead">A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources.</p>
+        <form class="qcard" id="form">
+          <label for="q" class="sr">Your research question</label>
+          <textarea id="q" rows="2" placeholder="Ask a research question"></textarea>
+          <div class="qrow"><div class="chips" data-sugs></div><button class="go" data-act="send" disabled aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+        </form>
+      </div>
+      <div class="st s-working" style="--d:grid" aria-live="polite">
+        <div class="clock" data-fill="clock">0:00</div>
+        <p class="wq" data-fill="question"></p>
+      </div>
+      <div class="err st s-error" style="--d:grid" role="alert">
+        <h1 data-fill="err-title"></h1>
+        <p class="lead" data-fill="err-body"></p>
+        <div class="btns"><button class="r-lime" data-act="retry">Try again</button><button class="r-white" data-act="edit">Edit question</button></div>
+      </div>
+    </div>
+    <div class="anshead st s-answer" style="--d:block"><h1 data-fill="question"></h1></div>
+    <div class="sheet st s-answer" style="--d:block">
+      <div class="sheet-in">
+        <div class="btns"><button class="r-deep" data-act="copy">Copy answer</button><button class="r-tint" data-act="new">New question</button></div>
+        <article class="doc on-white" data-fill="doc"></article>
+      </div>
+    </div>
+  </div>
+  <aside class="rail">
+    <div class="crew st s-ask s-working s-error" style="--d:grid" data-crew></div>
+    <nav class="rail-srcs st s-answer" style="--d:grid" aria-label="Sources"><h2>Sources</h2><div class="srcs" data-fill="srcs"></div></nav>
+  </aside>
+</div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+<script>
+/*__SHARED__*/
+const FX_STATES = {
+  ask:    { layout:5, glass:0, position:{x:50,y:100}, spread:.4, warp:1.3, intensity:1.4, speed:.35, stop1:.55, stop2:.9 },
+  working:{ layout:5, glass:0, position:{x:50,y:96}, spread:.55, warp:1.7, intensity:2.1, speed:1.2, stop1:.5, stop2:.86 },
+  answer: { layout:5, glass:0, position:{x:50,y:-4}, spread:.34, warp:1.2, intensity:1.2, speed:.3 },
+  error:  { layout:5, glass:0, position:{x:50,y:100}, spread:.32, warp:1, ...COOL, speed:.05, intensity:1.0 },
+};
+/*__BJS__*/
+</script>
+</body>
+</html>

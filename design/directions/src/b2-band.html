@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, B2 Band</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<style>
+/*__BCSS__*/
+/* B2 Band: the window is a moving band across the top, the way the OXS hub heads its pages.
+   White cards sit on a midnight ground below it. The band grows while the agents work. */
+body{background:var(--mid)}
+.page{display:grid;grid-template-rows:var(--band,1fr) auto;min-height:100dvh}
+body[data-state=answer] .page{grid-template-rows:auto auto}
+.band{position:relative;overflow:hidden;background:var(--deep);display:grid;grid-template-rows:auto 1fr;min-height:56dvh}
+body[data-state=working] .band{min-height:100dvh}
+body[data-state=answer] .band{min-height:0}
+.band > :not(.fx){position:relative}
+.brand{font-weight:600;font-size:1.15rem;letter-spacing:-.01em;text-align:center;padding:var(--pad) var(--pad) 0}
+.bin{display:grid;place-items:center;text-align:center;padding:clamp(2rem,4vw,3.5rem) var(--pad) clamp(5.5rem,9vw,7.5rem)}
+.bin > *{width:min(100%,52rem);justify-items:center}
+.hero h1{font-size:var(--t-hero);line-height:1}
+.lead{font-size:var(--t-lead);line-height:1.5;color:var(--w-72);max-width:40ch;margin:1.1rem auto 0}
+.clock{font-size:clamp(5rem,3rem + 7vw,10rem);font-weight:500;letter-spacing:-.045em;line-height:.9;font-variant-numeric:tabular-nums}
+.wq{font-size:clamp(1.15rem,1rem + .5vw,1.45rem);line-height:1.35;color:var(--w-72);max-width:44ch;margin:1.2rem auto 2.4rem}
+.crew{grid-template-columns:repeat(4,1fr);width:min(100%,64rem);text-align:left;gap:1rem}
+.band .tile{padding:1.4rem;min-height:11rem;align-content:space-between} .band .tile b{font-size:1.25rem}
+.ansq h1{font-size:var(--t-h2);line-height:1.12;max-width:30ch;margin:0 auto}
+.btns{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;margin-top:1.6rem}
+.p-lime{background:var(--lime);color:var(--deep);border-radius:999px;padding:.85rem 1.5rem;font-weight:600}
+.p-white{background:var(--white);color:var(--deep);border-radius:999px;padding:.85rem 1.5rem;font-weight:600}
+.p-deep{background:var(--deep);color:var(--white);border-radius:999px;padding:.85rem 1.5rem;font-weight:600;display:inline-flex;align-items:center;gap:.5rem}
+.p-deep[disabled]{cursor:not-allowed}
+.p-tint{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.85rem 1.5rem;font-weight:600}
+.err h1{font-size:var(--t-h2);line-height:1.1;max-width:20ch;margin:0 auto}
+body[data-state=answer] .bin{padding-bottom:clamp(2.5rem,4vw,3.5rem)}
+
+.below{padding:0 var(--pad) var(--pad);display:grid;justify-items:center}
+.qwrap{width:min(100%,48rem);margin-top:-4rem;position:relative;z-index:2;display:grid}
+.qcard .chips{padding:0 .35rem}
+.cards{width:min(100%,78rem);display:grid;grid-template-columns:minmax(0,1fr) 22rem;gap:1.25rem;align-items:start;margin-top:var(--pad)}
+.card{background:var(--white);color:var(--deep);border-radius:22px;padding:clamp(1.4rem,1rem + 1.6vw,2.6rem)}
+.card .doc{max-width:none}
+.card h2.ct{font-size:1.2rem;margin-bottom:1rem}
+.side-card .src{background:var(--mid-8)}
+.side-card{position:sticky;top:1.5rem}
+.errcard{width:min(100%,40rem);margin-top:-4rem;position:relative;z-index:2;text-align:center}
+.errcard p{color:var(--mid-70);font-size:var(--t-lead);line-height:1.5}
+.errcard .btns{margin-top:1.4rem}
+
+@media (max-width:767px){
+  .band{min-height:58dvh}
+  .crew{grid-template-columns:1fr 1fr;gap:.5rem}
+  .band .tile{padding:.8rem .9rem;min-height:0} .band .tile b{font-size:1.0625rem} .tile span{font-size:.8125rem} .ic{width:2.1rem;height:2.1rem;font-size:1.25rem;margin-bottom:.6rem}
+  .cards{grid-template-columns:1fr}
+  .side-card{position:static}
+  .bin{padding-bottom:5.5rem}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="band">
+    <canvas class="fx" id="fx"></canvas>
+    <div class="brand">Multi-Agent AI</div>
+    <div class="bin">
+      <div class="hero st s-ask" style="--d:grid">
+        <h1>Ask once.<br>Four agents answer.</h1>
+        <p class="lead">A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources.</p>
+      </div>
+      <div class="st s-working" style="--d:grid" aria-live="polite">
+        <div class="clock" data-fill="clock">0:00</div>
+        <p class="wq" data-fill="question"></p>
+        <div class="crew" data-crew></div>
+      </div>
+      <div class="ansq st s-answer" style="--d:grid">
+        <h1 data-fill="question"></h1>
+        <div class="btns"><button class="p-lime" data-act="copy">Copy answer</button><button class="p-white" data-act="new">New question</button></div>
+      </div>
+      <div class="err st s-error" style="--d:grid" role="alert">
+        <h1 data-fill="err-title"></h1>
+      </div>
+    </div>
+  </header>
+  <main class="below">
+    <div class="qwrap st s-ask" style="--d:grid">
+      <form class="qcard" id="form">
+        <label for="q" class="sr">Your research question</label>
+        <textarea id="q" rows="2" placeholder="Ask a research question"></textarea>
+        <div class="chips" data-sugs></div>
+        <div class="qrow"><span class="hint">Press Enter to send</span><button class="p-deep" data-act="send" disabled>Send <span aria-hidden="true">&rarr;</span></button></div>
+      </form>
+    </div>
+    <div class="cards st s-answer" style="--d:grid">
+      <article class="card"><div class="doc on-white" data-fill="doc"></div></article>
+      <nav class="card side-card" aria-label="Sources"><h2 class="ct">Sources</h2><div class="srcs" data-fill="srcs"></div></nav>
+    </div>
+    <div class="card errcard st s-error" style="--d:block">
+      <p data-fill="err-body"></p>
+      <div class="btns"><button class="p-deep" data-act="retry">Try again</button><button class="p-tint" data-act="edit">Edit question</button></div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+<script>
+/*__SHARED__*/
+const FX_STATES = {
+  ask:    { layout:5, glass:0, position:{x:50,y:104}, spread:.42, warp:1.3, intensity:1.5, speed:.35, stop1:.55, stop2:.9 },
+  working:{ layout:5, glass:0, position:{x:50,y:100}, spread:.55, warp:1.7, intensity:2.0, speed:1.2, stop1:.5, stop2:.86 },
+  answer: { layout:5, glass:0, position:{x:84,y:100}, spread:.4, warp:1.2, intensity:1.3, speed:.3 },
+  error:  { layout:5, glass:0, position:{x:50,y:104}, spread:.34, warp:1, ...COOL, speed:.05, intensity:1.0 },
+};
+/*__BJS__*/
+</script>
+</body>
+</html>

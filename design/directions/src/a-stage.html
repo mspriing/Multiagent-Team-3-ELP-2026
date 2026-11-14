@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Direction A Stage</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --ink-2:rgb(252 255 255 / .72); --ink-3:rgb(252 255 255 / .5);
+  --font:"Satoshi", ui-sans-serif, system-ui, sans-serif;
+  --t-hero:clamp(2.6rem, 1.2rem + 5.2vw, 6.25rem);
+  --t-h2:clamp(1.9rem, 1.1rem + 2.6vw, 3.75rem);
+  --t-lead:clamp(1.05rem, .95rem + .4vw, 1.3rem);
+  --t-body:1.0625rem; --t-small:.9375rem;
+  --gut:clamp(1.25rem, .6rem + 3vw, 4rem);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --r-pill:999px; --r-sheet:28px;
+}
+*{box-sizing:border-box;min-width:0}
+h1,h2{text-wrap:balance}
+html,body{margin:0;height:100%;background:var(--deep);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
+body{overflow:hidden}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px;border-radius:12px}
+.fx{position:fixed;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(60% 70% at 78% 32%, rgb(98 192 246 / .55), transparent 60%), radial-gradient(18% 22% at 74% 36%, rgb(178 246 1 / .5), transparent 70%), var(--deep)}
+/* Quiet zone: keeps type on midnight while the light moves on the far side (no strong effect behind text). */
+.scrim{position:fixed;inset:0;pointer-events:none;z-index:1;transition:opacity 1.2s var(--ease);
+  background:linear-gradient(90deg, rgb(31 32 41 / .82) 0%, rgb(31 32 41 / .55) 38%, rgb(31 32 41 / 0) 66%)}
+@media (max-width:767px){
+  .scrim{background:linear-gradient(0deg, rgb(31 32 41 / .92) 0%, rgb(31 32 41 / .7) 55%, rgb(31 32 41 / 0) 82%)}
+  body[data-state=working] .scrim{background:linear-gradient(180deg, rgb(31 32 41 / .88) 0%, rgb(31 32 41 / .45) 38%, rgb(31 32 41 / 0) 50%, rgb(31 32 41 / .5) 68%, rgb(31 32 41 / .9) 100%)}
+}
+.top{position:fixed;inset:0 0 auto 0;display:flex;align-items:center;justify-content:space-between;padding:clamp(1rem,.6rem + 1.4vw,2rem) var(--gut);z-index:5}
+.brand{font-weight:700;font-size:1.125rem;letter-spacing:-.02em}
+.ghost{background:transparent;border:1px solid rgb(252 255 255 / .35);border-radius:var(--r-pill);padding:.7rem 1.2rem;cursor:pointer;font-weight:500;transition:border-color .15s,transform .15s}
+.ghost:hover{border-color:var(--white)}
+.ghost:active{transform:translateY(1px)}
+.primary{background:var(--lime);color:var(--deep);border:0;border-radius:var(--r-pill);padding:.85rem 1.5rem;font-weight:700;cursor:pointer;transition:transform .15s,opacity .15s}
+.primary:active{transform:translateY(1px) scale(.98)}
+.primary[disabled]{background:rgb(252 255 255 / .14);color:var(--ink-3);cursor:not-allowed}
+.view{position:fixed;inset:0;padding:0 var(--gut);display:grid;z-index:2;pointer-events:none;opacity:0;transition:opacity .6s var(--ease)}
+.view.on{opacity:1;pointer-events:auto}
+
+/* Ask */
+.ask{align-content:end;padding-bottom:clamp(2rem,1rem + 6vh,6rem)}
+.ask h1{font-size:var(--t-hero);font-weight:500;letter-spacing:-.045em;line-height:.98;margin:0 0 1.2rem;max-width:14ch}
+.ask .lead{font-size:var(--t-lead);color:var(--ink-2);max-width:46ch;margin:0 0 2.2rem;line-height:1.45}
+.capsule{display:flex;align-items:center;gap:.75rem;width:min(100%,56rem);padding:.6rem .6rem .6rem 1.6rem;border-radius:var(--r-pill);
+  background:linear-gradient(135deg, rgb(252 255 255 / .16), rgb(252 255 255 / .05));border:1px solid rgb(252 255 255 / .3);
+  backdrop-filter:blur(26px) saturate(150%);-webkit-backdrop-filter:blur(26px) saturate(150%);box-shadow:inset 0 1px 0 rgb(252 255 255 / .35), 0 30px 80px rgb(10 11 18 / .45)}
+.capsule input{flex:1;background:none;border:0;outline:0;font-size:clamp(1.05rem,.95rem + .45vw,1.35rem);padding:.7rem 0;color:var(--white)}
+.capsule input::placeholder{color:var(--ink-3)}
+.capsule:focus-within{border-color:rgb(252 255 255 / .6)}
+.tries{display:flex;flex-wrap:wrap;gap:.4rem 1.6rem;margin-top:1.3rem;max-width:56rem}
+.tries button{background:none;border:0;padding:.35rem 0;color:var(--ink-2);cursor:pointer;font-size:var(--t-small);text-align:left;text-decoration:underline;text-decoration-color:rgb(252 255 255 / .25);text-underline-offset:5px;transition:color .15s,text-decoration-color .15s}
+.tries button:hover{color:var(--white);text-decoration-color:var(--lime)}
+
+/* Working */
+.work{grid-template-rows:1fr auto;padding-top:clamp(5rem,3rem + 8vh,9rem);padding-bottom:clamp(1.5rem,1rem + 3vh,3.5rem)}
+.work h2{font-size:var(--t-h2);font-weight:500;letter-spacing:-.035em;line-height:1.04;margin:0;max-width:22ch}
+.work .lead{color:var(--ink-2);font-size:var(--t-lead);margin:1.4rem 0 0;max-width:44ch}
+.view.on .lift{animation:lift 1s var(--ease) both}
+@keyframes lift{from{opacity:0;transform:translateY(40px) scale(.97);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.rail{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.names{display:flex;flex-wrap:wrap;gap:0 clamp(1rem,.4rem + 2vw,2.6rem)}
+.names span{font-size:clamp(2.4rem,1rem + 5.6vw,7.5rem);font-weight:700;letter-spacing:-.05em;line-height:1;color:transparent;-webkit-text-stroke:1px rgb(252 255 255 / .45);
+  background:linear-gradient(100deg, transparent 0 38%, var(--lime) 46%, var(--white) 50%, var(--blue) 54%, transparent 62% 100%) no-repeat;background-size:300% 100%;-webkit-background-clip:text;background-clip:text;animation:sweep 3.2s linear infinite}
+.names span:nth-child(2){animation-delay:-.8s}.names span:nth-child(3){animation-delay:-1.6s}.names span:nth-child(4){animation-delay:-2.4s}
+@keyframes sweep{from{background-position:100% 0}to{background-position:0 0}}
+.clock{text-align:right;white-space:nowrap}
+.clock b{display:block;font-size:clamp(2rem,1.2rem + 2.4vw,3.5rem);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.clock small{color:var(--ink-3);font-size:var(--t-small)}
+
+/* Answer: a white sheet rises over the stage */
+.sheet{position:fixed;inset:auto 0 0 0;height:calc(100% - clamp(5.5rem,4rem + 6vh,8rem));background:var(--white);color:var(--mid);border-radius:var(--r-sheet) var(--r-sheet) 0 0;z-index:3;
+  transform:translateY(102%);transition:transform .8s var(--ease);overflow:auto;box-shadow:0 -30px 80px rgb(10 11 18 / .35)}
+.sheet.on{transform:none}
+.sheet-in{display:grid;grid-template-columns:minmax(0,19rem) minmax(0,1fr);gap:clamp(2rem,1rem + 4vw,6rem);padding:clamp(2rem,1.4rem + 2.4vw,4rem) var(--gut) 6rem;max-width:84rem;margin:0 auto}
+.side{position:sticky;top:2rem;align-self:start;display:grid;gap:1.6rem}
+.side .q{font-size:1.25rem;font-weight:500;letter-spacing:-.02em;line-height:1.35;color:var(--deep)}
+.acts{display:flex;flex-wrap:wrap;gap:.6rem}
+.acts .ghost{color:var(--mid);border-color:rgb(52 54 69 / .25)}
+.acts .ghost:hover{border-color:var(--mid)}
+.srcs{display:grid;gap:.9rem;padding-top:1.4rem;border-top:1px solid rgb(52 54 69 / .12)}
+.srcs h3{margin:0;font-size:var(--t-small);font-weight:700;color:var(--deep)}
+.srcs a{display:grid;gap:.15rem;color:var(--mid);text-decoration:none}
+.srcs a span{font-size:.8125rem;color:rgb(52 54 69 / .6)}
+.srcs a b{font-weight:500;font-size:var(--t-small);text-decoration:underline;text-decoration-color:var(--blue);text-underline-offset:4px}
+.srcs a:hover b{text-decoration-color:var(--deep)}
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.5rem,1.2rem + .9vw,2rem);font-weight:700;letter-spacing:-.03em;color:var(--deep);margin:2.6rem 0 .8rem;line-height:1.15}
+.doc h2:first-child{margin-top:0;font-size:clamp(1.9rem,1.3rem + 1.6vw,2.75rem);font-weight:500}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.65}
+.doc ul{padding-left:1.2rem;display:grid;gap:.5rem}
+.doc li::marker{color:var(--blue)}
+.doc a{color:var(--deep);text-decoration:underline;text-decoration-color:var(--blue);text-decoration-thickness:2px;text-underline-offset:4px}
+.toast{visibility:hidden;position:fixed;left:50%;bottom:2rem;transform:translate(-50%,180%);background:var(--deep);color:var(--white);border-radius:var(--r-pill);padding:.9rem 1.4rem;font-weight:500;z-index:6;transition:transform .45s var(--ease);box-shadow:0 20px 50px rgb(10 11 18 / .35)}
+.toast.on{visibility:visible;transform:translate(-50%,0)}
+
+/* Error */
+.err{align-content:center}
+.err h1{font-size:var(--t-h2);font-weight:500;letter-spacing:-.035em;line-height:1.04;margin:0 0 1.2rem;max-width:18ch}
+.err p{color:var(--ink-2);font-size:var(--t-lead);max-width:42ch;margin:0 0 2rem;line-height:1.45}
+.err .row{display:flex;gap:.7rem;flex-wrap:wrap}
+
+@media (max-width:767px){
+  .work h2{font-size:clamp(1.55rem,1.2rem + 1.6vw,2rem)}
+  .ask h1{font-size:clamp(2.3rem,1.6rem + 3vw,3rem)}
+  .rail{flex-direction:column;align-items:flex-start;gap:1.5rem}
+  .clock{text-align:left}
+  .sheet-in{grid-template-columns:1fr}
+  .side{position:static}
+  .capsule{padding-left:1.1rem}
+  .primary{padding:.8rem 1.15rem}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas class="fx" id="fx" aria-hidden="true"></canvas>
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+<header class="top">
+  <div class="brand">Multi-Agent AI</div>
+  <button class="ghost" id="newTop" hidden>New question</button>
+</header>
+
+<main>
+  <section class="view ask" id="vAsk" aria-labelledby="askTitle">
+    <h1 id="askTitle">Ask a question.<br>Four agents answer it.</h1>
+    <p class="lead">Your question goes to a Supervisor, a Researcher, an Analyst and a Writer, and you get one response with its sources.</p>
+    <form class="capsule" id="form">
+      <label for="q" class="sr" style="position:absolute;left:-9999px">Your research question</label>
+      <input id="q" autocomplete="off" placeholder="Ask a research question">
+      <button class="primary" id="send" type="submit" disabled>Send</button>
+    </form>
+    <div class="tries" id="tries"></div>
+  </section>
+
+  <section class="view work" id="vWork" aria-live="polite">
+    <div>
+      <h2 class="lift" id="workQ"></h2>
+      <p class="lead lift" style="animation-delay:.15s">Your Supervisor, Researcher, Analyst and Writer are working on it.</p>
+    </div>
+    <div class="rail">
+      <div class="names" aria-hidden="true"></div>
+      <div class="clock"><b id="clock">0:00</b><small>Researching</small></div>
+    </div>
+  </section>
+
+  <section class="view err" id="vErr" role="alert">
+    <div>
+      <h1 id="errTitle"></h1>
+      <p id="errBody"></p>
+      <div class="row"><button class="primary" id="retry">Try again</button><button class="ghost" id="edit">Edit question</button></div>
+    </div>
+  </section>
+</main>
+
+<section class="sheet" id="sheet" aria-label="Answer">
+  <div class="sheet-in">
+    <aside class="side">
+      <div class="q" id="ansQ"></div>
+      <div class="acts"><button class="primary" id="copy">Copy answer</button><button class="ghost" id="newSheet">New question</button></div>
+      <nav class="srcs" aria-label="Sources"><h3>Sources</h3><div id="srcs" style="display:grid;gap:.9rem"></div></nav>
+    </aside>
+    <article class="doc" id="doc"></article>
+  </div>
+</section>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+
+<script>
+/*__SHARED__*/
+const $ = id => document.getElementById(id);
+const FX_STATES = {
+  ask:    { position:{x:78,y:32}, spread:.42, intensity:2.7, speed:.6, stop2:.82, light:1.2 },
+  working:{ position:{x:74,y:40}, spread:.56, intensity:3.1, speed:1.8, stop2:.78, light:1.35, warp:2.2 },
+  answer: { position:{x:84,y:4},  spread:.3,  intensity:2.5, speed:.5,  stop2:.82 },
+  error:  { position:{x:80,y:30}, spread:.4,  ...COOL },
+  askPhone:     { position:{x:78,y:10}, spread:.3, intensity:2.4 },
+  workingPhone: { position:{x:62,y:56}, spread:.3, intensity:2.7 },
+  answerPhone:  { position:{x:80,y:2},  spread:.24 },
+  errorPhone:   { position:{x:74,y:12}, spread:.3 },
+};
+document.querySelector('.names').innerHTML = AGENTS.map(a => `<span>${a[0]}</span>`).join('');
+$('tries').innerHTML = SUGGESTIONS.map(s => `<button type="button">${esc(s)}</button>`).join('');
+let light, last = null, tick = null;
+const flow = createFlow(render);
+createLight($('fx'), fxFor(FX_STATES, 'ask')).then(l => { light = l; light.follow(.18); if (last) render(last, true); });
+
+function render(s, force) {
+  const prev = last ? last.state : null; last = s; document.body.dataset.state = s.state;
+  $('vAsk').classList.toggle('on', s.state === 'ask');
+  $('vWork').classList.toggle('on', s.state === 'working');
+  $('vErr').classList.toggle('on', s.state === 'error');
+  $('sheet').classList.toggle('on', s.state === 'answer');
+  $('newTop').hidden = !(s.state === 'answer' || s.state === 'error');
+  if ($('q').value !== s.question) $('q').value = s.question;
+  $('send').disabled = !s.question.trim();
+  if (light && (force || prev !== s.state)) { light.to(fxFor(FX_STATES, s.state), s.state === 'working' ? 1600 : 1200); light.follow(s.state === 'ask' ? .18 : 0); }
+  if (s.state === 'working') { $('workQ').textContent = s.question; clearInterval(tick); const up = () => $('clock').textContent = fmtTime(performance.now() - s.startedAt); up(); tick = setInterval(up, 250); }
+  else clearInterval(tick);
+  if (s.state === 'answer') { const r = renderMarkdown(s.answer, { skipSources: true }); $('doc').innerHTML = r.html; $('ansQ').textContent = s.question;
+    $('srcs').innerHTML = sourcesFrom(s.answer).map(x => `<a href="${x.url}" target="_blank" rel="noopener"><span>${x.host}</span><b>${esc(x.title)}</b></a>`).join(''); }
+  if (s.state === 'error') { $('errTitle').textContent = ERRORS[s.error].title; $('errBody').textContent = ERRORS[s.error].body; }
+  const showToast = s.copied && Date.now() - s.copied < 2200;
+  $('toast').classList.toggle('on', !!showToast);
+  if (showToast && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+$('q').addEventListener('input', e => flow.type(e.target.value));
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+$('tries').addEventListener('click', e => { if (e.target.matches('button')) { flow.type(e.target.textContent); $('q').focus(); } });
+for (const id of ['newTop', 'newSheet']) $(id).addEventListener('click', () => { flow.reset(); setTimeout(() => $('q').focus(), 400); });
+$('copy').addEventListener('click', () => flow.copy());
+$('retry').addEventListener('click', () => flow.send());
+$('edit').addEventListener('click', () => { flow.edit(); setTimeout(() => $('q').focus(), 400); });
+</script>
+</body>
+</html>

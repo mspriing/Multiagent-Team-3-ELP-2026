@@ -1,0 +1,46 @@
+<!doctype html><html><body style="margin:0;background:#343645">
+<canvas id="c"></canvas>
+<script>
+// Fluted (reeded) glass over a motion-blurred colour field. Palette: midnight #343645, white #FCFFFF, lightning blue #62C0F6, lime #B2F601.
+const P = new URLSearchParams(location.search);
+const W = +P.get('w'), H = +P.get('h'), S = 2, mode = P.get('mode') || 'ask';
+const flute = +(P.get('flute') || 16) * S;
+const c = document.getElementById('c'); c.width = W*S; c.height = H*S;
+const x = c.getContext('2d');
+const src = document.createElement('canvas'); src.width = c.width; src.height = c.height;
+const s = src.getContext('2d');
+s.fillStyle = '#2b2c39'; s.fillRect(0,0,src.width,src.height);
+const g0 = s.createLinearGradient(0,0,src.width,src.height);
+g0.addColorStop(0,'#343645'); g0.addColorStop(1,'#272833');
+s.fillStyle = g0; s.fillRect(0,0,src.width,src.height);
+function blob(cx,cy,rx,ry,col,a,blur,rot=0){ s.save(); s.filter=`blur(${blur*S}px)`; s.globalAlpha=a; s.fillStyle=col; s.beginPath(); s.ellipse(cx*src.width,cy*src.height,rx*src.width,ry*src.height,rot,0,Math.PI*2); s.fill(); s.restore(); }
+const L = {
+  ask:  [[0.80,0.36,0.30,0.50,'#62C0F6',0.95,80,0.35],[0.70,0.50,0.22,0.06,'#B2F601',0.9,30,-0.9],[0.78,0.66,0.16,0.05,'#B2F601',0.7,28,-0.7],[0.86,0.22,0.12,0.08,'#FCFFFF',0.8,36,-0.5],[0.62,0.78,0.20,0.14,'#62C0F6',0.6,50,0.2],[0.98,0.55,0.08,0.45,'#343645',0.6,50,0]],
+  run:  [[0.50,0.46,0.42,0.30,'#62C0F6',0.9,80,-0.25],[0.42,0.50,0.30,0.05,'#B2F601',0.95,28,-0.55],[0.60,0.40,0.26,0.04,'#B2F601',0.75,26,-0.5],[0.52,0.34,0.16,0.06,'#FCFFFF',0.8,32,-0.45],[0.30,0.70,0.18,0.10,'#62C0F6',0.6,50,0.3]],
+  answer:[[0.86,0.18,0.28,0.30,'#62C0F6',0.85,70,0.3],[0.90,0.30,0.16,0.035,'#B2F601',0.85,24,-0.6],[0.82,0.12,0.10,0.05,'#FCFFFF',0.7,28,-0.4],[0.10,0.02,0.24,0.16,'#62C0F6',0.40,80,0]],
+  error:[[0.76,0.36,0.30,0.42,'#62C0F6',0.6,80,0.3],[0.82,0.30,0.12,0.05,'#FCFFFF',0.5,30,-0.5],[0.66,0.52,0.18,0.04,'#62C0F6',0.7,24,-0.6]]
+}[mode];
+for (const b of L) blob(...b);
+// horizontal motion smear
+const sm = document.createElement('canvas'); sm.width=src.width; sm.height=src.height; const m = sm.getContext('2d');
+for (let i=-6;i<=6;i++){ m.globalAlpha=1/13; m.drawImage(src,i*16*S,0); }
+s.globalAlpha=1; s.drawImage(sm,0,0);
+// fluted refraction
+const id = s.getImageData(0,0,src.width,src.height), d = id.data;
+const out = x.createImageData(src.width,src.height), o = out.data;
+for (let px=0; px<src.width; px++){
+  const st = Math.floor(px/flute)*flute, u = (px-st)/flute;
+  let sx = Math.round(st + flute*0.5 + (u-0.5)*flute*3.2 + Math.sin(st*0.013)*flute*0.8);
+  sx = Math.max(0, Math.min(src.width-1, sx));
+  const shade = 1 + 0.10*Math.cos(Math.PI*(u-0.25)*1.4) - (u>0.94 ? 0.10 : 0) + (u<0.05 ? 0.06 : 0);
+  for (let py=0; py<src.height; py++){
+    const si=(py*src.width+sx)*4, di=(py*src.width+px)*4;
+    o[di]=Math.min(255,d[si]*shade); o[di+1]=Math.min(255,d[si+1]*shade); o[di+2]=Math.min(255,d[si+2]*shade); o[di+3]=255;
+  }
+}
+x.putImageData(out,0,0);
+// fine grain-free vertical sheen
+const sh = x.createLinearGradient(0,0,0,c.height); sh.addColorStop(0,'rgba(252,255,255,0.05)'); sh.addColorStop(0.5,'rgba(252,255,255,0)'); sh.addColorStop(1,'rgba(39,40,51,0.25)');
+x.fillStyle=sh; x.fillRect(0,0,c.width,c.height);
+document.title='done';
+</script></body></html>

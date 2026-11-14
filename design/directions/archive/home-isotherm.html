@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Assistant, Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<style>
+/* Shared base for the B rebuild (2026-11-03). Rules from taste.md: no hairlines or borders, every element
+   has a fill that contrasts with what it sits on, content centred in its space, no dead bands. */
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --mid-8:rgb(52 54 69 / .08); --mid-14:rgb(52 54 69 / .14); --mid-70:rgb(52 54 69 / .78);
+  --w-72:rgb(252 255 255 / .78);
+  --font:"Geist", -apple-system, "SF Pro Display", system-ui, sans-serif;
+  --t-hero:clamp(2.6rem, 1.6rem + 3.4vw, 4.75rem); --t-h2:clamp(1.6rem, 1.2rem + 1.3vw, 2.4rem);
+  --t-lead:clamp(1.05rem, .98rem + .3vw, 1.25rem); --t-body:1.0625rem; --t-small:.9375rem;
+  --pad:clamp(1.25rem, .7rem + 2.4vw, 3rem); --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;min-height:100%;background:var(--deep);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+h1,h2,h3{font-family:var(--font);font-weight:600;letter-spacing:-.035em;margin:0;text-wrap:balance}
+p{margin:0}
+.sr{position:absolute;left:-9999px}
+
+/* State switching: an element with .st and .s-<state> shows only in that state. */
+.st{display:none!important}
+body[data-state=ask] .s-ask, body[data-state=working] .s-working,
+body[data-state=answer] .s-answer, body[data-state=error] .s-error{display:var(--d,block)!important;animation:in .7s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* The light */
+.fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(70% 60% at 50% 70%, rgb(98 192 246 / .55), transparent 70%),var(--deep)}
+
+/* Question card: white, dark type, filled chips inside, no borders */
+.qcard{background:var(--white);color:var(--mid);border-radius:22px;padding:1.1rem 1.1rem 1rem;display:grid;gap:.9rem;box-shadow:0 30px 60px -30px rgb(10 11 16 / .55)}
+.qcard textarea{resize:none;background:none;border:0;outline:0;font-size:var(--t-lead);line-height:1.45;color:var(--deep);min-height:3.2em;padding:.35rem .45rem}
+.qcard textarea::placeholder{color:rgb(52 54 69 / .55)}
+.qrow{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.hint{font-size:.8125rem;color:rgb(52 54 69 / .62);padding-left:.45rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.55rem .95rem;font-size:.875rem;font-weight:500;text-align:left;line-height:1.3;transition:background .15s}
+@media (hover:hover){.chip:hover{background:var(--mid-14)}}
+
+/* Crew tiles: solid white, dark type */
+.crew{display:grid;gap:.75rem}
+.tile{background:var(--white);color:var(--deep);border-radius:var(--r);padding:1.05rem 1.15rem;display:grid;align-content:start}
+.tile .tx{display:grid;gap:.25rem}
+.ic{width:2.6rem;height:2.6rem;border-radius:12px;background:var(--deep);color:var(--lime);display:grid;place-items:center;font-size:1.55rem;margin-bottom:.9rem}
+.tile b{font-weight:600;font-size:1.0625rem;letter-spacing:-.01em}
+.tile span{font-size:.875rem;color:var(--mid-70);line-height:1.35}
+
+/* Answer text, for a white surface */
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.25rem,1.1rem + .6vw,1.6rem);margin:2.2rem 0 .7rem;line-height:1.2;letter-spacing:-.025em}
+.doc h2:first-child{margin-top:0}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.68}
+.doc ul{padding-left:1.2rem;margin:0;display:grid;gap:.4rem}
+.doc a{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.doc.on-white{color:var(--deep)} .doc.on-white p,.doc.on-white li{color:rgb(31 32 41 / .86)}
+.doc.on-white li::marker{color:var(--mid)} .doc.on-white a{text-decoration-color:var(--blue)}
+
+/* Source cards: solid white */
+.srcs{display:grid;gap:.6rem}
+.src{display:grid;gap:.2rem;background:var(--white);color:var(--deep);border-radius:14px;padding:.95rem 1.1rem;text-decoration:none;transition:transform .15s}
+.src span{font-size:.8125rem;color:var(--mid-70)}
+.src b{font-weight:600;font-size:var(--t-small)}
+@media (hover:hover){.src:hover{transform:translateY(-2px)}}
+
+.toast{position:fixed;left:50%;bottom:1.5rem;translate:-50% 0;background:var(--lime);color:var(--deep);border-radius:999px;padding:.85rem 1.4rem;font-weight:600;visibility:hidden;transform:translateY(160%);transition:transform .5s var(--ease),visibility .5s;z-index:9}
+.toast.on{visibility:visible;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Home (2026-11-03): B2 Band grown into a full homepage, OXS hub section order.
+   Band = heat field (WebGL). Send = the question card frosts and fills lime, the OXS scroll bar's spring fill.
+   Answer and errors follow Apple's result sheets and alerts. No hairlines, no borders, every fill contrasts. */
+html{scroll-behavior:smooth}
+body{background:var(--deep)}
+.wrap{width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+
+/* Nav: solid deep, with the OXS scroll fill under it */
+.nav{position:sticky;top:0;z-index:20;background:var(--deep)}
+.nav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:4rem;width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+.brand{display:flex;align-items:center;gap:.7rem;font-weight:600;letter-spacing:-.01em;color:var(--white);text-decoration:none}
+.brand i{width:2rem;height:2rem;border-radius:9px;background:var(--lime);color:var(--deep);display:grid;place-items:center;font-size:1.15rem}
+.links{display:flex;gap:.35rem}
+.links a{color:var(--white);text-decoration:none;font-size:.9375rem;font-weight:500;padding:.55rem .9rem;border-radius:999px;transition:background .15s}
+@media (hover:hover){.links a:hover{background:rgb(252 255 255 / .1)}}
+.nav .cta{justify-self:end}
+.bar{height:4px;background:var(--mid)}
+.bar span{display:block;height:100%;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+body:not([data-state=ask]) .links{visibility:hidden}
+
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:999px;padding:.85rem 1.5rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:transform .15s var(--ease)}
+.pill:active{transform:scale(.98)}
+.pill.lime{background:var(--lime);color:var(--deep)} .pill.deep{background:var(--deep);color:var(--white)}
+.pill.white{background:var(--white);color:var(--deep)} .pill.tint{background:var(--mid-8);color:var(--deep)}
+.pill.sm{padding:.6rem 1.1rem;font-size:.9375rem}
+.pill i{font-size:1.15em}
+
+/* Band: the heat field */
+.band{position:relative;overflow:hidden;background:var(--deep);min-height:72dvh;display:grid;place-items:center;transition:min-height .9s var(--ease)}
+body[data-state=working] .band{min-height:calc(100dvh - 4rem - 4px)}
+body[data-state=answer] .band{min-height:0}
+body[data-state=error] .band{min-height:calc(100dvh - 4rem - 4px)}
+.band > :not(.heat):not(.runwrap):not(.alertwrap){position:relative}
+.heat{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bin{text-align:center;padding:clamp(2.5rem,5vw,4.5rem) var(--pad) clamp(6.5rem,10vw,8rem);width:min(100%,72rem)}
+.hero h1{font-size:var(--t-hero);line-height:1.02}
+.hero p{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1.2rem auto 0;color:var(--white)}
+.ansq{padding-bottom:clamp(2.5rem,4vw,3.5rem)}
+.ansq h1{font-size:var(--t-h2);line-height:1.12;max-width:30ch;margin:0 auto}
+
+/* Question card */
+.below{display:grid;justify-items:center;padding:0 var(--pad);background:var(--deep)}
+.qwrap{width:min(100%,48rem);margin-top:-5.5rem;position:relative;z-index:3}
+.qcard .chips{padding:0 .35rem}
+.send{position:relative;overflow:hidden}
+
+/* Working: the card itself lifts into the band, frosts, and fills lime */
+.runwrap{position:absolute;inset:0;display:grid;place-items:center;padding:var(--pad);z-index:2}
+.run{width:min(100%,48rem);position:relative;border-radius:26px;overflow:hidden;
+  background:rgb(31 32 41 / .58);-webkit-backdrop-filter:blur(26px) saturate(1.35);backdrop-filter:blur(26px) saturate(1.35);
+  box-shadow:0 40px 80px -40px rgb(10 11 16 / .7)}
+.run .layer{padding:clamp(1.4rem,1rem + 1.6vw,2.4rem);display:grid;gap:1.1rem}
+.run .top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.run .lbl{font-weight:600;font-size:1.0625rem}
+.run .clock{font-size:clamp(2.6rem,2rem + 2.4vw,4rem);font-weight:500;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.run .q{font-size:var(--t-lead);line-height:1.45}
+.run .crewrow{display:flex;flex-wrap:wrap;gap:.5rem}
+.run .crewrow span{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;padding:.45rem .85rem .45rem .5rem;font-size:.875rem;font-weight:600}
+.run .crewrow i{width:1.6rem;height:1.6rem;border-radius:999px;display:grid;place-items:center;font-size:.95rem}
+.run .layer.light{color:var(--white)}
+.run .layer.light .crewrow span{background:rgb(252 255 255 / .16)} .run .layer.light .crewrow i{background:var(--white);color:var(--deep)}
+/* the lime fill, with the same content in deep type clipped to it, so type stays readable on both sides */
+.run .fill{position:absolute;inset:0;background:var(--lime);clip-path:inset(0 calc(100% - var(--p,0)*100%) 0 0)}
+.run .layer.dark{position:absolute;inset:0;color:var(--deep);clip-path:inset(0 calc(100% - var(--p,0)*100%) 0 0)}
+.run .layer.dark .crewrow span{background:rgb(31 32 41 / .12)} .run .layer.dark .crewrow i{background:var(--deep);color:var(--lime)}
+.run .layer.dark .clock,.run .layer.dark .lbl{color:var(--deep)}
+
+/* Answer: Apple-style result sheet */
+.sheetwrap{width:min(100%,60rem);margin-top:-2.5rem;position:relative;z-index:3;padding-bottom:var(--pad)}
+.sheet{background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.5rem,1rem + 2vw,3rem);box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-bottom:clamp(1.4rem,1rem + 1vw,2rem)}
+.meta span{display:inline-flex;align-items:center;gap:.4rem;background:var(--mid-8);border-radius:999px;padding:.45rem .9rem;font-size:.875rem;font-weight:500}
+.meta i{color:var(--mid)}
+.sheet .doc{max-width:none}
+.doc a.cite,.cite{color:var(--white);display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;margin-left:.25rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.72rem;font-weight:600;vertical-align:.12em;text-decoration:none;line-height:1}
+.acts{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin-top:clamp(1.6rem,1rem + 1.4vw,2.4rem)}
+.srch{font-size:1.25rem;margin:clamp(2rem,1.4rem + 1.6vw,3rem) 0 1rem;text-align:center}
+.platters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.platter{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:center;background:var(--mid-8);color:var(--deep);text-decoration:none;border-radius:18px;padding:.9rem 1rem;transition:transform .15s var(--ease)}
+@media (hover:hover){.platter:hover{transform:translateY(-2px)}}
+.platter .fav{width:2.6rem;height:2.6rem;border-radius:12px;background:var(--white);display:grid;place-items:center;position:relative}
+.platter .fav img{width:1.5rem;height:1.5rem;border-radius:4px}
+.platter .fav b{position:absolute;top:-.35rem;right:-.35rem;min-width:1.25rem;height:1.25rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.68rem;display:grid;place-items:center}
+.platter .tx{display:grid;gap:.15rem}
+.platter .tx span{font-size:.8125rem;color:var(--mid-70)}
+.platter .tx strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+
+/* Errors: Apple-style alert */
+.alertwrap{position:absolute;inset:0;display:grid;place-items:center;padding:var(--pad);z-index:2}
+.alertwrap .alert{width:min(100%,30rem)}
+.alert{background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);text-align:center;display:grid;justify-items:center;gap:.9rem;box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.alert .badge{width:4rem;height:4rem;border-radius:999px;background:var(--deep);color:var(--blue);display:grid;place-items:center;font-size:2rem}
+.alert h2{font-size:1.4rem;line-height:1.2;max-width:22ch}
+.alert p{color:var(--mid-70);line-height:1.5}
+.alert .yourq{width:100%;background:var(--mid-8);border-radius:16px;padding:.9rem 1rem;text-align:left;display:grid;gap:.3rem}
+.alert .yourq span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.alert .yourq q{quotes:none;line-height:1.45;font-size:.9375rem;color:var(--deep)}
+.alert .stack{width:100%;display:grid;gap:.55rem;margin-top:.3rem}
+.alert .stack .pill{width:100%}
+
+/* Homepage sections, shown while asking */
+.home{display:none} body[data-state=ask] .home{display:block}
+.marquee{background:var(--white);color:var(--deep);overflow:hidden;padding:1.4rem 0;margin-top:clamp(3rem,5vw,4.5rem)}
+.marquee .track{display:flex;gap:.75rem;width:max-content;animation:mq 38s linear infinite}
+.marquee span{background:var(--mid-8);border-radius:999px;padding:.6rem 1.15rem;font-weight:600;font-size:.9375rem;white-space:nowrap}
+@keyframes mq{to{transform:translateX(-50%)}}
+.sec{padding:clamp(4rem,3rem + 4vw,7rem) 0}
+.sec .head{text-align:center;display:grid;gap:.9rem;justify-items:center;margin-bottom:clamp(2rem,1.4rem + 2vw,3.5rem)}
+.sec h2{font-size:var(--t-h2);line-height:1.1;max-width:24ch}
+.sec .head p{font-size:var(--t-lead);line-height:1.5;max-width:46ch}
+.s-agents{background:var(--mid)} .s-agents .head p{color:var(--w-72)}
+.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.agent{background:var(--white);color:var(--deep);border-radius:22px;padding:1.5rem;display:grid;grid-template-rows:auto auto 1fr auto;gap:.7rem;min-height:21rem}
+.agent .ic{margin-bottom:.4rem}
+.agent h3{font-size:1.4rem}
+.agent p{color:var(--mid-70);line-height:1.5}
+.agent .hand{background:var(--mid-8);border-radius:14px;padding:.75rem .9rem;display:grid;gap:.15rem}
+.agent .hand span{font-size:.75rem;font-weight:600;color:var(--mid)} .agent .hand b{font-weight:600;font-size:.9375rem}
+
+/* The path: one question scrolled through the agents, with the fill that runs on Send */
+.s-path{background:var(--deep)} .s-path .head{text-align:center;display:grid;gap:.9rem;justify-items:center} .s-path h2{font-size:var(--t-h2);line-height:1.1} .s-path .head p{color:var(--w-72);font-size:var(--t-lead);line-height:1.5;max-width:46ch}
+.pathpin{height:240vh;position:relative}
+.pathstage{position:sticky;top:calc(4rem + 4px);height:calc(100dvh - 4rem - 4px);display:grid;align-content:center;gap:1.6rem}
+.track4{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;background:var(--mid);border-radius:999px;padding:.4rem;position:relative;overflow:hidden}
+.track4 .f{position:absolute;inset:0;background:var(--lime);border-radius:999px;transform-origin:left;transform:scaleX(var(--pp,0))}
+.track4 b{position:relative;text-align:center;padding:.75rem .5rem;font-weight:600;border-radius:999px;color:var(--white);transition:color .3s}
+.track4 b.on{color:var(--deep)}
+.stations{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;align-items:start}
+.station{background:var(--mid);color:var(--white);border-radius:22px;padding:1.4rem;display:grid;align-content:start;gap:.8rem;min-height:17rem;transition:background .5s var(--ease),color .5s var(--ease)}
+.station.on{background:var(--white);color:var(--deep)}
+.station:not(.on) p,.station:not(.on) li{color:var(--w-72)} .station:not(.on) .qs span,.station:not(.on) [data-fill=sampleq]{background:rgb(252 255 255 / .1)!important}
+.station h3{font-size:1.15rem}
+.station p,.station li{font-size:.9375rem;line-height:1.5;color:rgb(31 32 41 / .86);transition:color .5s}
+.station ul{margin:0;padding-left:1.1rem;display:grid;gap:.35rem}
+.station .qs{display:grid;gap:.45rem}
+.station .qs span{background:var(--mid-8);border-radius:12px;padding:.55rem .75rem;font-size:.875rem;font-weight:500}
+.station .ok{display:inline-flex;align-items:center;gap:.4rem;justify-self:start;background:var(--lime);color:var(--deep);border-radius:999px;padding:.4rem .8rem;font-size:.8125rem;font-weight:600}
+
+.s-cta{background:var(--lime);color:var(--deep);text-align:center}
+.s-cta h2{margin:0 auto}
+.s-cta p{max-width:40ch;margin:1rem auto 2rem;font-size:var(--t-lead);line-height:1.5;color:rgb(31 32 41 / .82)}
+
+.foot{background:var(--deep);padding:clamp(2.5rem,2rem + 2vw,4rem) 0}
+.foot .in{display:grid;justify-items:center;gap:1rem;text-align:center}
+.foot p{color:var(--w-72);font-size:.9375rem}
+.foot .row{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+
+/* Review control (not part of the design) */
+.review{position:fixed;left:1rem;bottom:1rem;z-index:30;display:flex;gap:.3rem;align-items:center;background:var(--white);color:var(--deep);border-radius:999px;padding:.3rem .3rem .3rem .9rem;font-size:.8125rem;font-weight:600;box-shadow:0 20px 40px -20px rgb(10 11 16 / .6)}
+.review button{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.45rem .8rem;font-size:.8125rem;font-weight:600}
+.review button[aria-pressed=true]{background:var(--deep);color:var(--lime)}
+
+@media (max-width:1023px){
+  .agents,.stations{grid-template-columns:1fr 1fr}
+  .agent{min-height:0}
+}
+@media (max-width:767px){
+  .nav .in{grid-template-columns:1fr auto}
+  .links{display:none}
+  .band{min-height:70dvh}
+  .bin{padding-bottom:7.5rem}
+  .agents{grid-template-columns:1fr}
+  .pathpin{height:auto} .pathstage{position:static;height:auto}
+  .stations{grid-template-columns:1fr} .station{min-height:0}
+  .track4{display:none}
+  .platters{grid-template-columns:1fr}
+  .review{left:.5rem;right:.5rem;bottom:.5rem;justify-content:center;padding-left:.7rem}
+  .review em{display:none}
+}
+@media (prefers-reduced-motion:reduce){.marquee .track{animation:none}}
+</style>
+</head>
+<body data-state="ask">
+<header class="nav">
+  <div class="in">
+    <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Research Assistant</a>
+    <nav class="links" aria-label="Sections"><a href="#agents">The agents</a><a href="#path">How it works</a></nav>
+    <a class="pill lime sm cta" href="#top" data-act="ask">Ask a question</a>
+  </div>
+  <div class="bar" aria-hidden="true"><span id="sbar"></span></div>
+</header>
+
+<div id="top" class="band">
+  <canvas class="heat" id="heat"></canvas>
+  <div class="bin">
+    <div class="hero st s-ask" style="--d:block">
+      <h1>Ask a research question.<br>Get an answer you can check.</h1>
+      <p>A Supervisor, a Researcher, an Analyst and a Writer work through it in turn, and every answer lists the sources it used.</p>
+    </div>
+    <div class="ansq st s-answer" style="--d:block"><h1 data-fill="question"></h1></div>
+  </div>
+  <div class="runwrap st s-working" style="--d:grid" aria-live="polite">
+    <div class="run" id="run">
+      <div class="layer light">
+        <div class="top"><span class="lbl">Working on your question</span><span class="clock" data-fill="clock">0:00</span></div>
+        <p class="q" data-fill="question"></p>
+        <div class="crewrow" data-crewrow></div>
+      </div>
+      <div class="fill" aria-hidden="true"></div>
+      <div class="layer dark" aria-hidden="true">
+        <div class="top"><span class="lbl">Working on your question</span><span class="clock" data-fill="clock">0:00</span></div>
+        <p class="q" data-fill="question"></p>
+        <div class="crewrow" data-crewrow></div>
+      </div>
+    </div>
+  </div>
+  <div class="alertwrap st s-error" style="--d:grid">
+      <div class="alert" role="alert">
+        <div class="badge"><i class="ph-fill" data-fill="err-icon" aria-hidden="true"></i></div>
+        <h2 data-fill="err-head"></h2>
+        <p data-fill="err-body"></p>
+        <div class="yourq"><span>Your question</span><q data-fill="question"></q></div>
+        <div class="stack"><button class="pill deep" data-act="retry"><i class="ph-fill ph-arrow-clockwise" aria-hidden="true"></i>Try again</button><button class="pill tint" data-act="edit">Edit question</button></div>
+      </div>
+    </div>
+</div>
+
+<main class="below">
+  <div class="qwrap st s-ask" style="--d:block">
+    <form class="qcard" id="form">
+      <label for="q" class="sr">Your research question</label>
+      <textarea id="q" rows="2" placeholder="Ask a research question"></textarea>
+      <div class="chips" data-sugs></div>
+      <div class="qrow"><span class="hint">Press Enter to send</span><button class="pill deep send" data-act="send" disabled>Send <i class="ph-fill ph-arrow-right" aria-hidden="true"></i></button></div>
+    </form>
+  </div>
+
+  <div class="sheetwrap st s-answer" style="--d:block">
+    <article class="sheet">
+      <div class="meta"><span><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Answered in <b data-fill="took">0:24</b></span><span><i class="ph-fill ph-link" aria-hidden="true"></i><b data-fill="srccount">4</b> sources</span></div>
+      <div class="doc on-white" data-fill="doc"></div>
+      <div class="acts"><button class="pill lime" data-act="copy"><i class="ph-fill ph-copy" aria-hidden="true"></i>Copy answer</button><button class="pill deep" data-act="new"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i>New question</button></div>
+      <h2 class="srch">Sources</h2>
+      <nav class="platters" aria-label="Sources" data-fill="srcs"></nav>
+    </article>
+  </div>
+
+</main>
+
+<div class="home">
+  <div class="marquee" aria-label="Built with"><div class="track" id="mq"></div></div>
+
+  <section class="sec s-agents" id="agents">
+    <div class="wrap">
+      <div class="head"><h2>Who works on your question</h2><p>Each agent does one job, then hands its work to the next.</p></div>
+      <div class="agents" id="agentcards"></div>
+    </div>
+  </section>
+
+  <section class="s-path" id="path">
+    <div class="pathpin" id="pathpin">
+      <div class="pathstage wrap">
+        <div class="head"><h2>Follow one question through</h2><p>Scroll to move it from agent to agent. The same lime fill runs across the question box while yours is working.</p></div>
+        <div class="track4" id="track4"><span class="f"></span><b>Supervisor</b><b>Researcher</b><b>Analyst</b><b>Writer</b></div>
+        <div class="stations" id="stations">
+          <div class="station"><h3>Supervisor</h3><p>Reads the question and sends it to the Researcher.</p><p style="background:var(--mid-8);border-radius:12px;padding:.7rem .8rem" data-fill="sampleq"></p></div>
+          <div class="station"><h3>Researcher</h3><p>Writes its own web searches and reads the results through Tavily.</p><div class="qs"><span>Microsoft enterprise AI strategy</span><span>Google Vertex AI enterprise adoption</span><span>AI opportunities for mid-sized software firms</span></div></div>
+          <div class="station"><h3>Analyst</h3><p>Pulls the conclusions out of what the sources say.</p><ul><li>Microsoft sells AI inside seats companies already license.</li><li>Google competes on model quality and price per use.</li><li>Both are adding agents that act inside other apps.</li></ul></div>
+          <div class="station"><h3>Writer</h3><p>Turns the findings into one answer and lists every source.</p><span class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Answer ready, 4 sources</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec s-cta">
+    <div class="wrap"><h2>Try it with your own question</h2><p>Type anything you would normally research, and the agents will bring back an answer with its sources.</p><a class="pill deep" href="#top" data-act="ask">Ask a question <i class="ph-fill ph-arrow-up" aria-hidden="true"></i></a></div>
+  </section>
+</div>
+
+<footer class="foot">
+  <div class="wrap in">
+    <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Research Assistant</a>
+    <p>Built by Multi-Agent Team 3 in Nittany AI's ELP, Fall 2026.</p>
+    <div class="row"><a class="pill white sm" href="https://github.com/mspriing/Multiagent-Team-3-ELP-2026" target="_blank" rel="noopener"><i class="ph-fill ph-github-logo" aria-hidden="true"></i>View the code</a><a class="pill tint sm" style="background:rgb(252 255 255 / .12);color:var(--white)" href="#top" data-act="home">Back to top</a></div>
+  </div>
+</footer>
+
+<div class="review" role="group" aria-label="Review: band style"><em>Band style</em><button data-heat="0">Thermal</button><button data-heat="1">Isotherm</button><button data-heat="2">Vents</button></div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+
+<script>
+const LS = (() => {
+// Property metadata is only used in Figma Design, so this is a no-op.
+function defineProperties(
+  _component,
+  _properties,
+) {}
+
+function Effect() { }
+function setup(device, frame) {
+    var wgsl = `diagnostic(off,derivative_uniformity);
+struct U {
+  c0: vec4f,
+  c1: vec4f,
+  c2: vec4f,
+  c3: vec4f,
+  hl: vec4f,
+  v0: vec4f,
+  v1: vec4f,
+  v2: vec4f,
+  v3: vec4f,
+  v4: vec4f,
+  v5: vec4f,
+  v6: vec4f,
+};
+@group(0) @binding(0) var<uniform> u: U;
+
+struct VsOut {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex fn vs_main(@location(0) pos: vec2f, @location(1) uv: vec2f) -> VsOut {
+  var o: VsOut;
+  o.position = vec4f(pos, 0.0, 1.0);
+  o.uv = uv;
+  return o;
+}
+
+fn hash2(p: vec2f) -> f32 {
+  var p3 = fract(vec3f(p.x, p.y, p.x) * 0.1031);
+  p3 = p3 + vec3f(dot(p3, vec3f(p3.y, p3.z, p3.x) + vec3f(33.33)));
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let w = f * f * (3.0 - 2.0 * f);
+  let a = hash2(i);
+  let b = hash2(i + vec2f(1.0, 0.0));
+  let c = hash2(i + vec2f(0.0, 1.0));
+  let d = hash2(i + vec2f(1.0, 1.0));
+  return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
+}
+
+fn fbm(p0: vec2f) -> f32 {
+  var p = p0;
+  var amp: f32 = 0.5;
+  var total: f32 = 0.0;
+  for (var i: i32 = 0; i < 4; i = i + 1) {
+    total = total + amp * vnoise(p);
+    p = p * 2.02 + vec2f(1.7, 9.2);
+    amp = amp * 0.5;
+  }
+  return total / 0.9375;
+}
+
+fn rot2(p: vec2f, a: f32) -> vec2f {
+  let c = cos(a);
+  let s = sin(a);
+  return vec2f(c * p.x - s * p.y, s * p.x + c * p.y);
+}
+
+fn toLin(c: vec3f) -> vec3f {
+  let lo = c / 12.92;
+  let hi = pow((c + vec3f(0.055)) / 1.055, vec3f(2.4));
+  return select(hi, lo, c <= vec3f(0.04045));
+}
+
+fn toSrgb(c0: vec3f) -> vec3f {
+  let c = max(c0, vec3f(0.0));
+  let lo = c * 12.92;
+  let hi = 1.055 * pow(c, vec3f(1.0 / 2.4)) - vec3f(0.055);
+  return select(hi, lo, c <= vec3f(0.0031308));
+}
+
+fn toOklab(c: vec3f) -> vec3f {
+  let l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
+  let m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
+  let s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
+  let l2 = pow(max(l, 0.0), 1.0 / 3.0);
+  let m2 = pow(max(m, 0.0), 1.0 / 3.0);
+  let s2 = pow(max(s, 0.0), 1.0 / 3.0);
+  return vec3f(
+    0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2,
+    1.9779984951 * l2 - 2.4285922050 * m2 + 0.4505937099 * s2,
+    0.0259040371 * l2 + 0.7827717662 * m2 - 0.8086757660 * s2
+  );
+}
+
+fn fromOklab(c: vec3f) -> vec3f {
+  let l2 = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  let m2 = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  let s2 = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  let l = l2 * l2 * l2;
+  let m = m2 * m2 * m2;
+  let s = s2 * s2 * s2;
+  return vec3f(
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  );
+}
+
+fn rampLab(v0: f32) -> vec3f {
+  let v = clamp(v0, 0.0, 1.0);
+  let s1 = clamp(u.v6.x, 0.05, 0.9);
+  let s2 = clamp(u.v6.y, s1 + 0.02, 0.98);
+  let L0 = toOklab(toLin(u.c0.rgb));
+  let L1 = toOklab(toLin(u.c1.rgb));
+  let L2 = toOklab(toLin(u.c2.rgb));
+  let L3 = toOklab(toLin(u.c3.rgb));
+  let a = mix(L0, L1, clamp(v / s1, 0.0, 1.0));
+  let b = mix(L1, L2, clamp((v - s1) / (s2 - s1), 0.0, 1.0));
+  let c = mix(L2, L3, clamp((v - s2) / (1.0 - s2), 0.0, 1.0));
+  return select(select(c, b, v < s2), a, v < s1);
+}
+
+fn ramp(v: f32) -> vec3f {
+  let lab = (rampLab(v - 0.05) + rampLab(v - 0.025) + rampLab(v) + rampLab(v + 0.025) + rampLab(v + 0.05)) / 5.0;
+  return toSrgb(fromOklab(lab));
+}
+
+fn field(p0: vec2f) -> f32 {
+  let t = u.v2.z;
+  let seed = u.v3.w;
+  let aspect = u.v2.w;
+  let pos = vec2f((u.v3.x - 0.5) * aspect, u.v3.y - 0.5);
+  let sp = max(u.v0.z, 0.05);
+  let q = vec2f(fbm(p0 * 1.1 + vec2f(seed * 3.1, t * 0.05)), fbm(p0 * 1.1 + vec2f(5.2 + seed, 1.3 - t * 0.04))) - vec2f(0.5);
+  let p = p0 + q * u.v0.w * 0.5;
+  let lay = u32(u.v0.x + 0.5);
+  let d = (p - pos) / sp;
+  var g: f32 = 0.0;
+  if (lay == 0u) {
+    g = exp(-dot(d, d));
+  } else if (lay == 1u) {
+    g = exp(-(d.x * d.x * 0.18 + d.y * d.y * 1.6));
+  } else if (lay == 2u) {
+    let dir = normalize(vec2f(1.0, -0.8));
+    let a = d - dir * 0.55;
+    let b = d + dir * 0.55;
+    g = exp(-dot(a, a) * 1.2) + 0.7 * exp(-dot(b, b) * 1.6);
+  } else if (lay == 3u) {
+    g = exp(-dot(d, d) * 0.6);
+  } else if (lay == 4u) {
+    let a = d - vec2f(-0.22, -0.45);
+    let b = d - vec2f(0.22, 0.45);
+    g = exp(-dot(a, a) * 1.5) + 0.85 * exp(-dot(b, b) * 1.5);
+  } else {
+    let n = fbm(p * 1.4 / sp + vec2f(seed, t * 0.03));
+    g = smoothstep(0.3, 0.85, n) * (0.4 + 0.6 * exp(-dot(d, d) * 0.5)) * 1.6;
+  }
+  let v = 1.0 - exp(-g * u.v3.z);
+  return pow(clamp(v, 0.0, 1.0), u.v6.z);
+}
+
+fn lum(c: vec3f) -> f32 {
+  return dot(c, vec3f(0.2126, 0.7152, 0.0722));
+}
+
+fn aaLine(x: f32, width: f32) -> f32 {
+  let fw = max(fwidth(x), 0.0001);
+  let d = abs(fract(x + 0.5) - 0.5);
+  return 1.0 - smoothstep(fw * width * 0.5, fw * (width * 0.5 + 1.0), d);
+}
+
+fn terrace(p: vec2f, steps: f32) -> f32 {
+  return floor(field(p) * steps + 0.35) / steps;
+}
+
+fn fab(p: vec2f, t: f32) -> f32 {
+  let q = p + vec2f(sin(p.y * 1.1 + t) * 0.7, cos(p.x * 1.3 - t * 0.4) * 0.6);
+  return sin(q.x * 2.1 + sin(q.y * 1.7)) * 0.45 + sin(q.y * 3.1 + q.x * 0.7) * 0.22 + sin(q.x * 4.6 - q.y * 1.9) * 0.08;
+}
+
+fn lens(local: f32, gateCol: vec3f) -> vec2f {
+  let edge = pow(abs(local) * 2.0, 7.0);
+  let rd = (local + 0.365) * 36.0;
+  let ridge = exp(-rd * rd);
+  let gate = 0.15 + 0.85 * smoothstep(0.04, 0.55, lum(gateCol));
+  return vec2f(edge, ridge * gate);
+}
+
+fn optic(uv: vec2f) -> vec3f {
+  let aspect = u.v2.w;
+  let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+  let mode = u32(u.v0.y + 0.5);
+  let ang = u.v2.x;
+  let dens = max(u.v1.x, 1.0);
+  let refr = u.v1.y;
+  let light = u.v1.z;
+  let edgeAmt = u.v1.w;
+  let t = u.v2.z;
+  let rr = rot2(p0, ang);
+  var col = vec3f(0.0);
+
+  if (mode == 0u) {
+    col = ramp(field(p0));
+  } else if (mode == 1u || mode == 2u || mode == 5u) {
+    var x = rr.x * dens;
+    if (mode == 5u) {
+      x = x + u.v4.z * rr.y * rr.y * dens * 0.5;
+    }
+    let local = fract(x) - 0.5;
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rot2(vec2f(ray.x, 0.0), -ang) * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  } else if (mode == 3u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let corner = max(abs(local) - vec2f(0.33), vec2f(0.0));
+    let dist = length(corner) - 0.16;
+    let interior = 1.0 - smoothstep(-0.015, 0.015, dist);
+    let slope = local * pow(abs(local) * 2.0, vec2f(2.8)) * 3.2;
+    let n = normalize(vec3f(slope, 1.0));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), n, 0.65);
+    col = ramp(field(p0 + rot2(ray.xy, -ang) * refr));
+    let bv = dist * 55.0;
+    let bevel = exp(-bv * bv);
+    let dir = clamp(-n.x - n.y + 0.25, 0.0, 1.0);
+    col = col * (0.8 + 0.2 * interior);
+    col = mix(col, u.hl.rgb, clamp(bevel * dir * light * 0.55, 0.0, 1.0));
+    col = col * (1.0 - bevel * (1.0 - dir) * 0.5 * edgeAmt);
+  } else if (mode == 4u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let sft = vec2f(0.04);
+    let c0 = max(abs(local) - vec2f(0.3), vec2f(0.0));
+    let c1 = max(abs(local - sft) - vec2f(0.3), vec2f(0.0));
+    let c2 = max(abs(local + sft) - vec2f(0.3), vec2f(0.0));
+    let in0 = 1.0 - smoothstep(-0.012, 0.012, length(c0) - 0.12);
+    let inL = 1.0 - smoothstep(-0.012, 0.012, length(c1) - 0.12);
+    let inS = 1.0 - smoothstep(-0.012, 0.012, length(c2) - 0.12);
+    col = ramp(field(p0));
+    col = col * (0.88 + 0.12 * in0);
+    col = mix(col, u.hl.rgb, clamp(in0 * (1.0 - inL) * light * 0.45, 0.0, 1.0));
+    col = col * (1.0 - in0 * (1.0 - inS) * 0.45 * edgeAmt);
+  } else if (mode == 6u) {
+    let p = p0 * (1.0 + u.v0.z) + vec2f(u.v3.w * 0.7, u.v3.w * 0.4);
+    let h = fab(p, t);
+    let e = 0.006;
+    let dx = (fab(p + vec2f(e, 0.0), t) - h) / e;
+    let dy = (fab(p + vec2f(0.0, e), t) - h) / e;
+    let n = normalize(vec3f(-dx * 0.85, -dy * 0.85, 1.0));
+    let ray = reflect(vec3f(0.0, 0.0, -1.0), n);
+    let fold = smoothstep(-0.6, 0.65, h);
+    col = ramp(0.1 + 0.6 * fold + 0.25 * field(p0));
+    let s1 = (ray.x + ray.y * 0.24 - 0.24) * 7.0;
+    let s2 = (ray.y + 0.58) * 9.0;
+    let refl = (exp(-s1 * s1) + exp(-s2 * s2) * u.v6.w) * smoothstep(-0.65, 0.7, ray.z) * light;
+    col = mix(col, u.hl.rgb, clamp(refl, 0.0, 0.9));
+  } else if (mode == 7u) {
+    let v = field(p0);
+    let hh = v + (fbm(p0 * 1.8 + vec2f(u.v3.w)) - 0.5) * 0.3 * u.v0.w;
+    let line = aaLine(hh * dens, 1.1 + edgeAmt);
+    col = mix(ramp(v), u.hl.rgb, line * clamp(light, 0.0, 1.0));
+  } else if (mode == 8u) {
+    let f = dens * 6.0;
+    let a1 = sin(rr.x * f + u.v0.w * 2.0 * sin(rr.y * 1.7 + t));
+    let p2 = rot2(rr, 0.05);
+    let a2 = sin(p2.x * f * 1.015 + u.v0.w * 2.0 * sin(p2.y * 1.9 - t));
+    let mo = 0.5 + 0.5 * a1 * a2;
+    let v = field(p0);
+    col = ramp(mix(v, mo * (0.35 + 0.65 * v), clamp(light * 0.5, 0.0, 0.9)));
+  } else if (mode == 9u) {
+    let steps = max(floor(dens), 2.0);
+    let v0 = terrace(p0, steps);
+    let off = vec2f(0.012, 0.012) * (0.6 + refr);
+    var sh: f32 = 0.0;
+    sh = sh + select(0.0, 0.45, terrace(p0 - off * 0.35, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.33, terrace(p0 - off * 0.7, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.22, terrace(p0 - off, steps) > v0 + 0.001);
+    let hl = select(0.0, 1.0, terrace(p0 + off * 0.18, steps) < v0 - 0.001);
+    col = ramp(v0) * (1.0 - 0.32 * sh * edgeAmt) + u.hl.rgb * 0.05 * hl * light;
+  } else {
+    let rc = vec2f(sin(ang), cos(ang)) * 1.4;
+    let rel = p0 - rc;
+    let s = length(rel) * dens;
+    let local = fract(s) - 0.5;
+    let rdir = normalize(rel);
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rdir * ray.x * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  }
+  return col;
+}
+
+fn shade(uv: vec2f) -> vec3f {
+  var col = optic(uv);
+  if (u.v5.x > 0.001) {
+    let aspect = u.v2.w;
+    let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+    let base = ramp(field(p0));
+    let dir = vec2f(cos(u.v5.y), sin(u.v5.y));
+    let s = dot(uv - vec2f(0.5), dir);
+    let m = smoothstep(u.v5.w - u.v5.z, u.v5.w + u.v5.z, s);
+    col = mix(base, col, mix(1.0, m, u.v5.x));
+  }
+  return col;
+}
+
+@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let w = max(u.v4.x, 1.0);
+  let h = max(u.v4.y, 1.0);
+  let px = vec2f(0.25 / w, 0.25 / h);
+  var col = shade(uv + vec2f(-px.x, -px.y));
+  col = col + shade(uv + vec2f(px.x, -px.y));
+  col = col + shade(uv + vec2f(-px.x, px.y));
+  col = col + shade(uv + vec2f(px.x, px.y));
+  col = col * 0.25;
+  let t = u.v2.z;
+  let pp = uv * vec2f(w, h);
+  let g = (hash2(pp + vec2f(floor(t * 12.0) * 7.0, 1.0)) - 0.5) * u.v2.y * 0.09;
+  col = col * (1.0 + g * 2.0) + vec3f(g * 0.4);
+  col = col + vec3f((hash2(pp + vec2f(17.0, 3.0)) - 0.5) / 255.0);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}
+`;
+    frame.state.module = device.createShaderModule({ code: wgsl });
+    frame.state.pipeline = null;
+    frame.state.pipelineFormat = null;
+    frame.state.quad = device.createBuffer({
+        size: 6 * 4 * 4,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true,
+    });
+    new Float32Array(frame.state.quad.getMappedRange()).set([
+        -1, -1, 0, 1,
+        1, -1, 1, 1,
+        -1, 1, 0, 0,
+        -1, 1, 0, 0,
+        1, -1, 1, 1,
+        1, 1, 1, 0,
+    ]);
+    frame.state.quad.unmap();
+    frame.state.uniforms = device.createBuffer({
+        size: 192,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+}
+function render(device, frame) {
+    var params = frame.params || {};
+    function ch(color, channel, fallback) {
+        var c = color || {};
+        var value = Number(c[channel]);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function num(v, fallback) {
+        var value = Number(v);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function col(c, f) {
+        return [ch(c, 'r', f[0]), ch(c, 'g', f[1]), ch(c, 'b', f[2]), 1];
+    }
+    var pos = params.position || {};
+    var w = frame.output.width;
+    var h = frame.output.height;
+    var t = Number(frame.time) * 0.001 * num(params.speed, 0.1);
+    var data = [].concat(col(params.ground, [0.078, 0.020, 0.039]), col(params.mid, [0.345, 0.071, 0.165]), col(params.glow, [0.537, 0.161, 0.255]), col(params.core, [0.851, 0.812, 0.761]), col(params.highlight, [0.949, 0.937, 0.902]), [num(params.layout, 0), num(params.glass, 0), num(params.spread, 0.6), num(params.warp, 0.5)], [num(params.density, 28), num(params.refraction, 0.35), num(params.light, 0.7), num(params.edge, 0.7)], [num(params.angle, 0) * Math.PI / 180, num(params.grain, 0.25), t, w / Math.max(h, 1)], [num(pos.x, 50) / 100, num(pos.y, 55) / 100, num(params.intensity, 2.2), num(params.seed, 1)], [w, h, num(params.bow, 1), 0], [num(params.reveal, 0), num(params.revealAngle, 135) * Math.PI / 180, num(params.feather, 0.25), num(params.revealOffset, 0)], [num(params.stop1, 0.35), num(params.stop2, 0.72), num(params.contrast, 1), num(params.sheen2, 0.2)]);
+    device.queue.writeBuffer(frame.state.uniforms, 0, new Float32Array(data));
+    var outputFormat = frame.output.format;
+    if (frame.state.pipeline == null || frame.state.pipelineFormat !== outputFormat) {
+        frame.state.pipeline = device.createRenderPipeline({
+            layout: 'auto',
+            vertex: {
+                module: frame.state.module,
+                entryPoint: 'vs_main',
+                buffers: [{
+                        arrayStride: 16,
+                        attributes: [
+                            { shaderLocation: 0, format: 'float32x2', offset: 0 },
+                            { shaderLocation: 1, format: 'float32x2', offset: 8 },
+                        ],
+                    }],
+            },
+            fragment: {
+                module: frame.state.module,
+                entryPoint: 'fs_main',
+                targets: [{ format: outputFormat }],
+            },
+            primitive: { topology: 'triangle-list' },
+        });
+        frame.state.pipelineFormat = outputFormat;
+    }
+    var encoder = device.createCommandEncoder();
+    var pass = encoder.beginRenderPass({
+        colorAttachments: [{
+                view: frame.output.createView(),
+                loadOp: 'clear',
+                clearValue: { r: 0, g: 0, b: 0, a: 0 },
+                storeOp: 'store',
+            }],
+    });
+    pass.setPipeline(frame.state.pipeline);
+    var bindGroup = device.createBindGroup({
+        layout: frame.state.pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: frame.state.uniforms } }],
+    });
+    pass.setBindGroup(0, bindGroup);
+    pass.setVertexBuffer(0, frame.state.quad);
+    pass.draw(6);
+    pass.end();
+    device.queue.submit([encoder.finish()]);
+}
+defineProperties(Effect, {
+    layout: {
+        type: 'number',
+        label: 'Light',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'Radial glow' },
+            { value: 1, label: 'Horizon' },
+            { value: 2, label: 'Diagonal sweep' },
+            { value: 3, label: 'Corner bloom' },
+            { value: 4, label: 'Twin lights' },
+            { value: 5, label: 'Clouds' },
+        ],
+    },
+    glass: {
+        type: 'number',
+        label: 'Surface',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'None' },
+            { value: 1, label: 'Fine flutes' },
+            { value: 2, label: 'Wide flutes' },
+            { value: 3, label: 'Glass tiles' },
+            { value: 4, label: 'Emboss grid' },
+            { value: 5, label: 'Bowed flutes' },
+            { value: 6, label: 'Liquid satin' },
+            { value: 7, label: 'Contour lines' },
+            { value: 8, label: 'Moire' },
+            { value: 9, label: 'Paper layers' },
+            { value: 10, label: 'Ring reeds' },
+        ],
+    },
+    ground: { type: 'color', label: 'Ground', defaultValue: { r: 0.078, g: 0.020, b: 0.039, a: 1 } },
+    mid: { type: 'color', label: 'Mid', defaultValue: { r: 0.345, g: 0.071, b: 0.165, a: 1 } },
+    glow: { type: 'color', label: 'Glow', defaultValue: { r: 0.537, g: 0.161, b: 0.255, a: 1 } },
+    core: { type: 'color', label: 'Core', defaultValue: { r: 0.851, g: 0.812, b: 0.761, a: 1 } },
+    highlight: { type: 'color', label: 'Highlight', defaultValue: { r: 0.949, g: 0.937, b: 0.902, a: 1 } },
+    position: { type: 'point', label: 'Light position', defaultValue: { x: 50, y: 55 }, mode: 'canvas_and_ui', unit: '%' },
+    spread: { type: 'number', label: 'Spread', defaultValue: 0.6, min: 0.1, max: 2.5, step: 0.01, control: 'slider' },
+    warp: { type: 'number', label: 'Warp', defaultValue: 0.5, min: 0, max: 3, step: 0.01, control: 'slider' },
+    intensity: { type: 'number', label: 'Intensity', defaultValue: 2.2, min: 0.2, max: 6, step: 0.01, control: 'slider' },
+    contrast: { type: 'number', label: 'Contrast', defaultValue: 1, min: 0.3, max: 3, step: 0.01, control: 'slider' },
+    stop1: { type: 'number', label: 'Mid stop', defaultValue: 0.35, min: 0.05, max: 0.8, step: 0.01, control: 'slider' },
+    stop2: { type: 'number', label: 'Glow stop', defaultValue: 0.72, min: 0.2, max: 0.95, step: 0.01, control: 'slider' },
+    seed: { type: 'number', label: 'Variation', defaultValue: 1, min: 0, max: 10, step: 0.01, control: 'slider' },
+    density: { type: 'number', label: 'Density', defaultValue: 28, min: 1, max: 90, step: 0.1, control: 'slider' },
+    angle: { type: 'number', label: 'Angle', defaultValue: 0, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    refraction: { type: 'number', label: 'Refraction', defaultValue: 0.35, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    light: { type: 'number', label: 'Highlights', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    edge: { type: 'number', label: 'Edge shadow', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    bow: { type: 'number', label: 'Bow', defaultValue: 1, min: -3, max: 3, step: 0.01, control: 'slider' },
+    reveal: { type: 'number', label: 'Feather reveal', defaultValue: 0, min: 0, max: 1, step: 0.01, control: 'slider' },
+    revealAngle: { type: 'number', label: 'Reveal angle', defaultValue: 135, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    feather: { type: 'number', label: 'Feather', defaultValue: 0.25, min: 0.01, max: 0.8, step: 0.01, control: 'slider' },
+    revealOffset: { type: 'number', label: 'Reveal offset', defaultValue: 0, min: -0.8, max: 0.8, step: 0.01, control: 'slider' },
+    sheen2: { type: 'number', label: 'Second sheen', defaultValue: 0.2, min: 0, max: 1, step: 0.01, control: 'slider' },
+    grain: { type: 'number', label: 'Grain', defaultValue: 0.25, min: 0, max: 2, step: 0.01, control: 'slider' },
+    speed: { type: 'number', label: 'Motion speed', defaultValue: 0.1, min: 0, max: 1, step: 0.01, control: 'slider' },
+});
+
+const manifest = {
+  "isAnimated": true,
+  "name": "OXS light studio",
+  "usesMouse": false,
+  "version": 2
+}
+
+return { setup, render };
+})();
+
+/* Shared engine for the three directions: live OXS light studio background, flow state, answer rendering.
+   Backend contract (unchanged): POST http://127.0.0.1:8000/chat { message } -> { response: markdown }.
+   Add ?live=1 to call the real backend; otherwise the page runs a timed demo. ?state=answer etc. opens a state. */
+
+const PALETTE = {
+  deep: [0.122, 0.125, 0.161], mid: [0.204, 0.212, 0.271], blue: [0.384, 0.753, 0.965],
+  lime: [0.698, 0.965, 0.004], white: [0.988, 1, 1], blueDim: [0.278, 0.455, 0.58],
+};
+const rgb = a => ({ r: a[0], g: a[1], b: a[2] });
+
+/* Base shader settings in the new palette. Each direction passes overrides per state. */
+const BASE_FX = {
+  ground: rgb(PALETTE.deep), mid: rgb(PALETTE.mid), glow: rgb(PALETTE.blue), core: rgb(PALETTE.lime), highlight: rgb(PALETTE.white),
+  layout: 2, glass: 1, density: 46, refraction: 0.6, light: 1.2, edge: 0.6, grain: 0.06, bow: 0, angle: 0, seed: 3,
+  contrast: 1.35, sheen2: 0.4, spread: 0.42, warp: 1.5, intensity: 2.7, stop1: 0.46, stop2: 0.82,
+  reveal: 0.85, revealAngle: 150, feather: 0.3, revealOffset: 0.1, speed: 0.6, position: { x: 74, y: 40 },
+};
+const COOL = { glow: rgb(PALETTE.blueDim), core: rgb(PALETTE.blue), intensity: 2.0, light: 0.85, speed: 0.25, contrast: 1.2 };
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const mixVal = (a, b, t) => {
+  if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * t;
+  if (a && typeof a === 'object') { const o = {}; for (const k in b) o[k] = mixVal(a[k], b[k], t); return o; }
+  return t < 1 ? a : b;
+};
+
+/* createLight(canvas, params): runs the shader live. light.to(params, ms) eases every value; phase is
+   accumulated so changing speed never jumps. Falls back to a CSS gradient when WebGPU is missing. */
+async function createLight(canvas, params) {
+  let cur = structuredClone({ ...BASE_FX, ...params }), from = cur, target = cur, t0 = 0, dur = 0;
+  let pointer = null, follow = 0;
+  const api = {
+    to(p, ms = 1200) { from = structuredClone(cur); target = structuredClone({ ...target, ...p }); t0 = performance.now(); dur = reduceMotion ? 1 : ms; },
+    follow(amount) { follow = amount; },
+    ok: false,
+  };
+  addEventListener('pointermove', e => { pointer = { x: (e.clientX / innerWidth) * 100, y: (e.clientY / innerHeight) * 100 }; });
+  if (!navigator.gpu) { canvas.classList.add('fx-fallback'); return api; }
+  try {
+    const adapter = await navigator.gpu.requestAdapter(); const device = await adapter.requestDevice();
+    const ctx = canvas.getContext('webgpu'); const format = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format, alphaMode: 'opaque' });
+    const frame = { state: {}, params: {}, time: 0 };
+    LS.setup(device, frame);
+    let phase = 0, last = performance.now();
+    const loop = now => {
+      const dt = Math.min(64, now - last); last = now;
+      if (dur) { const k = Math.min(1, (now - t0) / dur); cur = mixVal(from, target, ease(k)); if (k >= 1) dur = 0; }
+      const shown = structuredClone(cur);
+      shown.density = Math.max(14, Math.round(canvas.clientWidth / 31)); // flutes stay about 31px wide at every width
+      if (follow && pointer && !reduceMotion) { shown.position = { x: cur.position.x + (pointer.x - cur.position.x) * follow, y: cur.position.y + (pointer.y - cur.position.y) * follow }; }
+      phase += dt * (reduceMotion ? 0 : cur.speed);
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      const w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      frame.params = { ...shown, speed: 1 }; frame.time = phase;
+      frame.output = { width: w, height: h, format, createView: () => ctx.getCurrentTexture().createView() };
+      LS.render(device, frame);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+    api.ok = true; document.documentElement.classList.add('fx-live');
+  } catch (e) { canvas.classList.add('fx-fallback'); }
+  return api;
+}
+
+/* Sample answer, shaped like the Writer agent's Markdown. Placeholder content for the design. */
+const SAMPLE_Q = "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.";
+const SUGGESTIONS = [SAMPLE_Q, "What is changing in AI chip supply?", "How are universities using AI agents?"];
+const SAMPLE_MD = `## Short answer
+Microsoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and [Azure OpenAI](https://azure.microsoft.com/products/ai-services/openai-service) for custom builds. Google leans on its own Gemini models and [Vertex AI](https://cloud.google.com/vertex-ai), and pushes hardest with teams already on Google Cloud and Workspace.
+
+## Where they differ
+- Microsoft bundles AI into seats companies already license, so adoption follows existing contracts.
+- Google competes on model quality and price per use, backed by its own chips for training and serving.
+- Both are adding agents that act inside other apps, which is where new spending is moving.
+
+## What a mid-sized software company should watch
+- Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product.
+- Price changes for model use, which move the cost of every AI feature you ship.
+- Agent standards for connecting apps, which decide whether their agents can use your product.
+
+## Sources
+- [Microsoft 365 Copilot overview](https://www.microsoft.com/microsoft-365/copilot)
+- [Azure OpenAI Service](https://azure.microsoft.com/products/ai-services/openai-service)
+- [Vertex AI and Gemini](https://cloud.google.com/vertex-ai)
+- [Gemini for Workspace](https://workspace.google.com/solutions/ai/)`;
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inline = s => esc(s).replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+/* Renders the subset of Markdown the Writer uses: ## headings, - lists, paragraphs, links, bold. */
+function renderMarkdown(md, { skipSources = false } = {}) {
+  const out = []; let list = null; const heads = []; let skipping = false;
+  for (const raw of md.split('\n')) {
+    const line = raw.trim();
+    // The page lists sources in its own panel, so the Writer's Sources section is not repeated in the text.
+    if (skipSources && /^#{1,3}\s+sources\s*$/i.test(line)) { skipping = true; continue; }
+    if (skipping) { if (/^#{1,3}\s+/.test(line)) skipping = false; else continue; }
+    if (!line) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } continue; }
+    const h = line.match(/^#{1,3}\s+(.*)$/);
+    if (h) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } const id = 'h-' + heads.length; heads.push({ id, text: h[1] }); out.push(`<h2 id="${id}">${inline(h[1])}</h2>`); continue; }
+    const li = line.match(/^[-*]\s+(.*)$/);
+    if (li) { (list ||= []).push('<li>' + inline(li[1]) + '</li>'); continue; }
+    out.push('<p>' + inline(line) + '</p>');
+  }
+  if (list) out.push('<ul>' + list.join('') + '</ul>');
+  return { html: out.join(''), heads };
+}
+/* Pulls every link out of the answer so the page can list sources without a backend change. */
+function sourcesFrom(md) {
+  const seen = new Map();
+  for (const m of md.matchAll(/\[([^\]]+)\]\((https?:[^)]+)\)/g)) if (!seen.has(m[2])) seen.set(m[2], { title: m[1], url: m[2], host: new URL(m[2]).hostname.replace(/^www\./, '') });
+  return [...seen.values()];
+}
+
+/* Flow: ask -> working -> answer | error. Mirrors App.tsx (message, loading, error, response). */
+function createFlow(onChange) {
+  const q = new URLSearchParams(location.search);
+  const live = q.get('live') === '1', fail = q.get('fail');
+  const s = { state: 'ask', question: '', answer: '', error: null, startedAt: 0 };
+  const set = patch => { Object.assign(s, patch); onChange({ ...s }); };
+  async function send(text) {
+    const question = (text ?? s.question).trim(); if (!question || s.state === 'working') return;
+    set({ state: 'working', question, error: null, startedAt: performance.now() });
+    try {
+      let md;
+      if (live) {
+        const r = await fetch('http://127.0.0.1:8000/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: question }) });
+        if (!r.ok) throw Object.assign(new Error('server'), { kind: 'server' });
+        md = (await r.json()).response || '';
+      } else {
+        await new Promise(r => setTimeout(r, 6500));
+        if (fail === 'net') throw new TypeError('net');
+        if (fail === 'server') throw Object.assign(new Error('server'), { kind: 'server' });
+        md = SAMPLE_MD;
+      }
+      set({ state: 'answer', answer: md });
+    } catch (e) { set({ state: 'error', error: e instanceof TypeError ? 'net' : 'server' }); }
+  }
+  const api = {
+    get: () => ({ ...s }),
+    type: text => set({ question: text, state: s.state === 'error' ? 'ask' : s.state === 'answer' ? s.state : 'ask' }),
+    send, reset: () => set({ state: 'ask', question: '', answer: '', error: null }),
+    edit: () => set({ state: 'ask', error: null }),
+    copy: async () => { try { await navigator.clipboard.writeText(s.answer); } catch (e) {} set({ copied: Date.now() }); },
+  };
+  // Open a named state for review and screenshots: ?state=ask|typed|working|answer|error-net|error-server
+  const st = q.get('state');
+  if (st === 'typed') s.question = SAMPLE_Q;
+  if (st === 'working') Object.assign(s, { state: 'working', question: SAMPLE_Q, startedAt: performance.now() - 14000 });
+  if (st === 'answer' || st === 'copied') Object.assign(s, { state: 'answer', question: SAMPLE_Q, answer: SAMPLE_MD, copied: st === 'copied' ? Date.now() + 1e9 : 0 });
+  if (st === 'error-net' || st === 'error-server') Object.assign(s, { state: 'error', question: SAMPLE_Q, error: st.slice(6) });
+  queueMicrotask(() => onChange({ ...s }));
+  return api;
+}
+/* Picks a state's light settings, with the phone override when the screen is narrow. */
+const isPhone = () => innerWidth < 768;
+const fxFor = (states, name) => ({ ...states[name], ...(isPhone() && states[name + 'Phone'] ? states[name + 'Phone'] : {}) });
+const fmtTime = ms => { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+const ERRORS = {
+  net: { title: "We couldn't reach the research server.", body: 'Check that the backend is running, then try again. Your question is still here.' },
+  server: { title: "The agents couldn't finish this one.", body: 'Something went wrong while they worked. Try again, or reword your question.' },
+};
+const AGENTS = [['Supervisor', 'Reads your question first'], ['Researcher', 'Searches the web with Tavily'], ['Analyst', 'Weighs what the sources say'], ['Writer', 'Writes the answer with its sources']];
+
+const $ = id => document.getElementById(id);
+const all = sel => [...document.querySelectorAll(sel)];
+const ICONS = { Supervisor:'compass', Researcher:'magnifying-glass', Analyst:'chart-bar', Writer:'pen-nib' };
+const HANDS = { Supervisor:['Hands on','Your question, routed'], Researcher:['Hands on','Notes from the web'], Analyst:['Hands on','The key findings'], Writer:['Hands back','Your answer and its sources'] };
+const JOBS = { Supervisor:'Reads your question first and sends it to the Researcher.', Researcher:'Writes its own web searches and reads the results through Tavily.', Analyst:'Weighs what the sources say and pulls out the conclusions.', Writer:'Turns the findings into a clear answer and lists every source it used.' };
+$('agentcards').innerHTML = AGENTS.map(([n]) => `<article class="agent"><i class="ic ph-fill ph-${ICONS[n]}" aria-hidden="true"></i><h3>${n}</h3><p>${JOBS[n]}</p><div class="hand"><span>${HANDS[n][0]}</span><b>${HANDS[n][1]}</b></div></article>`).join('');
+for (const el of all('[data-crewrow]')) el.innerHTML = AGENTS.map(([n]) => `<span><i class="ph-fill ph-${ICONS[n]}" aria-hidden="true"></i>${n}</span>`).join('');
+for (const el of all('[data-sugs]')) el.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="chip">${esc(s)}</button>`).join('');
+const STACK = ['React','TypeScript','Vite','FastAPI','Python','LangGraph','DeepSeek','Tavily'];
+$('mq').innerHTML = [...STACK, ...STACK, ...STACK, ...STACK].map(s => `<span>${s}</span>`).join('');
+all('[data-fill=sampleq]').forEach(el => el.textContent = SAMPLE_Q);
+
+/* ---------- Heat field (WebGL2). Thermal ramp in the project palette: deep, midnight, blue, lime, white. ---------- */
+const HEAT = (() => {
+  const c = $('heat'); const gl = c.getContext('webgl2', { premultipliedAlpha:false, antialias:false });
+  if (!gl) { c.style.background = 'radial-gradient(60% 70% at 50% 100%, #B2F601, #62C0F6 40%, #343645 70%, #1F2029)'; return { to(){}, mode(){} }; }
+  const vs = `#version 300 es
+  in vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
+  const fs = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform vec2 R; uniform float T, E, S, M; uniform vec2 H; uniform vec3 C;
+  float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+  float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+    return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v; }
+  vec3 ramp(float x){
+    vec3 c0=vec3(.122,.125,.161), c1=vec3(.204,.212,.271), c2=vec3(.122,.306,.451), c3=vec3(.384,.753,.965), c4=vec3(.698,.965,.004), c5=vec3(.902,1.,.651), c6=vec3(.988,1.,1.);
+    x=clamp(x,0.,1.);
+    if(x<.22) return mix(c0,c1,x/.22);
+    if(x<.40) return mix(c1,c2,(x-.22)/.18);
+    if(x<.58) return mix(c2,c3,(x-.40)/.18);
+    if(x<.74) return mix(c3,c4,(x-.58)/.16);
+    if(x<.88) return mix(c4,c5,(x-.74)/.14);
+    return mix(c5,c6,(x-.88)/.12);
+  }
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R; float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.2;
+    float t=T*S;
+    if(M>1.5){ p=vec2(p.x*1.3,p.y*.55); p.y-=t*.35; }
+    vec2 q=vec2(fbm(p+vec2(0.,t*.12)), fbm(p+vec2(5.2,1.3)-t*.1));
+    float f=fbm(p+1.7*q+vec2(t*.05,-t*.04));
+    vec2 d=(uv-H)*vec2(ar,1.); float hot=exp(-dot(d,d)*2.6);
+    float heat=f*1.05-.30+E*.62*hot+E*.22;
+    if(M>1.5) heat+=E*.5*pow(1.-uv.y,2.2)-.08;
+    vec2 cz=(uv-C.xy)/vec2(.46,.26); heat-=C.z*exp(-dot(cz,cz));
+    heat=clamp(heat,0.,1.);
+    if(M>.5&&M<1.5){ float x=heat*9.; heat=(floor(x)+smoothstep(0.,.08,fract(x)))/9.; }
+    o=vec4(ramp(heat),1.);
+  }`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const cur = { E:.55, S:.35, hx:.5, hy:.05, cx:.5, cy:.6, cz:.55 }, tgt = { ...cur }; let mode = 0, t0 = performance.now(), simT = 0, last = t0;
+  const fit = () => { const r = Math.min(devicePixelRatio, 1.5); c.width = Math.max(1, c.clientWidth * r * .6); c.height = Math.max(1, c.clientHeight * r * .6); gl.viewport(0, 0, c.width, c.height); };
+  new ResizeObserver(fit).observe(c); fit();
+  const frame = now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    for (const k in cur) cur[k] += (tgt[k] - cur[k]) * Math.min(1, dt * 1.6);
+    if (!reduceMotion) simT += dt;
+    gl.uniform2f(U('R'), c.width, c.height); gl.uniform1f(U('T'), simT); gl.uniform1f(U('E'), cur.E); gl.uniform1f(U('S'), cur.S);
+    gl.uniform1f(U('M'), mode); gl.uniform2f(U('H'), cur.hx, cur.hy); gl.uniform3f(U('C'), cur.cx, cur.cy, cur.cz);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  return { to(p){ Object.assign(tgt, p); }, set(p){ Object.assign(tgt, p); Object.assign(cur, p); }, mode(m){ mode = m; } };
+})();
+const HEAT_STATES = {
+  ask:    { E:.55, S:.35, hx:.5, hy:.02, cx:.5, cy:.58, cz:.7 },
+  working:{ E:.45, S:1.1, hx:.5, hy:.95, cx:.5, cy:.5,  cz:.45 },
+  answer: { E:.5,  S:.3,  hx:.5, hy:.0,  cx:.5, cy:.55, cz:.6 },
+  error:  { E:.0,  S:.08, hx:.5, hy:.0,  cx:.5, cy:.5,  cz:0 },
+};
+const params = new URLSearchParams(location.search);
+let heatMode = +(params.get('heat') ?? 0);
+const setMode = m => { heatMode = m; HEAT.mode(m); all('[data-heat]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.heat === m)); };
+setMode(heatMode);
+document.addEventListener('click', e => { const b = e.target.closest('[data-heat]'); if (b) setMode(+b.dataset.heat); });
+if (params.get('review') === '0') document.querySelector('.review').remove();
+
+/* ---------- OXS scroll fill: a spring follows scroll progress ---------- */
+(() => {
+  let x = 0, v = 0, target = 0; const bar = $('sbar');
+  const read = () => { const h = document.documentElement.scrollHeight - innerHeight; target = h > 0 ? scrollY / h : 0; };
+  addEventListener('scroll', read, { passive:true }); addEventListener('resize', read); read();
+  const tick = () => { const k = 220, d = 40, dt = 1/60; v += (k * (target - x) - d * v) * dt; x += v * dt; if (reduceMotion) x = target; bar.style.transform = `scaleX(${Math.max(0, Math.min(1, x))})`;
+    // the path section drives its own fill from the same spring idea
+    const pin = $('pathpin'); if (pin && innerWidth >= 768) { const r = pin.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, -r.top / (r.height - innerHeight))); $('track4').style.setProperty('--pp', pp.toFixed(3));
+      const step = Math.min(3, Math.floor(pp * 4 + .15)); all('#stations .station').forEach((s, i) => s.classList.toggle('on', i <= step)); all('#track4 b').forEach((b, i) => b.classList.toggle('on', pp >= (i + .5) / 4)); } else all('#stations .station').forEach(s => s.classList.add('on'));
+    requestAnimationFrame(tick); };
+  tick();
+})();
+
+/* ---------- Send fill: the card frosts and fills lime. The backend sends no progress yet, so the fill
+   eases toward 92% over time and snaps to full when the answer lands. ---------- */
+const run = $('run'); let fillP = 0, fillTarget = 0, fillVel = 0, startedAt = 0, filling = false;
+(function fillLoop(){
+  if (filling) { fillTarget = .92 * (1 - Math.exp(-(performance.now() - startedAt) / 5200)); HEAT.to({ E:.4 + .45 * fillP }); }
+  const dt = 1 / 60; fillVel += (200 * (fillTarget - fillP) - 32 * fillVel) * dt; // spring, same feel as the scroll bar
+  fillP += fillVel * dt; if (reduceMotion) fillP = fillTarget;
+  run.style.setProperty('--p', Math.max(0, Math.min(1, fillP)).toFixed(4));
+  requestAnimationFrame(fillLoop);
+})();
+const finishFill = full => new Promise(res => { filling = false; fillTarget = full ? 1 : 0; setTimeout(res, full ? 900 : 500); });
+
+let last = null, tick = null, visual = 'ask', pending = Promise.resolve();
+const flow = createFlow(s => { pending = pending.then(() => render(s)); });
+async function render(s) {
+  const prev = visual;
+  if (prev === 'working' && s.state !== 'working') await finishFill(s.state === 'answer');
+  last = s; visual = s.state; document.body.dataset.state = s.state;
+  if ($('q').value !== s.question) $('q').value = s.question;
+  for (const b of all('[data-act=send]')) b.disabled = !s.question.trim();
+  HEAT.to(HEAT_STATES[s.state]);
+  for (const el of all('[data-fill=question]')) el.textContent = s.question;
+  clearInterval(tick);
+  if (s.state === 'working') {
+    if (prev !== 'working') { startedAt = s.startedAt; fillP = 0; fillVel = 0; filling = true; scrollTo({ top:0 }); }
+    const up = () => all('[data-fill=clock]').forEach(el => el.textContent = fmtTime(performance.now() - s.startedAt)); up(); tick = setInterval(up, 250);
+  }
+  if (s.state === 'answer') {
+    const srcs = sourcesFrom(s.answer);
+    let html = renderMarkdown(s.answer, { skipSources:true }).html;
+    srcs.forEach((x, i) => { html = html.split(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a><a class="cite" href="#src-${i+1}" aria-label="Source ${i+1}">${i+1}</a>`); });
+    all('[data-fill=doc]').forEach(el => el.innerHTML = html);
+    all('[data-fill=srccount]').forEach(el => el.textContent = srcs.length);
+    all('[data-fill=took]').forEach(el => el.textContent = s.startedAt ? fmtTime(performance.now() - s.startedAt) : '0:24');
+    all('[data-fill=srcs]').forEach(el => el.innerHTML = srcs.map((x, i) => `<a class="platter" id="src-${i+1}" href="${x.url}" target="_blank" rel="noopener"><span class="fav"><img src="https://www.google.com/s2/favicons?domain=${x.host}&sz=64" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph-fill ph-globe'}))"><b>${i+1}</b></span><span class="tx"><span>${x.host}</span><strong>${esc(x.title)}</strong></span></a>`).join(''));
+  }
+  if (s.state === 'error') {
+    const E = { net:{ icon:'ph-wifi-slash', head:"Can't reach the research server" }, server:{ icon:'ph-warning', head:"The agents couldn't finish" } }[s.error];
+    all('[data-fill=err-head]').forEach(el => el.textContent = E.head);
+    all('[data-fill=err-icon]').forEach(el => el.className = 'ph-fill ' + E.icon);
+    all('[data-fill=err-body]').forEach(el => el.textContent = ERRORS[s.error].body);
+  }
+  const on = s.copied && Date.now() - s.copied < 2200; $('toast').classList.toggle('on', !!on);
+  if (on && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+// Opened straight into the working state for review: start the fill where the clock says it would be.
+if (params.get('state') === 'working') { visual = 'working'; startedAt = performance.now() - 14000; filling = true; }
+
+$('q').addEventListener('input', e => flow.type(e.target.value));
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); flow.send(); } });
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (chip) { flow.type(chip.textContent); $('q').focus(); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'ask' || act === 'home') { e.preventDefault(); if (flow.get().state !== 'ask' && act === 'home') flow.reset(); scrollTo({ top:0, behavior:'smooth' }); if (act === 'ask') setTimeout(() => $('q').focus({ preventScroll:true }), 500); }
+  if (act === 'new') { flow.reset(); scrollTo({ top:0 }); setTimeout(() => $('q').focus(), 300); }
+  if (act === 'copy') flow.copy();
+  if (act === 'retry') flow.send();
+  if (act === 'edit') { flow.edit(); setTimeout(() => $('q').focus(), 300); }
+});
+</script>
+</body>
+</html>

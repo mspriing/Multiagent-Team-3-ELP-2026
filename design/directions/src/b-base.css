@@ -1,0 +1,68 @@
+/* Shared base for the B rebuild (2026-11-03). Rules from taste.md: no hairlines or borders, every element
+   has a fill that contrasts with what it sits on, content centred in its space, no dead bands. */
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --mid-8:rgb(52 54 69 / .08); --mid-14:rgb(52 54 69 / .14); --mid-70:rgb(52 54 69 / .78);
+  --w-72:rgb(252 255 255 / .78);
+  --font:"Geist", -apple-system, "SF Pro Display", system-ui, sans-serif;
+  --t-hero:clamp(2.6rem, 1.6rem + 3.4vw, 4.75rem); --t-h2:clamp(1.6rem, 1.2rem + 1.3vw, 2.4rem);
+  --t-lead:clamp(1.05rem, .98rem + .3vw, 1.25rem); --t-body:1.0625rem; --t-small:.9375rem;
+  --pad:clamp(1.25rem, .7rem + 2.4vw, 3rem); --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;min-height:100%;background:var(--deep);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+h1,h2,h3{font-family:var(--font);font-weight:600;letter-spacing:-.035em;margin:0;text-wrap:balance}
+p{margin:0}
+.sr{position:absolute;left:-9999px}
+
+/* State switching: an element with .st and .s-<state> shows only in that state. */
+.st{display:none!important}
+body[data-state=ask] .s-ask, body[data-state=working] .s-working,
+body[data-state=answer] .s-answer, body[data-state=error] .s-error{display:var(--d,block)!important;animation:in .7s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* The light */
+.fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(70% 60% at 50% 70%, rgb(98 192 246 / .55), transparent 70%),var(--deep)}
+
+/* Question card: white, dark type, filled chips inside, no borders */
+.qcard{background:var(--white);color:var(--mid);border-radius:22px;padding:1.1rem 1.1rem 1rem;display:grid;gap:.9rem;box-shadow:0 30px 60px -30px rgb(10 11 16 / .55)}
+.qcard textarea{resize:none;background:none;border:0;outline:0;font-size:var(--t-lead);line-height:1.45;color:var(--deep);min-height:3.2em;padding:.35rem .45rem}
+.qcard textarea::placeholder{color:rgb(52 54 69 / .55)}
+.qrow{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.hint{font-size:.8125rem;color:rgb(52 54 69 / .62);padding-left:.45rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.55rem .95rem;font-size:.875rem;font-weight:500;text-align:left;line-height:1.3;transition:background .15s}
+@media (hover:hover){.chip:hover{background:var(--mid-14)}}
+
+/* Crew tiles: solid white, dark type */
+.crew{display:grid;gap:.75rem}
+.tile{background:var(--white);color:var(--deep);border-radius:var(--r);padding:1.05rem 1.15rem;display:grid;align-content:start}
+.tile .tx{display:grid;gap:.25rem}
+.ic{width:2.6rem;height:2.6rem;border-radius:12px;background:var(--deep);color:var(--lime);display:grid;place-items:center;font-size:1.55rem;margin-bottom:.9rem}
+.tile b{font-weight:600;font-size:1.0625rem;letter-spacing:-.01em}
+.tile span{font-size:.875rem;color:var(--mid-70);line-height:1.35}
+
+/* Answer text, for a white surface */
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.25rem,1.1rem + .6vw,1.6rem);margin:2.2rem 0 .7rem;line-height:1.2;letter-spacing:-.025em}
+.doc h2:first-child{margin-top:0}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.68}
+.doc ul{padding-left:1.2rem;margin:0;display:grid;gap:.4rem}
+.doc a{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.doc.on-white{color:var(--deep)} .doc.on-white p,.doc.on-white li{color:rgb(31 32 41 / .86)}
+.doc.on-white li::marker{color:var(--mid)} .doc.on-white a{text-decoration-color:var(--blue)}
+
+/* Source cards: solid white */
+.srcs{display:grid;gap:.6rem}
+.src{display:grid;gap:.2rem;background:var(--white);color:var(--deep);border-radius:14px;padding:.95rem 1.1rem;text-decoration:none;transition:transform .15s}
+.src span{font-size:.8125rem;color:var(--mid-70)}
+.src b{font-weight:600;font-size:var(--t-small)}
+@media (hover:hover){.src:hover{transform:translateY(-2px)}}
+
+.toast{position:fixed;left:50%;bottom:1.5rem;translate:-50% 0;background:var(--lime);color:var(--deep);border-radius:999px;padding:.85rem 1.4rem;font-weight:600;visibility:hidden;transform:translateY(160%);transition:transform .5s var(--ease),visibility .5s;z-index:9}
+.toast.on{visibility:visible;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

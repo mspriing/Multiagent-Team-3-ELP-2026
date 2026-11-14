@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Assistant, Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<style>
+/*__BCSS__*/
+/* Home (2026-11-03): B2 Band grown into a full homepage, OXS hub section order.
+   Band = heat field (WebGL). Send = the question card frosts and fills lime, the OXS scroll bar's spring fill.
+   Answer and errors follow Apple's result sheets and alerts. No hairlines, no borders, every fill contrasts. */
+html{scroll-behavior:smooth}
+body{background:var(--deep)}
+.wrap{width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+
+/* Nav: solid deep, with the OXS scroll fill under it */
+.nav{position:sticky;top:0;z-index:20;background:var(--deep)}
+.nav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:4rem;width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+.brand{display:flex;align-items:center;gap:.7rem;font-weight:600;letter-spacing:-.01em;color:var(--white);text-decoration:none}
+.brand i{width:2rem;height:2rem;border-radius:9px;background:var(--lime);color:var(--deep);display:grid;place-items:center;font-size:1.15rem}
+.links{display:flex;gap:.35rem}
+.links a{color:var(--white);text-decoration:none;font-size:.9375rem;font-weight:500;padding:.55rem .9rem;border-radius:999px;transition:background .15s}
+@media (hover:hover){.links a:hover{background:rgb(252 255 255 / .1)}}
+.nav .cta{justify-self:end}
+.bar{height:4px;background:var(--mid)}
+.bar span{display:block;height:100%;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+body:not([data-state=ask]) .links{visibility:hidden}
+
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:999px;padding:.85rem 1.5rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:transform .15s var(--ease)}
+.pill:active{transform:scale(.98)}
+.pill.lime{background:var(--lime);color:var(--deep)} .pill.deep{background:var(--deep);color:var(--white)}
+.pill.white{background:var(--white);color:var(--deep)} .pill.tint{background:var(--mid-8);color:var(--deep)}
+.pill.sm{padding:.6rem 1.1rem;font-size:.9375rem}
+.pill i{font-size:1.15em}
+
+/* Band: the heat field */
+.band{position:relative;overflow:hidden;background:var(--deep);min-height:72dvh;display:grid;place-items:center;transition:min-height .9s var(--ease)}
+body[data-state=working] .band{min-height:calc(100dvh - 4rem - 4px)}
+body[data-state=answer] .band{min-height:0}
+body[data-state=error] .band{min-height:calc(100dvh - 4rem - 4px)}
+.band > :not(.heat):not(.runwrap):not(.alertwrap){position:relative}
+.heat{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bin{text-align:center;padding:clamp(2.5rem,5vw,4.5rem) var(--pad) clamp(6.5rem,10vw,8rem);width:min(100%,72rem)}
+.hero h1{font-size:var(--t-hero);line-height:1.02}
+.hero p{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1.2rem auto 0;color:var(--white)}
+.ansq{padding-bottom:clamp(2.5rem,4vw,3.5rem)}
+.ansq h1{font-size:var(--t-h2);line-height:1.12;max-width:30ch;margin:0 auto}
+
+/* Question card */
+.below{display:grid;justify-items:center;padding:0 var(--pad);background:var(--deep)}
+.qwrap{width:min(100%,48rem);margin-top:-5.5rem;position:relative;z-index:3}
+.qcard .chips{padding:0 .35rem}
+.send{position:relative;overflow:hidden}
+
+/* Working: the card itself lifts into the band, frosts, and fills lime */
+.runwrap{position:absolute;inset:0;display:grid;place-items:center;padding:var(--pad);z-index:2}
+.run{width:min(100%,48rem);position:relative;border-radius:26px;overflow:hidden;
+  background:rgb(31 32 41 / .58);-webkit-backdrop-filter:blur(26px) saturate(1.35);backdrop-filter:blur(26px) saturate(1.35);
+  box-shadow:0 40px 80px -40px rgb(10 11 16 / .7)}
+.run .layer{padding:clamp(1.4rem,1rem + 1.6vw,2.4rem);display:grid;gap:1.1rem}
+.run .top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.run .lbl{font-weight:600;font-size:1.0625rem}
+.run .clock{font-size:clamp(2.6rem,2rem + 2.4vw,4rem);font-weight:500;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+.run .q{font-size:var(--t-lead);line-height:1.45}
+.run .crewrow{display:flex;flex-wrap:wrap;gap:.5rem}
+.run .crewrow span{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;padding:.45rem .85rem .45rem .5rem;font-size:.875rem;font-weight:600}
+.run .crewrow i{width:1.6rem;height:1.6rem;border-radius:999px;display:grid;place-items:center;font-size:.95rem}
+.run .layer.light{color:var(--white)}
+.run .layer.light .crewrow span{background:rgb(252 255 255 / .16)} .run .layer.light .crewrow i{background:var(--white);color:var(--deep)}
+/* the lime fill, with the same content in deep type clipped to it, so type stays readable on both sides */
+.run .fill{position:absolute;inset:0;background:var(--lime);clip-path:inset(0 calc(100% - var(--p,0)*100%) 0 0)}
+.run .layer.dark{position:absolute;inset:0;color:var(--deep);clip-path:inset(0 calc(100% - var(--p,0)*100%) 0 0)}
+.run .layer.dark .crewrow span{background:rgb(31 32 41 / .12)} .run .layer.dark .crewrow i{background:var(--deep);color:var(--lime)}
+.run .layer.dark .clock,.run .layer.dark .lbl{color:var(--deep)}
+
+/* Answer: Apple-style result sheet */
+.sheetwrap{width:min(100%,60rem);margin-top:-2.5rem;position:relative;z-index:3;padding-bottom:var(--pad)}
+.sheet{background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.5rem,1rem + 2vw,3rem);box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;margin-bottom:clamp(1.4rem,1rem + 1vw,2rem)}
+.meta span{display:inline-flex;align-items:center;gap:.4rem;background:var(--mid-8);border-radius:999px;padding:.45rem .9rem;font-size:.875rem;font-weight:500}
+.meta i{color:var(--mid)}
+.sheet .doc{max-width:none}
+.doc a.cite,.cite{color:var(--white);display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;margin-left:.25rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.72rem;font-weight:600;vertical-align:.12em;text-decoration:none;line-height:1}
+.acts{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem;margin-top:clamp(1.6rem,1rem + 1.4vw,2.4rem)}
+.srch{font-size:1.25rem;margin:clamp(2rem,1.4rem + 1.6vw,3rem) 0 1rem;text-align:center}
+.platters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.platter{display:grid;grid-template-columns:auto 1fr;gap:.85rem;align-items:center;background:var(--mid-8);color:var(--deep);text-decoration:none;border-radius:18px;padding:.9rem 1rem;transition:transform .15s var(--ease)}
+@media (hover:hover){.platter:hover{transform:translateY(-2px)}}
+.platter .fav{width:2.6rem;height:2.6rem;border-radius:12px;background:var(--white);display:grid;place-items:center;position:relative}
+.platter .fav img{width:1.5rem;height:1.5rem;border-radius:4px}
+.platter .fav b{position:absolute;top:-.35rem;right:-.35rem;min-width:1.25rem;height:1.25rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.68rem;display:grid;place-items:center}
+.platter .tx{display:grid;gap:.15rem}
+.platter .tx span{font-size:.8125rem;color:var(--mid-70)}
+.platter .tx strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+
+/* Errors: Apple-style alert */
+.alertwrap{position:absolute;inset:0;display:grid;place-items:center;padding:var(--pad);z-index:2}
+.alertwrap .alert{width:min(100%,30rem)}
+.alert{background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);text-align:center;display:grid;justify-items:center;gap:.9rem;box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.alert .badge{width:4rem;height:4rem;border-radius:999px;background:var(--deep);color:var(--blue);display:grid;place-items:center;font-size:2rem}
+.alert h2{font-size:1.4rem;line-height:1.2;max-width:22ch}
+.alert p{color:var(--mid-70);line-height:1.5}
+.alert .yourq{width:100%;background:var(--mid-8);border-radius:16px;padding:.9rem 1rem;text-align:left;display:grid;gap:.3rem}
+.alert .yourq span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.alert .yourq q{quotes:none;line-height:1.45;font-size:.9375rem;color:var(--deep)}
+.alert .stack{width:100%;display:grid;gap:.55rem;margin-top:.3rem}
+.alert .stack .pill{width:100%}
+
+/* Homepage sections, shown while asking */
+.home{display:none} body[data-state=ask] .home{display:block}
+.marquee{background:var(--white);color:var(--deep);overflow:hidden;padding:1.4rem 0;margin-top:clamp(3rem,5vw,4.5rem)}
+.marquee .track{display:flex;gap:.75rem;width:max-content;animation:mq 38s linear infinite}
+.marquee span{background:var(--mid-8);border-radius:999px;padding:.6rem 1.15rem;font-weight:600;font-size:.9375rem;white-space:nowrap}
+@keyframes mq{to{transform:translateX(-50%)}}
+.sec{padding:clamp(4rem,3rem + 4vw,7rem) 0}
+.sec .head{text-align:center;display:grid;gap:.9rem;justify-items:center;margin-bottom:clamp(2rem,1.4rem + 2vw,3.5rem)}
+.sec h2{font-size:var(--t-h2);line-height:1.1;max-width:24ch}
+.sec .head p{font-size:var(--t-lead);line-height:1.5;max-width:46ch}
+.s-agents{background:var(--mid)} .s-agents .head p{color:var(--w-72)}
+.agents{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.agent{background:var(--white);color:var(--deep);border-radius:22px;padding:1.5rem;display:grid;grid-template-rows:auto auto 1fr auto;gap:.7rem;min-height:21rem}
+.agent .ic{margin-bottom:.4rem}
+.agent h3{font-size:1.4rem}
+.agent p{color:var(--mid-70);line-height:1.5}
+.agent .hand{background:var(--mid-8);border-radius:14px;padding:.75rem .9rem;display:grid;gap:.15rem}
+.agent .hand span{font-size:.75rem;font-weight:600;color:var(--mid)} .agent .hand b{font-weight:600;font-size:.9375rem}
+
+/* The path: one question scrolled through the agents, with the fill that runs on Send */
+.s-path{background:var(--deep)} .s-path .head{text-align:center;display:grid;gap:.9rem;justify-items:center} .s-path h2{font-size:var(--t-h2);line-height:1.1} .s-path .head p{color:var(--w-72);font-size:var(--t-lead);line-height:1.5;max-width:46ch}
+.pathpin{height:240vh;position:relative}
+.pathstage{position:sticky;top:calc(4rem + 4px);height:calc(100dvh - 4rem - 4px);display:grid;align-content:center;gap:1.6rem}
+.track4{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;background:var(--mid);border-radius:999px;padding:.4rem;position:relative;overflow:hidden}
+.track4 .f{position:absolute;inset:0;background:var(--lime);border-radius:999px;transform-origin:left;transform:scaleX(var(--pp,0))}
+.track4 b{position:relative;text-align:center;padding:.75rem .5rem;font-weight:600;border-radius:999px;color:var(--white);transition:color .3s}
+.track4 b.on{color:var(--deep)}
+.stations{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;align-items:start}
+.station{background:var(--mid);color:var(--white);border-radius:22px;padding:1.4rem;display:grid;align-content:start;gap:.8rem;min-height:17rem;transition:background .5s var(--ease),color .5s var(--ease)}
+.station.on{background:var(--white);color:var(--deep)}
+.station:not(.on) p,.station:not(.on) li{color:var(--w-72)} .station:not(.on) .qs span,.station:not(.on) [data-fill=sampleq]{background:rgb(252 255 255 / .1)!important}
+.station h3{font-size:1.15rem}
+.station p,.station li{font-size:.9375rem;line-height:1.5;color:rgb(31 32 41 / .86);transition:color .5s}
+.station ul{margin:0;padding-left:1.1rem;display:grid;gap:.35rem}
+.station .qs{display:grid;gap:.45rem}
+.station .qs span{background:var(--mid-8);border-radius:12px;padding:.55rem .75rem;font-size:.875rem;font-weight:500}
+.station .ok{display:inline-flex;align-items:center;gap:.4rem;justify-self:start;background:var(--lime);color:var(--deep);border-radius:999px;padding:.4rem .8rem;font-size:.8125rem;font-weight:600}
+
+.s-cta{background:var(--lime);color:var(--deep);text-align:center}
+.s-cta h2{margin:0 auto}
+.s-cta p{max-width:40ch;margin:1rem auto 2rem;font-size:var(--t-lead);line-height:1.5;color:rgb(31 32 41 / .82)}
+
+.foot{background:var(--deep);padding:clamp(2.5rem,2rem + 2vw,4rem) 0}
+.foot .in{display:grid;justify-items:center;gap:1rem;text-align:center}
+.foot p{color:var(--w-72);font-size:.9375rem}
+.foot .row{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+
+/* Review control (not part of the design) */
+.review{position:fixed;left:1rem;bottom:1rem;z-index:30;display:flex;gap:.3rem;align-items:center;background:var(--white);color:var(--deep);border-radius:999px;padding:.3rem .3rem .3rem .9rem;font-size:.8125rem;font-weight:600;box-shadow:0 20px 40px -20px rgb(10 11 16 / .6)}
+.review button{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.45rem .8rem;font-size:.8125rem;font-weight:600}
+.review button[aria-pressed=true]{background:var(--deep);color:var(--lime)}
+
+@media (max-width:1023px){
+  .agents,.stations{grid-template-columns:1fr 1fr}
+  .agent{min-height:0}
+}
+@media (max-width:767px){
+  .nav .in{grid-template-columns:1fr auto}
+  .links{display:none}
+  .band{min-height:70dvh}
+  .bin{padding-bottom:7.5rem}
+  .agents{grid-template-columns:1fr}
+  .pathpin{height:auto} .pathstage{position:static;height:auto}
+  .stations{grid-template-columns:1fr} .station{min-height:0}
+  .track4{display:none}
+  .platters{grid-template-columns:1fr}
+  .review{left:.5rem;right:.5rem;bottom:.5rem;justify-content:center;padding-left:.7rem}
+  .review em{display:none}
+}
+@media (prefers-reduced-motion:reduce){.marquee .track{animation:none}}
+</style>
+</head>
+<body data-state="ask">
+<header class="nav">
+  <div class="in">
+    <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Research Assistant</a>
+    <nav class="links" aria-label="Sections"><a href="#agents">The agents</a><a href="#path">How it works</a></nav>
+    <a class="pill lime sm cta" href="#top" data-act="ask">Ask a question</a>
+  </div>
+  <div class="bar" aria-hidden="true"><span id="sbar"></span></div>
+</header>
+
+<div id="top" class="band">
+  <canvas class="heat" id="heat"></canvas>
+  <div class="bin">
+    <div class="hero st s-ask" style="--d:block">
+      <h1>Ask a research question.<br>Get an answer you can check.</h1>
+      <p>A Supervisor, a Researcher, an Analyst and a Writer work through it in turn, and every answer lists the sources it used.</p>
+    </div>
+    <div class="ansq st s-answer" style="--d:block"><h1 data-fill="question"></h1></div>
+  </div>
+  <div class="runwrap st s-working" style="--d:grid" aria-live="polite">
+    <div class="run" id="run">
+      <div class="layer light">
+        <div class="top"><span class="lbl">Working on your question</span><span class="clock" data-fill="clock">0:00</span></div>
+        <p class="q" data-fill="question"></p>
+        <div class="crewrow" data-crewrow></div>
+      </div>
+      <div class="fill" aria-hidden="true"></div>
+      <div class="layer dark" aria-hidden="true">
+        <div class="top"><span class="lbl">Working on your question</span><span class="clock" data-fill="clock">0:00</span></div>
+        <p class="q" data-fill="question"></p>
+        <div class="crewrow" data-crewrow></div>
+      </div>
+    </div>
+  </div>
+  <div class="alertwrap st s-error" style="--d:grid">
+      <div class="alert" role="alert">
+        <div class="badge"><i class="ph-fill" data-fill="err-icon" aria-hidden="true"></i></div>
+        <h2 data-fill="err-head"></h2>
+        <p data-fill="err-body"></p>
+        <div class="yourq"><span>Your question</span><q data-fill="question"></q></div>
+        <div class="stack"><button class="pill deep" data-act="retry"><i class="ph-fill ph-arrow-clockwise" aria-hidden="true"></i>Try again</button><button class="pill tint" data-act="edit">Edit question</button></div>
+      </div>
+    </div>
+</div>
+
+<main class="below">
+  <div class="qwrap st s-ask" style="--d:block">
+    <form class="qcard" id="form">
+      <label for="q" class="sr">Your research question</label>
+      <textarea id="q" rows="2" placeholder="Ask a research question"></textarea>
+      <div class="chips" data-sugs></div>
+      <div class="qrow"><span class="hint">Press Enter to send</span><button class="pill deep send" data-act="send" disabled>Send <i class="ph-fill ph-arrow-right" aria-hidden="true"></i></button></div>
+    </form>
+  </div>
+
+  <div class="sheetwrap st s-answer" style="--d:block">
+    <article class="sheet">
+      <div class="meta"><span><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Answered in <b data-fill="took">0:24</b></span><span><i class="ph-fill ph-link" aria-hidden="true"></i><b data-fill="srccount">4</b> sources</span></div>
+      <div class="doc on-white" data-fill="doc"></div>
+      <div class="acts"><button class="pill lime" data-act="copy"><i class="ph-fill ph-copy" aria-hidden="true"></i>Copy answer</button><button class="pill deep" data-act="new"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i>New question</button></div>
+      <h2 class="srch">Sources</h2>
+      <nav class="platters" aria-label="Sources" data-fill="srcs"></nav>
+    </article>
+  </div>
+
+</main>
+
+<div class="home">
+  <div class="marquee" aria-label="Built with"><div class="track" id="mq"></div></div>
+
+  <section class="sec s-agents" id="agents">
+    <div class="wrap">
+      <div class="head"><h2>Who works on your question</h2><p>Each agent does one job, then hands its work to the next.</p></div>
+      <div class="agents" id="agentcards"></div>
+    </div>
+  </section>
+
+  <section class="s-path" id="path">
+    <div class="pathpin" id="pathpin">
+      <div class="pathstage wrap">
+        <div class="head"><h2>Follow one question through</h2><p>Scroll to move it from agent to agent. The same lime fill runs across the question box while yours is working.</p></div>
+        <div class="track4" id="track4"><span class="f"></span><b>Supervisor</b><b>Researcher</b><b>Analyst</b><b>Writer</b></div>
+        <div class="stations" id="stations">
+          <div class="station"><h3>Supervisor</h3><p>Reads the question and sends it to the Researcher.</p><p style="background:var(--mid-8);border-radius:12px;padding:.7rem .8rem" data-fill="sampleq"></p></div>
+          <div class="station"><h3>Researcher</h3><p>Writes its own web searches and reads the results through Tavily.</p><div class="qs"><span>Microsoft enterprise AI strategy</span><span>Google Vertex AI enterprise adoption</span><span>AI opportunities for mid-sized software firms</span></div></div>
+          <div class="station"><h3>Analyst</h3><p>Pulls the conclusions out of what the sources say.</p><ul><li>Microsoft sells AI inside seats companies already license.</li><li>Google competes on model quality and price per use.</li><li>Both are adding agents that act inside other apps.</li></ul></div>
+          <div class="station"><h3>Writer</h3><p>Turns the findings into one answer and lists every source.</p><span class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Answer ready, 4 sources</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec s-cta">
+    <div class="wrap"><h2>Try it with your own question</h2><p>Type anything you would normally research, and the agents will bring back an answer with its sources.</p><a class="pill deep" href="#top" data-act="ask">Ask a question <i class="ph-fill ph-arrow-up" aria-hidden="true"></i></a></div>
+  </section>
+</div>
+
+<footer class="foot">
+  <div class="wrap in">
+    <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Research Assistant</a>
+    <p>Built by Multi-Agent Team 3 in Nittany AI's ELP, Fall 2026.</p>
+    <div class="row"><a class="pill white sm" href="https://github.com/mspriing/Multiagent-Team-3-ELP-2026" target="_blank" rel="noopener"><i class="ph-fill ph-github-logo" aria-hidden="true"></i>View the code</a><a class="pill tint sm" style="background:rgb(252 255 255 / .12);color:var(--white)" href="#top" data-act="home">Back to top</a></div>
+  </div>
+</footer>
+
+<div class="review" role="group" aria-label="Review: band style"><em>Band style</em><button data-heat="0">Thermal</button><button data-heat="1">Isotherm</button><button data-heat="2">Vents</button></div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+
+<script>
+/*__SHARED__*/
+const $ = id => document.getElementById(id);
+const all = sel => [...document.querySelectorAll(sel)];
+const ICONS = { Supervisor:'compass', Researcher:'magnifying-glass', Analyst:'chart-bar', Writer:'pen-nib' };
+const HANDS = { Supervisor:['Hands on','Your question, routed'], Researcher:['Hands on','Notes from the web'], Analyst:['Hands on','The key findings'], Writer:['Hands back','Your answer and its sources'] };
+const JOBS = { Supervisor:'Reads your question first and sends it to the Researcher.', Researcher:'Writes its own web searches and reads the results through Tavily.', Analyst:'Weighs what the sources say and pulls out the conclusions.', Writer:'Turns the findings into a clear answer and lists every source it used.' };
+$('agentcards').innerHTML = AGENTS.map(([n]) => `<article class="agent"><i class="ic ph-fill ph-${ICONS[n]}" aria-hidden="true"></i><h3>${n}</h3><p>${JOBS[n]}</p><div class="hand"><span>${HANDS[n][0]}</span><b>${HANDS[n][1]}</b></div></article>`).join('');
+for (const el of all('[data-crewrow]')) el.innerHTML = AGENTS.map(([n]) => `<span><i class="ph-fill ph-${ICONS[n]}" aria-hidden="true"></i>${n}</span>`).join('');
+for (const el of all('[data-sugs]')) el.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="chip">${esc(s)}</button>`).join('');
+const STACK = ['React','TypeScript','Vite','FastAPI','Python','LangGraph','DeepSeek','Tavily'];
+$('mq').innerHTML = [...STACK, ...STACK, ...STACK, ...STACK].map(s => `<span>${s}</span>`).join('');
+all('[data-fill=sampleq]').forEach(el => el.textContent = SAMPLE_Q);
+
+/* ---------- Heat field (WebGL2). Thermal ramp in the project palette: deep, midnight, blue, lime, white. ---------- */
+const HEAT = (() => {
+  const c = $('heat'); const gl = c.getContext('webgl2', { premultipliedAlpha:false, antialias:false });
+  if (!gl) { c.style.background = 'radial-gradient(60% 70% at 50% 100%, #B2F601, #62C0F6 40%, #343645 70%, #1F2029)'; return { to(){}, mode(){} }; }
+  const vs = `#version 300 es
+  in vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
+  const fs = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform vec2 R; uniform float T, E, S, M; uniform vec2 H; uniform vec3 C;
+  float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+  float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+    return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v; }
+  vec3 ramp(float x){
+    vec3 c0=vec3(.122,.125,.161), c1=vec3(.204,.212,.271), c2=vec3(.122,.306,.451), c3=vec3(.384,.753,.965), c4=vec3(.698,.965,.004), c5=vec3(.902,1.,.651), c6=vec3(.988,1.,1.);
+    x=clamp(x,0.,1.);
+    if(x<.22) return mix(c0,c1,x/.22);
+    if(x<.40) return mix(c1,c2,(x-.22)/.18);
+    if(x<.58) return mix(c2,c3,(x-.40)/.18);
+    if(x<.74) return mix(c3,c4,(x-.58)/.16);
+    if(x<.88) return mix(c4,c5,(x-.74)/.14);
+    return mix(c5,c6,(x-.88)/.12);
+  }
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R; float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.2;
+    float t=T*S;
+    if(M>1.5){ p=vec2(p.x*1.3,p.y*.55); p.y-=t*.35; }
+    vec2 q=vec2(fbm(p+vec2(0.,t*.12)), fbm(p+vec2(5.2,1.3)-t*.1));
+    float f=fbm(p+1.7*q+vec2(t*.05,-t*.04));
+    vec2 d=(uv-H)*vec2(ar,1.); float hot=exp(-dot(d,d)*2.6);
+    float heat=f*1.05-.30+E*.62*hot+E*.22;
+    if(M>1.5) heat+=E*.5*pow(1.-uv.y,2.2)-.08;
+    vec2 cz=(uv-C.xy)/vec2(.46,.26); heat-=C.z*exp(-dot(cz,cz));
+    heat=clamp(heat,0.,1.);
+    if(M>.5&&M<1.5){ float x=heat*9.; heat=(floor(x)+smoothstep(0.,.08,fract(x)))/9.; }
+    o=vec4(ramp(heat),1.);
+  }`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const cur = { E:.55, S:.35, hx:.5, hy:.05, cx:.5, cy:.6, cz:.55 }, tgt = { ...cur }; let mode = 0, t0 = performance.now(), simT = 0, last = t0;
+  const fit = () => { const r = Math.min(devicePixelRatio, 1.5); c.width = Math.max(1, c.clientWidth * r * .6); c.height = Math.max(1, c.clientHeight * r * .6); gl.viewport(0, 0, c.width, c.height); };
+  new ResizeObserver(fit).observe(c); fit();
+  const frame = now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    for (const k in cur) cur[k] += (tgt[k] - cur[k]) * Math.min(1, dt * 1.6);
+    if (!reduceMotion) simT += dt;
+    gl.uniform2f(U('R'), c.width, c.height); gl.uniform1f(U('T'), simT); gl.uniform1f(U('E'), cur.E); gl.uniform1f(U('S'), cur.S);
+    gl.uniform1f(U('M'), mode); gl.uniform2f(U('H'), cur.hx, cur.hy); gl.uniform3f(U('C'), cur.cx, cur.cy, cur.cz);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  return { to(p){ Object.assign(tgt, p); }, set(p){ Object.assign(tgt, p); Object.assign(cur, p); }, mode(m){ mode = m; } };
+})();
+const HEAT_STATES = {
+  ask:    { E:.55, S:.35, hx:.5, hy:.02, cx:.5, cy:.58, cz:.7 },
+  working:{ E:.45, S:1.1, hx:.5, hy:.95, cx:.5, cy:.5,  cz:.45 },
+  answer: { E:.5,  S:.3,  hx:.5, hy:.0,  cx:.5, cy:.55, cz:.6 },
+  error:  { E:.0,  S:.08, hx:.5, hy:.0,  cx:.5, cy:.5,  cz:0 },
+};
+const params = new URLSearchParams(location.search);
+let heatMode = +(params.get('heat') ?? 0);
+const setMode = m => { heatMode = m; HEAT.mode(m); all('[data-heat]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.heat === m)); };
+setMode(heatMode);
+document.addEventListener('click', e => { const b = e.target.closest('[data-heat]'); if (b) setMode(+b.dataset.heat); });
+if (params.get('review') === '0') document.querySelector('.review').remove();
+
+/* ---------- OXS scroll fill: a spring follows scroll progress ---------- */
+(() => {
+  let x = 0, v = 0, target = 0; const bar = $('sbar');
+  const read = () => { const h = document.documentElement.scrollHeight - innerHeight; target = h > 0 ? scrollY / h : 0; };
+  addEventListener('scroll', read, { passive:true }); addEventListener('resize', read); read();
+  const tick = () => { const k = 220, d = 40, dt = 1/60; v += (k * (target - x) - d * v) * dt; x += v * dt; if (reduceMotion) x = target; bar.style.transform = `scaleX(${Math.max(0, Math.min(1, x))})`;
+    // the path section drives its own fill from the same spring idea
+    const pin = $('pathpin'); if (pin && innerWidth >= 768) { const r = pin.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, -r.top / (r.height - innerHeight))); $('track4').style.setProperty('--pp', pp.toFixed(3));
+      const step = Math.min(3, Math.floor(pp * 4 + .15)); all('#stations .station').forEach((s, i) => s.classList.toggle('on', i <= step)); all('#track4 b').forEach((b, i) => b.classList.toggle('on', pp >= (i + .5) / 4)); } else all('#stations .station').forEach(s => s.classList.add('on'));
+    requestAnimationFrame(tick); };
+  tick();
+})();
+
+/* ---------- Send fill: the card frosts and fills lime. The backend sends no progress yet, so the fill
+   eases toward 92% over time and snaps to full when the answer lands. ---------- */
+const run = $('run'); let fillP = 0, fillTarget = 0, fillVel = 0, startedAt = 0, filling = false;
+(function fillLoop(){
+  if (filling) { fillTarget = .92 * (1 - Math.exp(-(performance.now() - startedAt) / 5200)); HEAT.to({ E:.4 + .45 * fillP }); }
+  const dt = 1 / 60; fillVel += (200 * (fillTarget - fillP) - 32 * fillVel) * dt; // spring, same feel as the scroll bar
+  fillP += fillVel * dt; if (reduceMotion) fillP = fillTarget;
+  run.style.setProperty('--p', Math.max(0, Math.min(1, fillP)).toFixed(4));
+  requestAnimationFrame(fillLoop);
+})();
+const finishFill = full => new Promise(res => { filling = false; fillTarget = full ? 1 : 0; setTimeout(res, full ? 900 : 500); });
+
+let last = null, tick = null, visual = 'ask', pending = Promise.resolve();
+const flow = createFlow(s => { pending = pending.then(() => render(s)); });
+async function render(s) {
+  const prev = visual;
+  if (prev === 'working' && s.state !== 'working') await finishFill(s.state === 'answer');
+  last = s; visual = s.state; document.body.dataset.state = s.state;
+  if ($('q').value !== s.question) $('q').value = s.question;
+  for (const b of all('[data-act=send]')) b.disabled = !s.question.trim();
+  HEAT.to(HEAT_STATES[s.state]);
+  for (const el of all('[data-fill=question]')) el.textContent = s.question;
+  clearInterval(tick);
+  if (s.state === 'working') {
+    if (prev !== 'working') { startedAt = s.startedAt; fillP = 0; fillVel = 0; filling = true; scrollTo({ top:0 }); }
+    const up = () => all('[data-fill=clock]').forEach(el => el.textContent = fmtTime(performance.now() - s.startedAt)); up(); tick = setInterval(up, 250);
+  }
+  if (s.state === 'answer') {
+    const srcs = sourcesFrom(s.answer);
+    let html = renderMarkdown(s.answer, { skipSources:true }).html;
+    srcs.forEach((x, i) => { html = html.split(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a><a class="cite" href="#src-${i+1}" aria-label="Source ${i+1}">${i+1}</a>`); });
+    all('[data-fill=doc]').forEach(el => el.innerHTML = html);
+    all('[data-fill=srccount]').forEach(el => el.textContent = srcs.length);
+    all('[data-fill=took]').forEach(el => el.textContent = s.startedAt ? fmtTime(performance.now() - s.startedAt) : '0:24');
+    all('[data-fill=srcs]').forEach(el => el.innerHTML = srcs.map((x, i) => `<a class="platter" id="src-${i+1}" href="${x.url}" target="_blank" rel="noopener"><span class="fav"><img src="https://www.google.com/s2/favicons?domain=${x.host}&sz=64" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph-fill ph-globe'}))"><b>${i+1}</b></span><span class="tx"><span>${x.host}</span><strong>${esc(x.title)}</strong></span></a>`).join(''));
+  }
+  if (s.state === 'error') {
+    const E = { net:{ icon:'ph-wifi-slash', head:"Can't reach the research server" }, server:{ icon:'ph-warning', head:"The agents couldn't finish" } }[s.error];
+    all('[data-fill=err-head]').forEach(el => el.textContent = E.head);
+    all('[data-fill=err-icon]').forEach(el => el.className = 'ph-fill ' + E.icon);
+    all('[data-fill=err-body]').forEach(el => el.textContent = ERRORS[s.error].body);
+  }
+  const on = s.copied && Date.now() - s.copied < 2200; $('toast').classList.toggle('on', !!on);
+  if (on && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+// Opened straight into the working state for review: start the fill where the clock says it would be.
+if (params.get('state') === 'working') { visual = 'working'; startedAt = performance.now() - 14000; filling = true; }
+
+$('q').addEventListener('input', e => flow.type(e.target.value));
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); flow.send(); } });
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (chip) { flow.type(chip.textContent); $('q').focus(); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'ask' || act === 'home') { e.preventDefault(); if (flow.get().state !== 'ask' && act === 'home') flow.reset(); scrollTo({ top:0, behavior:'smooth' }); if (act === 'ask') setTimeout(() => $('q').focus({ preventScroll:true }), 500); }
+  if (act === 'new') { flow.reset(); scrollTo({ top:0 }); setTimeout(() => $('q').focus(), 300); }
+  if (act === 'copy') flow.copy();
+  if (act === 'retry') flow.send();
+  if (act === 'edit') { flow.edit(); setTimeout(() => $('q').focus(), 300); }
+});
+</script>
+</body>
+</html>

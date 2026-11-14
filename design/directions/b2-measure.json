@@ -1,0 +1,2214 @@
+{
+ "ask-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 641,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nAsk once.\nFour agents answer.\n\nA Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [
+   {
+    "x": 387,
+    "y": 194,
+    "w": 666,
+    "h": 149,
+    "fs": "74.56px",
+    "lh": "74.56px",
+    "fw": "600",
+    "ls": "-2.6096px",
+    "text": "Ask once.\nFour agents answer."
+   }
+  ],
+  ".hero .lead": [
+   {
+    "x": 455,
+    "y": 361,
+    "w": 530,
+    "h": 90,
+    "fs": "20px",
+    "lh": "30px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".qwrap": [
+   {
+    "x": 336,
+    "y": 577,
+    "w": 768,
+    "h": 278,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  ".qcard": [
+   {
+    "x": 336,
+    "y": 577,
+    "w": 768,
+    "h": 278,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  "#q": [
+   {
+    "x": 354,
+    "y": 594,
+    "w": 733,
+    "h": 69,
+    "fs": "20px",
+    "lh": "29px",
+    "fw": "400",
+    "ls": "normal",
+    "text": ""
+   }
+  ],
+  ".qcard .chips": [
+   {
+    "x": 354,
+    "y": 678,
+    "w": 733,
+    "h": 98,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?"
+   }
+  ],
+  ".chip": [
+   {
+    "x": 359,
+    "y": 678,
+    "w": 722,
+    "h": 54,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   },
+   {
+    "x": 359,
+    "y": 740,
+    "w": 262,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "What is changing in AI chip supply?"
+   },
+   {
+    "x": 629,
+    "y": 740,
+    "w": 274,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "How are universities using AI agents?"
+   }
+  ],
+  ".qrow": [
+   {
+    "x": 354,
+    "y": 790,
+    "w": 733,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send\nSend\n→"
+   }
+  ],
+  ".hint": [
+   {
+    "x": 354,
+    "y": 806,
+    "w": 123,
+    "h": 17,
+    "fs": "13px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send"
+   }
+  ],
+  "[data-act=send]": [
+   {
+    "x": 976,
+    "y": 790,
+    "w": 110,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Send\n→"
+   }
+  ],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 900
+ },
+ "typed-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 641,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nAsk once.\nFour agents answer.\n\nA Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [
+   {
+    "x": 387,
+    "y": 194,
+    "w": 666,
+    "h": 149,
+    "fs": "74.56px",
+    "lh": "74.56px",
+    "fw": "600",
+    "ls": "-2.6096px",
+    "text": "Ask once.\nFour agents answer."
+   }
+  ],
+  ".hero .lead": [
+   {
+    "x": 455,
+    "y": 361,
+    "w": 530,
+    "h": 90,
+    "fs": "20px",
+    "lh": "30px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".qwrap": [
+   {
+    "x": 336,
+    "y": 577,
+    "w": 768,
+    "h": 278,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  ".qcard": [
+   {
+    "x": 336,
+    "y": 577,
+    "w": 768,
+    "h": 278,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  "#q": [
+   {
+    "x": 354,
+    "y": 594,
+    "w": 733,
+    "h": 69,
+    "fs": "20px",
+    "lh": "29px",
+    "fw": "400",
+    "ls": "normal",
+    "text": ""
+   }
+  ],
+  ".qcard .chips": [
+   {
+    "x": 354,
+    "y": 678,
+    "w": 733,
+    "h": 98,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?"
+   }
+  ],
+  ".chip": [
+   {
+    "x": 359,
+    "y": 678,
+    "w": 722,
+    "h": 54,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   },
+   {
+    "x": 359,
+    "y": 740,
+    "w": 262,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "What is changing in AI chip supply?"
+   },
+   {
+    "x": 629,
+    "y": 740,
+    "w": 274,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "How are universities using AI agents?"
+   }
+  ],
+  ".qrow": [
+   {
+    "x": 354,
+    "y": 790,
+    "w": 733,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send\nSend\n→"
+   }
+  ],
+  ".hint": [
+   {
+    "x": 354,
+    "y": 806,
+    "w": 123,
+    "h": 17,
+    "fs": "13px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send"
+   }
+  ],
+  "[data-act=send]": [
+   {
+    "x": 976,
+    "y": 790,
+    "w": 110,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Send\n→"
+   }
+  ],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 900
+ },
+ "working-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 900,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\n0:15\n\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\n\nSupervisor\nReads your question first\nResearcher\nSearches the web with Tavily\nAnalyst\nWeighs what the sources say\nWriter\nWrites the answer with its sources"
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [
+   {
+    "x": 574,
+    "y": 222,
+    "w": 291,
+    "h": 134,
+    "fs": "148.8px",
+    "lh": "133.92px",
+    "fw": "500",
+    "ls": "-6.696px",
+    "text": "0:15"
+   }
+  ],
+  ".wq": [
+   {
+    "x": 382,
+    "y": 375,
+    "w": 677,
+    "h": 94,
+    "fs": "23.2px",
+    "lh": "31.32px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   }
+  ],
+  ".crew": [
+   {
+    "x": 304,
+    "y": 507,
+    "w": 832,
+    "h": 176,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Supervisor\nReads your question first\nResearcher\nSearches the web with Tavily\nAnalyst\nWeighs what the sources say\nWriter\nWrites the answer with its sources"
+   }
+  ],
+  ".tile": [
+   {
+    "x": 304,
+    "y": 507,
+    "w": 196,
+    "h": 176,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Supervisor\nReads your question first"
+   },
+   {
+    "x": 516,
+    "y": 507,
+    "w": 196,
+    "h": 176,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Researcher\nSearches the web with Tavily"
+   },
+   {
+    "x": 728,
+    "y": 507,
+    "w": 196,
+    "h": 176,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Analyst\nWeighs what the sources say"
+   },
+   {
+    "x": 940,
+    "y": 507,
+    "w": 196,
+    "h": 176,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Writer\nWrites the answer with its sources"
+   }
+  ],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 946
+ },
+ "answer-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 382,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nCopy answer\nNew question"
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [
+   {
+    "x": 332,
+    "y": 125,
+    "w": 777,
+    "h": 127,
+    "fs": "37.92px",
+    "lh": "42.4704px",
+    "fw": "600",
+    "ls": "-1.3272px",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   }
+  ],
+  ".ansq .btns": [
+   {
+    "x": 565,
+    "y": 278,
+    "w": 310,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Copy answer\nNew question"
+   }
+  ],
+  ".ansq button": [
+   {
+    "x": 565,
+    "y": 278,
+    "w": 147,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Copy answer"
+   },
+   {
+    "x": 722,
+    "y": 278,
+    "w": 153,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "New question"
+   }
+  ],
+  ".cards": [
+   {
+    "x": 96,
+    "y": 428,
+    "w": 1248,
+    "h": 614,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Short answer\n\nMicrosoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace.\n\nWhere they differ\nMicrosoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle co"
+   }
+  ],
+  ".cards .card": [
+   {
+    "x": 96,
+    "y": 428,
+    "w": 876,
+    "h": 614,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Short answer\n\nMicrosoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace.\n\nWhere they differ\nMicrosoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle co"
+   },
+   {
+    "x": 992,
+    "y": 428,
+    "w": 352,
+    "h": 426,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Sources\nazure.microsoft.com\nAzure OpenAI\ncloud.google.com\nVertex AI\nmicrosoft.com\nMicrosoft 365 Copilot overview\nworkspace.google.com\nGemini for Workspace"
+   }
+  ],
+  ".doc h2": [
+   {
+    "x": 135,
+    "y": 467,
+    "w": 798,
+    "h": 31,
+    "fs": "25.6px",
+    "lh": "30.72px",
+    "fw": "600",
+    "ls": "-0.64px",
+    "text": "Short answer"
+   },
+   {
+    "x": 135,
+    "y": 629,
+    "w": 798,
+    "h": 31,
+    "fs": "25.6px",
+    "lh": "30.72px",
+    "fw": "600",
+    "ls": "-0.64px",
+    "text": "Where they differ"
+   },
+   {
+    "x": 135,
+    "y": 833,
+    "w": 798,
+    "h": 31,
+    "fs": "25.6px",
+    "lh": "30.72px",
+    "fw": "600",
+    "ls": "-0.64px",
+    "text": "What a mid-sized software company should watch"
+   }
+  ],
+  ".doc p": [
+   {
+    "x": 135,
+    "y": 509,
+    "w": 798,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace."
+   }
+  ],
+  ".doc ul": [
+   {
+    "x": 135,
+    "y": 671,
+    "w": 798,
+    "h": 127,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle competes on model quality and price per use, backed by its own chips for training and serving.\nBoth are adding agents that act inside other apps, which is where new spending is moving."
+   },
+   {
+    "x": 135,
+    "y": 875,
+    "w": 798,
+    "h": 127,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product.\nPrice changes for model use, which move the cost of every AI feature you ship.\nAgent standards for connecting apps, which decide whether their agents can use your product."
+   }
+  ],
+  ".doc li": [
+   {
+    "x": 154,
+    "y": 671,
+    "w": 779,
+    "h": 29,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft bundles AI into seats companies already license, so adoption follows existing contracts."
+   },
+   {
+    "x": 154,
+    "y": 706,
+    "w": 779,
+    "h": 57,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Google competes on model quality and price per use, backed by its own chips for training and serving."
+   },
+   {
+    "x": 154,
+    "y": 770,
+    "w": 779,
+    "h": 29,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Both are adding agents that act inside other apps, which is where new spending is moving."
+   },
+   {
+    "x": 154,
+    "y": 875,
+    "w": 779,
+    "h": 57,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product."
+   },
+   {
+    "x": 154,
+    "y": 939,
+    "w": 779,
+    "h": 29,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Price changes for model use, which move the cost of every AI feature you ship."
+   },
+   {
+    "x": 154,
+    "y": 974,
+    "w": 779,
+    "h": 29,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Agent standards for connecting apps, which decide whether their agents can use your product."
+   }
+  ],
+  ".side-card .src": [
+   {
+    "x": 1031,
+    "y": 508,
+    "w": 274,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "azure.microsoft.com\nAzure OpenAI"
+   },
+   {
+    "x": 1031,
+    "y": 587,
+    "w": 274,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "cloud.google.com\nVertex AI"
+   },
+   {
+    "x": 1031,
+    "y": 666,
+    "w": 274,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "microsoft.com\nMicrosoft 365 Copilot overview"
+   },
+   {
+    "x": 1031,
+    "y": 745,
+    "w": 274,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "workspace.google.com\nGemini for Workspace"
+   }
+  ],
+  ".side-card h2": [
+   {
+    "x": 1031,
+    "y": 467,
+    "w": 274,
+    "h": 25,
+    "fs": "19.2px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.672px",
+    "text": "Sources"
+   }
+  ],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 1087
+ },
+ "error-net-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 710,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nWe couldn't reach the research server."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [
+   {
+    "x": 461,
+    "y": 315,
+    "w": 518,
+    "h": 83,
+    "fs": "37.92px",
+    "lh": "41.712px",
+    "fw": "600",
+    "ls": "-1.3272px",
+    "text": "We couldn't reach the research server."
+   }
+  ],
+  ".errcard": [
+   {
+    "x": 400,
+    "y": 646,
+    "w": 640,
+    "h": 209,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Check that the backend is running, then try again. Your question is still here.\n\nTry again\nEdit question"
+   }
+  ],
+  ".errcard p": [
+   {
+    "x": 439,
+    "y": 685,
+    "w": 562,
+    "h": 60,
+    "fs": "20px",
+    "lh": "30px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Check that the backend is running, then try again. Your question is still here."
+   }
+  ],
+  ".errcard button": [
+   {
+    "x": 582,
+    "y": 767,
+    "w": 118,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Try again"
+   },
+   {
+    "x": 709,
+    "y": 767,
+    "w": 149,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Edit question"
+   }
+  ],
+  "docH": 900
+ },
+ "error-server-1440": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 710,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nThe agents couldn't finish this one."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 1440,
+    "h": 69,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [
+   {
+    "x": 461,
+    "y": 315,
+    "w": 518,
+    "h": 83,
+    "fs": "37.92px",
+    "lh": "41.712px",
+    "fw": "600",
+    "ls": "-1.3272px",
+    "text": "The agents couldn't finish this one."
+   }
+  ],
+  ".errcard": [
+   {
+    "x": 400,
+    "y": 646,
+    "w": 640,
+    "h": 209,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Something went wrong while they worked. Try again, or reword your question.\n\nTry again\nEdit question"
+   }
+  ],
+  ".errcard p": [
+   {
+    "x": 439,
+    "y": 685,
+    "w": 562,
+    "h": 60,
+    "fs": "20px",
+    "lh": "30px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Something went wrong while they worked. Try again, or reword your question."
+   }
+  ],
+  ".errcard button": [
+   {
+    "x": 582,
+    "y": 767,
+    "w": 118,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Try again"
+   },
+   {
+    "x": 709,
+    "y": 767,
+    "w": 149,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Edit question"
+   }
+  ],
+  "docH": 900
+ },
+ "ask-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 539,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nAsk once.\nFour agents answer.\n\nA Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [
+   {
+    "x": 21,
+    "y": 154,
+    "w": 349,
+    "h": 125,
+    "fs": "41.6px",
+    "lh": "41.6px",
+    "fw": "600",
+    "ls": "-1.456px",
+    "text": "Ask once.\nFour agents answer."
+   }
+  ],
+  ".hero .lead": [
+   {
+    "x": 21,
+    "y": 297,
+    "w": 349,
+    "h": 76,
+    "fs": "16.85px",
+    "lh": "25.275px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".qwrap": [
+   {
+    "x": 21,
+    "y": 475,
+    "w": 349,
+    "h": 349,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  ".qcard": [
+   {
+    "x": 21,
+    "y": 475,
+    "w": 349,
+    "h": 349,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  "#q": [
+   {
+    "x": 38,
+    "y": 493,
+    "w": 314,
+    "h": 60,
+    "fs": "16.85px",
+    "lh": "24.4325px",
+    "fw": "400",
+    "ls": "normal",
+    "text": ""
+   }
+  ],
+  ".qcard .chips": [
+   {
+    "x": 38,
+    "y": 567,
+    "w": 314,
+    "h": 178,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?"
+   }
+  ],
+  ".chip": [
+   {
+    "x": 44,
+    "y": 567,
+    "w": 303,
+    "h": 90,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   },
+   {
+    "x": 44,
+    "y": 665,
+    "w": 262,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "What is changing in AI chip supply?"
+   },
+   {
+    "x": 44,
+    "y": 709,
+    "w": 274,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "How are universities using AI agents?"
+   }
+  ],
+  ".qrow": [
+   {
+    "x": 38,
+    "y": 759,
+    "w": 314,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send\nSend\n→"
+   }
+  ],
+  ".hint": [
+   {
+    "x": 38,
+    "y": 775,
+    "w": 123,
+    "h": 17,
+    "fs": "13px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send"
+   }
+  ],
+  "[data-act=send]": [
+   {
+    "x": 242,
+    "y": 759,
+    "w": 110,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Send\n→"
+   }
+  ],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 844
+ },
+ "typed-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 539,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nAsk once.\nFour agents answer.\n\nA Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [
+   {
+    "x": 21,
+    "y": 154,
+    "w": 349,
+    "h": 125,
+    "fs": "41.6px",
+    "lh": "41.6px",
+    "fw": "600",
+    "ls": "-1.456px",
+    "text": "Ask once.\nFour agents answer."
+   }
+  ],
+  ".hero .lead": [
+   {
+    "x": 21,
+    "y": 297,
+    "w": 349,
+    "h": 76,
+    "fs": "16.85px",
+    "lh": "25.275px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources."
+   }
+  ],
+  ".qwrap": [
+   {
+    "x": 21,
+    "y": 475,
+    "w": 349,
+    "h": 349,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  ".qcard": [
+   {
+    "x": 21,
+    "y": 475,
+    "w": 349,
+    "h": 349,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Your research question\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?\nPress Enter to send\nSend\n→"
+   }
+  ],
+  "#q": [
+   {
+    "x": 38,
+    "y": 493,
+    "w": 314,
+    "h": 60,
+    "fs": "16.85px",
+    "lh": "24.4325px",
+    "fw": "400",
+    "ls": "normal",
+    "text": ""
+   }
+  ],
+  ".qcard .chips": [
+   {
+    "x": 38,
+    "y": 567,
+    "w": 314,
+    "h": 178,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nWhat is changing in AI chip supply?\nHow are universities using AI agents?"
+   }
+  ],
+  ".chip": [
+   {
+    "x": 44,
+    "y": 567,
+    "w": 303,
+    "h": 90,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   },
+   {
+    "x": 44,
+    "y": 665,
+    "w": 262,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "What is changing in AI chip supply?"
+   },
+   {
+    "x": 44,
+    "y": 709,
+    "w": 274,
+    "h": 36,
+    "fs": "14px",
+    "lh": "18.2px",
+    "fw": "500",
+    "ls": "normal",
+    "text": "How are universities using AI agents?"
+   }
+  ],
+  ".qrow": [
+   {
+    "x": 38,
+    "y": 759,
+    "w": 314,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send\nSend\n→"
+   }
+  ],
+  ".hint": [
+   {
+    "x": 38,
+    "y": 775,
+    "w": 123,
+    "h": 17,
+    "fs": "13px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Press Enter to send"
+   }
+  ],
+  "[data-act=send]": [
+   {
+    "x": 242,
+    "y": 759,
+    "w": 110,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Send\n→"
+   }
+  ],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 844
+ },
+ "working-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 844,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\n0:15\n\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\n\nSupervisor\nReads your question first\nResearcher\nSearches the web with Tavily\nAnalyst\nWeighs what the sources say\nWriter\nWrites the answer with its sources"
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [
+   {
+    "x": 117,
+    "y": 167,
+    "w": 157,
+    "h": 72,
+    "fs": "80px",
+    "lh": "72px",
+    "fw": "500",
+    "ls": "-3.6px",
+    "text": "0:15"
+   }
+  ],
+  ".wq": [
+   {
+    "x": 21,
+    "y": 259,
+    "w": 349,
+    "h": 99,
+    "fs": "18.4px",
+    "lh": "24.84px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   }
+  ],
+  ".crew": [
+   {
+    "x": 21,
+    "y": 396,
+    "w": 349,
+    "h": 268,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Supervisor\nReads your question first\nResearcher\nSearches the web with Tavily\nAnalyst\nWeighs what the sources say\nWriter\nWrites the answer with its sources"
+   }
+  ],
+  ".tile": [
+   {
+    "x": 21,
+    "y": 396,
+    "w": 170,
+    "h": 130,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Supervisor\nReads your question first"
+   },
+   {
+    "x": 199,
+    "y": 396,
+    "w": 170,
+    "h": 130,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Researcher\nSearches the web with Tavily"
+   },
+   {
+    "x": 21,
+    "y": 534,
+    "w": 170,
+    "h": 130,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Analyst\nWeighs what the sources say"
+   },
+   {
+    "x": 199,
+    "y": 534,
+    "w": 170,
+    "h": 130,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Writer\nWrites the answer with its sources"
+   }
+  ],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 865
+ },
+ "answer-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 361,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nCompare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.\nCopy answer\nNew question"
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [
+   {
+    "x": 21,
+    "y": 76,
+    "w": 349,
+    "h": 172,
+    "fs": "25.6px",
+    "lh": "28.672px",
+    "fw": "600",
+    "ls": "-0.896px",
+    "text": "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor."
+   }
+  ],
+  ".ansq .btns": [
+   {
+    "x": 40,
+    "y": 273,
+    "w": 310,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Copy answer\nNew question"
+   }
+  ],
+  ".ansq button": [
+   {
+    "x": 40,
+    "y": 273,
+    "w": 147,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Copy answer"
+   },
+   {
+    "x": 197,
+    "y": 273,
+    "w": 153,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "New question"
+   }
+  ],
+  ".cards": [
+   {
+    "x": 21,
+    "y": 382,
+    "w": 349,
+    "h": 1454,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Short answer\n\nMicrosoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace.\n\nWhere they differ\nMicrosoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle co"
+   }
+  ],
+  ".cards .card": [
+   {
+    "x": 21,
+    "y": 382,
+    "w": 349,
+    "h": 1041,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Short answer\n\nMicrosoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace.\n\nWhere they differ\nMicrosoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle co"
+   },
+   {
+    "x": 21,
+    "y": 1443,
+    "w": 349,
+    "h": 393,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Sources\nazure.microsoft.com\nAzure OpenAI\ncloud.google.com\nVertex AI\nmicrosoft.com\nMicrosoft 365 Copilot overview\nworkspace.google.com\nGemini for Workspace"
+   }
+  ],
+  ".doc h2": [
+   {
+    "x": 43,
+    "y": 404,
+    "w": 304,
+    "h": 24,
+    "fs": "20px",
+    "lh": "24px",
+    "fw": "600",
+    "ls": "-0.5px",
+    "text": "Short answer"
+   },
+   {
+    "x": 43,
+    "y": 703,
+    "w": 304,
+    "h": 24,
+    "fs": "20px",
+    "lh": "24px",
+    "fw": "600",
+    "ls": "-0.5px",
+    "text": "Where they differ"
+   },
+   {
+    "x": 43,
+    "y": 1043,
+    "w": 304,
+    "h": 48,
+    "fs": "20px",
+    "lh": "24px",
+    "fw": "600",
+    "ls": "-0.5px",
+    "text": "What a mid-sized software company should watch"
+   }
+  ],
+  ".doc p": [
+   {
+    "x": 43,
+    "y": 439,
+    "w": 304,
+    "h": 228,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and Azure OpenAI for custom builds. Google leans on its own Gemini models and Vertex AI, and pushes hardest with teams already on Google Cloud and Workspace."
+   }
+  ],
+  ".doc ul": [
+   {
+    "x": 43,
+    "y": 738,
+    "w": 304,
+    "h": 270,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft bundles AI into seats companies already license, so adoption follows existing contracts.\nGoogle competes on model quality and price per use, backed by its own chips for training and serving.\nBoth are adding agents that act inside other apps, which is where new spending is moving."
+   },
+   {
+    "x": 43,
+    "y": 1102,
+    "w": 304,
+    "h": 298,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product.\nPrice changes for model use, which move the cost of every AI feature you ship.\nAgent standards for connecting apps, which decide whether their agents can use your product."
+   }
+  ],
+  ".doc li": [
+   {
+    "x": 62,
+    "y": 738,
+    "w": 285,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Microsoft bundles AI into seats companies already license, so adoption follows existing contracts."
+   },
+   {
+    "x": 62,
+    "y": 830,
+    "w": 285,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Google competes on model quality and price per use, backed by its own chips for training and serving."
+   },
+   {
+    "x": 62,
+    "y": 922,
+    "w": 285,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Both are adding agents that act inside other apps, which is where new spending is moving."
+   },
+   {
+    "x": 62,
+    "y": 1102,
+    "w": 285,
+    "h": 114,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product."
+   },
+   {
+    "x": 62,
+    "y": 1223,
+    "w": 285,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Price changes for model use, which move the cost of every AI feature you ship."
+   },
+   {
+    "x": 62,
+    "y": 1315,
+    "w": 285,
+    "h": 86,
+    "fs": "17px",
+    "lh": "28.56px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Agent standards for connecting apps, which decide whether their agents can use your product."
+   }
+  ],
+  ".side-card .src": [
+   {
+    "x": 43,
+    "y": 1506,
+    "w": 304,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "azure.microsoft.com\nAzure OpenAI"
+   },
+   {
+    "x": 43,
+    "y": 1585,
+    "w": 304,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "cloud.google.com\nVertex AI"
+   },
+   {
+    "x": 43,
+    "y": 1665,
+    "w": 304,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "microsoft.com\nMicrosoft 365 Copilot overview"
+   },
+   {
+    "x": 43,
+    "y": 1744,
+    "w": 304,
+    "h": 70,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "workspace.google.com\nGemini for Workspace"
+   }
+  ],
+  ".side-card h2": [
+   {
+    "x": 43,
+    "y": 1465,
+    "w": 304,
+    "h": 25,
+    "fs": "19.2px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.672px",
+    "text": "Sources"
+   }
+  ],
+  ".err h1": [],
+  ".errcard": [],
+  ".errcard p": [],
+  ".errcard button": [],
+  "docH": 1856
+ },
+ "error-net-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 696,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nWe couldn't reach the research server."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [
+   {
+    "x": 21,
+    "y": 314,
+    "w": 349,
+    "h": 56,
+    "fs": "25.6px",
+    "lh": "28.16px",
+    "fw": "600",
+    "ls": "-0.896px",
+    "text": "We couldn't reach the research server."
+   }
+  ],
+  ".errcard": [
+   {
+    "x": 21,
+    "y": 632,
+    "w": 349,
+    "h": 191,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Check that the backend is running, then try again. Your question is still here.\n\nTry again\nEdit question"
+   }
+  ],
+  ".errcard p": [
+   {
+    "x": 43,
+    "y": 655,
+    "w": 304,
+    "h": 76,
+    "fs": "16.85px",
+    "lh": "25.275px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Check that the backend is running, then try again. Your question is still here."
+   }
+  ],
+  ".errcard button": [
+   {
+    "x": 57,
+    "y": 753,
+    "w": 118,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Try again"
+   },
+   {
+    "x": 184,
+    "y": 753,
+    "w": 149,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Edit question"
+   }
+  ],
+  "docH": 844
+ },
+ "error-server-390": {
+  ".band": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 696,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Multi-Agent AI\nThe agents couldn't finish this one."
+   }
+  ],
+  ".brand": [
+   {
+    "x": 0,
+    "y": 0,
+    "w": 390,
+    "h": 44,
+    "fs": "18.4px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "-0.184px",
+    "text": "Multi-Agent AI"
+   }
+  ],
+  ".hero h1": [],
+  ".hero .lead": [],
+  ".qwrap": [],
+  ".qcard": [],
+  "#q": [],
+  ".qcard .chips": [],
+  ".chip": [],
+  ".qrow": [],
+  ".hint": [],
+  "[data-act=send]": [],
+  ".clock": [],
+  ".wq": [],
+  ".crew": [],
+  ".tile": [],
+  ".ansq h1": [],
+  ".ansq .btns": [],
+  ".ansq button": [],
+  ".cards": [],
+  ".cards .card": [],
+  ".doc h2": [],
+  ".doc p": [],
+  ".doc ul": [],
+  ".doc li": [],
+  ".side-card .src": [],
+  ".side-card h2": [],
+  ".err h1": [
+   {
+    "x": 21,
+    "y": 314,
+    "w": 349,
+    "h": 56,
+    "fs": "25.6px",
+    "lh": "28.16px",
+    "fw": "600",
+    "ls": "-0.896px",
+    "text": "The agents couldn't finish this one."
+   }
+  ],
+  ".errcard": [
+   {
+    "x": 21,
+    "y": 632,
+    "w": 349,
+    "h": 191,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Something went wrong while they worked. Try again, or reword your question.\n\nTry again\nEdit question"
+   }
+  ],
+  ".errcard p": [
+   {
+    "x": 43,
+    "y": 655,
+    "w": 304,
+    "h": 76,
+    "fs": "16.85px",
+    "lh": "25.275px",
+    "fw": "400",
+    "ls": "normal",
+    "text": "Something went wrong while they worked. Try again, or reword your question."
+   }
+  ],
+  ".errcard button": [
+   {
+    "x": 57,
+    "y": 753,
+    "w": 118,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Try again"
+   },
+   {
+    "x": 184,
+    "y": 753,
+    "w": 149,
+    "h": 48,
+    "fs": "16px",
+    "lh": "normal",
+    "fw": "600",
+    "ls": "normal",
+    "text": "Edit question"
+   }
+  ],
+  "docH": 844
+ }
+}

@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Direction B Window</title>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600&f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --ink-2:rgb(252 255 255 / .72); --ink-3:rgb(252 255 255 / .5); --line:rgb(252 255 255 / .1);
+  --display:"Clash Display", ui-sans-serif, system-ui, sans-serif; --body:"Switzer", ui-sans-serif, system-ui, sans-serif;
+  --t-hero:clamp(2.5rem, 1.4rem + 3.6vw, 5rem); --t-h2:clamp(1.9rem,1.3rem + 1.9vw,3.1rem);
+  --t-lead:clamp(1.02rem,.95rem + .3vw,1.2rem); --t-body:1.0625rem; --t-small:.9375rem;
+  --pad:clamp(1.25rem,.7rem + 2.4vw,3.5rem); --r:14px; --ease:cubic-bezier(.16,1,.3,1);
+  --left:46%;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;background:var(--deep);color:var(--white);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.app{display:grid;grid-template-columns:var(--left) 1fr;height:100dvh;transition:grid-template-columns 1.1s var(--ease)}
+body[data-state=working]{--left:32%} body[data-state=answer]{--left:72%} body[data-state=error]{--left:46%}
+
+/* Left panel */
+.panel{position:relative;background:var(--deep);overflow:auto;display:grid;grid-template-rows:auto 1fr;border-right:1px solid var(--line)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:var(--pad) var(--pad) 0}
+.brand{font-family:var(--display);font-weight:600;font-size:1.2rem;letter-spacing:-.01em}
+.view{display:none;padding:var(--pad);align-content:center}
+.view.on{display:grid;animation:in .7s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+h1,h2{text-wrap:balance;font-family:var(--display);font-weight:500;letter-spacing:-.02em;margin:0}
+.ask h1{font-size:var(--t-hero);line-height:1}
+.lead{font-size:var(--t-lead);color:var(--ink-2);line-height:1.5;max-width:40ch;margin:1.2rem 0 2rem}
+.box{display:grid;gap:.9rem;padding:1rem;border-radius:var(--r);background:var(--mid);border:1px solid var(--line)}
+.box:focus-within{border-color:rgb(252 255 255 / .4)}
+.box textarea{resize:none;background:none;border:0;outline:0;font:inherit;font-size:var(--t-lead);color:var(--white);min-height:4.6em;line-height:1.45;padding:.2rem .3rem}
+.box textarea::placeholder{color:var(--ink-3)}
+.box .row{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.hint{font-size:.8125rem;color:var(--ink-3)}
+.primary{background:var(--lime);color:var(--deep);border:0;border-radius:var(--r);padding:.8rem 1.4rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.primary:active{transform:translateY(1px)}
+.primary[disabled]{background:rgb(252 255 255 / .1);color:var(--ink-3);cursor:not-allowed}
+.ghost{background:transparent;border:1px solid rgb(252 255 255 / .25);border-radius:var(--r);padding:.8rem 1.3rem;font-weight:500;cursor:pointer;transition:border-color .15s}
+.ghost:hover{border-color:var(--white)}
+.sugs{margin-top:1.6rem;display:grid}
+.sugs button{display:flex;justify-content:space-between;gap:1rem;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:.95rem .1rem;cursor:pointer;color:var(--ink-2);font-size:var(--t-small);transition:color .15s,padding .15s}
+.sugs button:last-child{border-bottom:1px solid var(--line)}
+.sugs button:hover{color:var(--white);padding-left:.5rem}
+.sugs button span:last-child{color:var(--lime)}
+
+.work .q{font-size:clamp(1.15rem,1rem + .5vw,1.45rem);line-height:1.4;color:var(--white);max-width:30ch}
+.work .clock{font-family:var(--display);font-weight:500;font-size:clamp(4rem,2rem + 6vw,8.5rem);line-height:.9;letter-spacing:-.03em;margin:2.5rem 0 .4rem;font-variant-numeric:tabular-nums}
+.work .lbl{color:var(--ink-3);font-size:var(--t-small)}
+.crew{margin-top:2.5rem;display:grid;gap:.85rem}
+.crew div{display:grid;gap:.1rem}
+.crew b{font-weight:600}
+.crew span{color:var(--ink-3);font-size:var(--t-small)}
+
+.ans{align-content:start}
+.ans h2{font-size:var(--t-h2);line-height:1.08;max-width:24ch}
+.acts{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.6rem 0 2.6rem}
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.35rem,1.1rem + .8vw,1.8rem);margin:2.4rem 0 .8rem;line-height:1.2}
+.doc h2:first-child{margin-top:0}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.7;color:rgb(252 255 255 / .86)}
+.doc ul{padding-left:1.2rem;display:grid;gap:.45rem}
+.doc li::marker{color:var(--lime)}
+.doc a{color:var(--white);text-decoration:underline;text-decoration-color:var(--blue);text-decoration-thickness:2px;text-underline-offset:4px}
+
+.err h1{font-size:var(--t-h2);line-height:1.05;max-width:16ch}
+.err .row{display:flex;gap:.6rem;flex-wrap:wrap}
+
+/* Right: the fluted window */
+.window{position:relative;overflow:hidden;background:var(--deep)}
+.fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(70% 60% at 50% 45%, rgb(98 192 246 / .6), transparent 70%),var(--deep)}
+.behind{position:absolute;inset:0;overflow:hidden;filter:url(#flutes);pointer-events:none}
+.stream{position:absolute;left:8%;right:0;top:0;display:grid;gap:2vh}
+.stream span{font-family:var(--display);font-weight:500;font-size:clamp(3.2rem,1rem + 6.4vw,8.5rem);line-height:1;letter-spacing:-.02em;color:rgb(252 255 255 / .82);white-space:nowrap}
+.stream span:nth-child(4n+2){color:var(--lime)}
+.srcs{position:absolute;inset:auto 0 0 0;padding:var(--pad);display:none;gap:.6rem}
+body[data-state=answer] .srcs{display:grid}
+body[data-state=answer] .behind{opacity:.35}
+.srcs h3{margin:0 0 .2rem;font-size:var(--t-small);font-weight:600}
+.srcs a{display:grid;gap:.15rem;padding:.9rem 1rem;border-radius:var(--r);background:rgb(31 32 41 / .9);border:1px solid var(--line);color:var(--white);text-decoration:none;transition:border-color .15s}
+.srcs a:hover{border-color:rgb(252 255 255 / .45)}
+.srcs a span{font-size:.8125rem;color:var(--ink-3)}
+.srcs a b{font-weight:500;font-size:var(--t-small)}
+.toast{position:fixed;left:1.5rem;bottom:1.5rem;background:var(--lime);color:var(--deep);border-radius:var(--r);padding:.85rem 1.2rem;font-weight:600;visibility:hidden;transform:translateY(160%);transition:transform .45s var(--ease)}
+.toast.on{visibility:visible;transform:none}
+
+@media (max-width:767px){
+  .app{grid-template-columns:1fr;grid-template-rows:var(--band) 1fr;transition:grid-template-rows 1.1s var(--ease)}
+  body{--band:34dvh} body[data-state=working]{--band:52dvh} body[data-state=answer]{--band:0dvh} body[data-state=error]{--band:24dvh}
+  .window{grid-row:1} .panel{grid-row:2;border-right:0;border-top:1px solid var(--line)}
+  .view{align-content:start}
+  .work .clock{margin-top:1.2rem}
+  .crew{display:none}
+  body[data-state=answer] .srcs{display:none}
+  .phone-srcs{display:grid!important}
+}
+.phone-srcs{display:none;gap:.6rem;margin-top:2rem}
+.phone-srcs a{display:grid;gap:.15rem;padding:.9rem 1rem;border-radius:var(--r);background:var(--mid);color:var(--white);text-decoration:none}
+.phone-srcs a span{font-size:.8125rem;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="flutes" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="fluteMap" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    <feGaussianBlur stdDeviation="0.5"/>
+  </filter>
+</svg>
+<div class="app">
+  <div class="panel">
+    <header class="top"><div class="brand">Multi-Agent AI</div><button class="ghost" id="newTop" hidden>New question</button></header>
+    <div>
+      <section class="view ask" id="vAsk">
+        <h1>Ask once.<br>Four agents answer.</h1>
+        <p class="lead">A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources.</p>
+        <form class="box" id="form">
+          <label for="q" style="position:absolute;left:-9999px">Your research question</label>
+          <textarea id="q" rows="3" placeholder="Ask a research question"></textarea>
+          <div class="row"><span class="hint">Press Enter to send</span><button class="primary" id="send" disabled>Send</button></div>
+        </form>
+        <div class="sugs" id="sugs"></div>
+      </section>
+      <section class="view work" id="vWork" aria-live="polite">
+        <p class="q" id="workQ"></p>
+        <div class="clock" id="clock">0:00</div>
+        <div class="lbl">Researching</div>
+        <div class="crew" id="crew"></div>
+      </section>
+      <section class="view ans" id="vAns">
+        <h2 id="ansQ"></h2>
+        <div class="acts"><button class="primary" id="copy">Copy answer</button><button class="ghost" id="newAns">New question</button></div>
+        <article class="doc" id="doc"></article>
+        <div class="phone-srcs" id="phoneSrcs"></div>
+      </section>
+      <section class="view err" id="vErr" role="alert">
+        <h1 id="errTitle"></h1>
+        <p class="lead" id="errBody"></p>
+        <div class="row"><button class="primary" id="retry">Try again</button><button class="ghost" id="edit">Edit question</button></div>
+      </section>
+    </div>
+  </div>
+  <div class="window" aria-hidden="true">
+    <canvas class="fx" id="fx"></canvas>
+    <div class="behind"><div class="stream" id="stream"></div></div>
+    <nav class="srcs" aria-label="Sources"><h3>Sources</h3><div id="srcs" style="display:grid;gap:.6rem"></div></nav>
+  </div>
+</div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+<script>
+const LS = (() => {
+// Property metadata is only used in Figma Design, so this is a no-op.
+function defineProperties(
+  _component,
+  _properties,
+) {}
+
+function Effect() { }
+function setup(device, frame) {
+    var wgsl = `diagnostic(off,derivative_uniformity);
+struct U {
+  c0: vec4f,
+  c1: vec4f,
+  c2: vec4f,
+  c3: vec4f,
+  hl: vec4f,
+  v0: vec4f,
+  v1: vec4f,
+  v2: vec4f,
+  v3: vec4f,
+  v4: vec4f,
+  v5: vec4f,
+  v6: vec4f,
+};
+@group(0) @binding(0) var<uniform> u: U;
+
+struct VsOut {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex fn vs_main(@location(0) pos: vec2f, @location(1) uv: vec2f) -> VsOut {
+  var o: VsOut;
+  o.position = vec4f(pos, 0.0, 1.0);
+  o.uv = uv;
+  return o;
+}
+
+fn hash2(p: vec2f) -> f32 {
+  var p3 = fract(vec3f(p.x, p.y, p.x) * 0.1031);
+  p3 = p3 + vec3f(dot(p3, vec3f(p3.y, p3.z, p3.x) + vec3f(33.33)));
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let w = f * f * (3.0 - 2.0 * f);
+  let a = hash2(i);
+  let b = hash2(i + vec2f(1.0, 0.0));
+  let c = hash2(i + vec2f(0.0, 1.0));
+  let d = hash2(i + vec2f(1.0, 1.0));
+  return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
+}
+
+fn fbm(p0: vec2f) -> f32 {
+  var p = p0;
+  var amp: f32 = 0.5;
+  var total: f32 = 0.0;
+  for (var i: i32 = 0; i < 4; i = i + 1) {
+    total = total + amp * vnoise(p);
+    p = p * 2.02 + vec2f(1.7, 9.2);
+    amp = amp * 0.5;
+  }
+  return total / 0.9375;
+}
+
+fn rot2(p: vec2f, a: f32) -> vec2f {
+  let c = cos(a);
+  let s = sin(a);
+  return vec2f(c * p.x - s * p.y, s * p.x + c * p.y);
+}
+
+fn toLin(c: vec3f) -> vec3f {
+  let lo = c / 12.92;
+  let hi = pow((c + vec3f(0.055)) / 1.055, vec3f(2.4));
+  return select(hi, lo, c <= vec3f(0.04045));
+}
+
+fn toSrgb(c0: vec3f) -> vec3f {
+  let c = max(c0, vec3f(0.0));
+  let lo = c * 12.92;
+  let hi = 1.055 * pow(c, vec3f(1.0 / 2.4)) - vec3f(0.055);
+  return select(hi, lo, c <= vec3f(0.0031308));
+}
+
+fn toOklab(c: vec3f) -> vec3f {
+  let l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
+  let m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
+  let s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
+  let l2 = pow(max(l, 0.0), 1.0 / 3.0);
+  let m2 = pow(max(m, 0.0), 1.0 / 3.0);
+  let s2 = pow(max(s, 0.0), 1.0 / 3.0);
+  return vec3f(
+    0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2,
+    1.9779984951 * l2 - 2.4285922050 * m2 + 0.4505937099 * s2,
+    0.0259040371 * l2 + 0.7827717662 * m2 - 0.8086757660 * s2
+  );
+}
+
+fn fromOklab(c: vec3f) -> vec3f {
+  let l2 = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  let m2 = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  let s2 = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  let l = l2 * l2 * l2;
+  let m = m2 * m2 * m2;
+  let s = s2 * s2 * s2;
+  return vec3f(
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  );
+}
+
+fn rampLab(v0: f32) -> vec3f {
+  let v = clamp(v0, 0.0, 1.0);
+  let s1 = clamp(u.v6.x, 0.05, 0.9);
+  let s2 = clamp(u.v6.y, s1 + 0.02, 0.98);
+  let L0 = toOklab(toLin(u.c0.rgb));
+  let L1 = toOklab(toLin(u.c1.rgb));
+  let L2 = toOklab(toLin(u.c2.rgb));
+  let L3 = toOklab(toLin(u.c3.rgb));
+  let a = mix(L0, L1, clamp(v / s1, 0.0, 1.0));
+  let b = mix(L1, L2, clamp((v - s1) / (s2 - s1), 0.0, 1.0));
+  let c = mix(L2, L3, clamp((v - s2) / (1.0 - s2), 0.0, 1.0));
+  return select(select(c, b, v < s2), a, v < s1);
+}
+
+fn ramp(v: f32) -> vec3f {
+  let lab = (rampLab(v - 0.05) + rampLab(v - 0.025) + rampLab(v) + rampLab(v + 0.025) + rampLab(v + 0.05)) / 5.0;
+  return toSrgb(fromOklab(lab));
+}
+
+fn field(p0: vec2f) -> f32 {
+  let t = u.v2.z;
+  let seed = u.v3.w;
+  let aspect = u.v2.w;
+  let pos = vec2f((u.v3.x - 0.5) * aspect, u.v3.y - 0.5);
+  let sp = max(u.v0.z, 0.05);
+  let q = vec2f(fbm(p0 * 1.1 + vec2f(seed * 3.1, t * 0.05)), fbm(p0 * 1.1 + vec2f(5.2 + seed, 1.3 - t * 0.04))) - vec2f(0.5);
+  let p = p0 + q * u.v0.w * 0.5;
+  let lay = u32(u.v0.x + 0.5);
+  let d = (p - pos) / sp;
+  var g: f32 = 0.0;
+  if (lay == 0u) {
+    g = exp(-dot(d, d));
+  } else if (lay == 1u) {
+    g = exp(-(d.x * d.x * 0.18 + d.y * d.y * 1.6));
+  } else if (lay == 2u) {
+    let dir = normalize(vec2f(1.0, -0.8));
+    let a = d - dir * 0.55;
+    let b = d + dir * 0.55;
+    g = exp(-dot(a, a) * 1.2) + 0.7 * exp(-dot(b, b) * 1.6);
+  } else if (lay == 3u) {
+    g = exp(-dot(d, d) * 0.6);
+  } else if (lay == 4u) {
+    let a = d - vec2f(-0.22, -0.45);
+    let b = d - vec2f(0.22, 0.45);
+    g = exp(-dot(a, a) * 1.5) + 0.85 * exp(-dot(b, b) * 1.5);
+  } else {
+    let n = fbm(p * 1.4 / sp + vec2f(seed, t * 0.03));
+    g = smoothstep(0.3, 0.85, n) * (0.4 + 0.6 * exp(-dot(d, d) * 0.5)) * 1.6;
+  }
+  let v = 1.0 - exp(-g * u.v3.z);
+  return pow(clamp(v, 0.0, 1.0), u.v6.z);
+}
+
+fn lum(c: vec3f) -> f32 {
+  return dot(c, vec3f(0.2126, 0.7152, 0.0722));
+}
+
+fn aaLine(x: f32, width: f32) -> f32 {
+  let fw = max(fwidth(x), 0.0001);
+  let d = abs(fract(x + 0.5) - 0.5);
+  return 1.0 - smoothstep(fw * width * 0.5, fw * (width * 0.5 + 1.0), d);
+}
+
+fn terrace(p: vec2f, steps: f32) -> f32 {
+  return floor(field(p) * steps + 0.35) / steps;
+}
+
+fn fab(p: vec2f, t: f32) -> f32 {
+  let q = p + vec2f(sin(p.y * 1.1 + t) * 0.7, cos(p.x * 1.3 - t * 0.4) * 0.6);
+  return sin(q.x * 2.1 + sin(q.y * 1.7)) * 0.45 + sin(q.y * 3.1 + q.x * 0.7) * 0.22 + sin(q.x * 4.6 - q.y * 1.9) * 0.08;
+}
+
+fn lens(local: f32, gateCol: vec3f) -> vec2f {
+  let edge = pow(abs(local) * 2.0, 7.0);
+  let rd = (local + 0.365) * 36.0;
+  let ridge = exp(-rd * rd);
+  let gate = 0.15 + 0.85 * smoothstep(0.04, 0.55, lum(gateCol));
+  return vec2f(edge, ridge * gate);
+}
+
+fn optic(uv: vec2f) -> vec3f {
+  let aspect = u.v2.w;
+  let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+  let mode = u32(u.v0.y + 0.5);
+  let ang = u.v2.x;
+  let dens = max(u.v1.x, 1.0);
+  let refr = u.v1.y;
+  let light = u.v1.z;
+  let edgeAmt = u.v1.w;
+  let t = u.v2.z;
+  let rr = rot2(p0, ang);
+  var col = vec3f(0.0);
+
+  if (mode == 0u) {
+    col = ramp(field(p0));
+  } else if (mode == 1u || mode == 2u || mode == 5u) {
+    var x = rr.x * dens;
+    if (mode == 5u) {
+      x = x + u.v4.z * rr.y * rr.y * dens * 0.5;
+    }
+    let local = fract(x) - 0.5;
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rot2(vec2f(ray.x, 0.0), -ang) * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  } else if (mode == 3u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let corner = max(abs(local) - vec2f(0.33), vec2f(0.0));
+    let dist = length(corner) - 0.16;
+    let interior = 1.0 - smoothstep(-0.015, 0.015, dist);
+    let slope = local * pow(abs(local) * 2.0, vec2f(2.8)) * 3.2;
+    let n = normalize(vec3f(slope, 1.0));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), n, 0.65);
+    col = ramp(field(p0 + rot2(ray.xy, -ang) * refr));
+    let bv = dist * 55.0;
+    let bevel = exp(-bv * bv);
+    let dir = clamp(-n.x - n.y + 0.25, 0.0, 1.0);
+    col = col * (0.8 + 0.2 * interior);
+    col = mix(col, u.hl.rgb, clamp(bevel * dir * light * 0.55, 0.0, 1.0));
+    col = col * (1.0 - bevel * (1.0 - dir) * 0.5 * edgeAmt);
+  } else if (mode == 4u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let sft = vec2f(0.04);
+    let c0 = max(abs(local) - vec2f(0.3), vec2f(0.0));
+    let c1 = max(abs(local - sft) - vec2f(0.3), vec2f(0.0));
+    let c2 = max(abs(local + sft) - vec2f(0.3), vec2f(0.0));
+    let in0 = 1.0 - smoothstep(-0.012, 0.012, length(c0) - 0.12);
+    let inL = 1.0 - smoothstep(-0.012, 0.012, length(c1) - 0.12);
+    let inS = 1.0 - smoothstep(-0.012, 0.012, length(c2) - 0.12);
+    col = ramp(field(p0));
+    col = col * (0.88 + 0.12 * in0);
+    col = mix(col, u.hl.rgb, clamp(in0 * (1.0 - inL) * light * 0.45, 0.0, 1.0));
+    col = col * (1.0 - in0 * (1.0 - inS) * 0.45 * edgeAmt);
+  } else if (mode == 6u) {
+    let p = p0 * (1.0 + u.v0.z) + vec2f(u.v3.w * 0.7, u.v3.w * 0.4);
+    let h = fab(p, t);
+    let e = 0.006;
+    let dx = (fab(p + vec2f(e, 0.0), t) - h) / e;
+    let dy = (fab(p + vec2f(0.0, e), t) - h) / e;
+    let n = normalize(vec3f(-dx * 0.85, -dy * 0.85, 1.0));
+    let ray = reflect(vec3f(0.0, 0.0, -1.0), n);
+    let fold = smoothstep(-0.6, 0.65, h);
+    col = ramp(0.1 + 0.6 * fold + 0.25 * field(p0));
+    let s1 = (ray.x + ray.y * 0.24 - 0.24) * 7.0;
+    let s2 = (ray.y + 0.58) * 9.0;
+    let refl = (exp(-s1 * s1) + exp(-s2 * s2) * u.v6.w) * smoothstep(-0.65, 0.7, ray.z) * light;
+    col = mix(col, u.hl.rgb, clamp(refl, 0.0, 0.9));
+  } else if (mode == 7u) {
+    let v = field(p0);
+    let hh = v + (fbm(p0 * 1.8 + vec2f(u.v3.w)) - 0.5) * 0.3 * u.v0.w;
+    let line = aaLine(hh * dens, 1.1 + edgeAmt);
+    col = mix(ramp(v), u.hl.rgb, line * clamp(light, 0.0, 1.0));
+  } else if (mode == 8u) {
+    let f = dens * 6.0;
+    let a1 = sin(rr.x * f + u.v0.w * 2.0 * sin(rr.y * 1.7 + t));
+    let p2 = rot2(rr, 0.05);
+    let a2 = sin(p2.x * f * 1.015 + u.v0.w * 2.0 * sin(p2.y * 1.9 - t));
+    let mo = 0.5 + 0.5 * a1 * a2;
+    let v = field(p0);
+    col = ramp(mix(v, mo * (0.35 + 0.65 * v), clamp(light * 0.5, 0.0, 0.9)));
+  } else if (mode == 9u) {
+    let steps = max(floor(dens), 2.0);
+    let v0 = terrace(p0, steps);
+    let off = vec2f(0.012, 0.012) * (0.6 + refr);
+    var sh: f32 = 0.0;
+    sh = sh + select(0.0, 0.45, terrace(p0 - off * 0.35, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.33, terrace(p0 - off * 0.7, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.22, terrace(p0 - off, steps) > v0 + 0.001);
+    let hl = select(0.0, 1.0, terrace(p0 + off * 0.18, steps) < v0 - 0.001);
+    col = ramp(v0) * (1.0 - 0.32 * sh * edgeAmt) + u.hl.rgb * 0.05 * hl * light;
+  } else {
+    let rc = vec2f(sin(ang), cos(ang)) * 1.4;
+    let rel = p0 - rc;
+    let s = length(rel) * dens;
+    let local = fract(s) - 0.5;
+    let rdir = normalize(rel);
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rdir * ray.x * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  }
+  return col;
+}
+
+fn shade(uv: vec2f) -> vec3f {
+  var col = optic(uv);
+  if (u.v5.x > 0.001) {
+    let aspect = u.v2.w;
+    let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+    let base = ramp(field(p0));
+    let dir = vec2f(cos(u.v5.y), sin(u.v5.y));
+    let s = dot(uv - vec2f(0.5), dir);
+    let m = smoothstep(u.v5.w - u.v5.z, u.v5.w + u.v5.z, s);
+    col = mix(base, col, mix(1.0, m, u.v5.x));
+  }
+  return col;
+}
+
+@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let w = max(u.v4.x, 1.0);
+  let h = max(u.v4.y, 1.0);
+  let px = vec2f(0.25 / w, 0.25 / h);
+  var col = shade(uv + vec2f(-px.x, -px.y));
+  col = col + shade(uv + vec2f(px.x, -px.y));
+  col = col + shade(uv + vec2f(-px.x, px.y));
+  col = col + shade(uv + vec2f(px.x, px.y));
+  col = col * 0.25;
+  let t = u.v2.z;
+  let pp = uv * vec2f(w, h);
+  let g = (hash2(pp + vec2f(floor(t * 12.0) * 7.0, 1.0)) - 0.5) * u.v2.y * 0.09;
+  col = col * (1.0 + g * 2.0) + vec3f(g * 0.4);
+  col = col + vec3f((hash2(pp + vec2f(17.0, 3.0)) - 0.5) / 255.0);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}
+`;
+    frame.state.module = device.createShaderModule({ code: wgsl });
+    frame.state.pipeline = null;
+    frame.state.pipelineFormat = null;
+    frame.state.quad = device.createBuffer({
+        size: 6 * 4 * 4,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true,
+    });
+    new Float32Array(frame.state.quad.getMappedRange()).set([
+        -1, -1, 0, 1,
+        1, -1, 1, 1,
+        -1, 1, 0, 0,
+        -1, 1, 0, 0,
+        1, -1, 1, 1,
+        1, 1, 1, 0,
+    ]);
+    frame.state.quad.unmap();
+    frame.state.uniforms = device.createBuffer({
+        size: 192,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+}
+function render(device, frame) {
+    var params = frame.params || {};
+    function ch(color, channel, fallback) {
+        var c = color || {};
+        var value = Number(c[channel]);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function num(v, fallback) {
+        var value = Number(v);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function col(c, f) {
+        return [ch(c, 'r', f[0]), ch(c, 'g', f[1]), ch(c, 'b', f[2]), 1];
+    }
+    var pos = params.position || {};
+    var w = frame.output.width;
+    var h = frame.output.height;
+    var t = Number(frame.time) * 0.001 * num(params.speed, 0.1);
+    var data = [].concat(col(params.ground, [0.078, 0.020, 0.039]), col(params.mid, [0.345, 0.071, 0.165]), col(params.glow, [0.537, 0.161, 0.255]), col(params.core, [0.851, 0.812, 0.761]), col(params.highlight, [0.949, 0.937, 0.902]), [num(params.layout, 0), num(params.glass, 0), num(params.spread, 0.6), num(params.warp, 0.5)], [num(params.density, 28), num(params.refraction, 0.35), num(params.light, 0.7), num(params.edge, 0.7)], [num(params.angle, 0) * Math.PI / 180, num(params.grain, 0.25), t, w / Math.max(h, 1)], [num(pos.x, 50) / 100, num(pos.y, 55) / 100, num(params.intensity, 2.2), num(params.seed, 1)], [w, h, num(params.bow, 1), 0], [num(params.reveal, 0), num(params.revealAngle, 135) * Math.PI / 180, num(params.feather, 0.25), num(params.revealOffset, 0)], [num(params.stop1, 0.35), num(params.stop2, 0.72), num(params.contrast, 1), num(params.sheen2, 0.2)]);
+    device.queue.writeBuffer(frame.state.uniforms, 0, new Float32Array(data));
+    var outputFormat = frame.output.format;
+    if (frame.state.pipeline == null || frame.state.pipelineFormat !== outputFormat) {
+        frame.state.pipeline = device.createRenderPipeline({
+            layout: 'auto',
+            vertex: {
+                module: frame.state.module,
+                entryPoint: 'vs_main',
+                buffers: [{
+                        arrayStride: 16,
+                        attributes: [
+                            { shaderLocation: 0, format: 'float32x2', offset: 0 },
+                            { shaderLocation: 1, format: 'float32x2', offset: 8 },
+                        ],
+                    }],
+            },
+            fragment: {
+                module: frame.state.module,
+                entryPoint: 'fs_main',
+                targets: [{ format: outputFormat }],
+            },
+            primitive: { topology: 'triangle-list' },
+        });
+        frame.state.pipelineFormat = outputFormat;
+    }
+    var encoder = device.createCommandEncoder();
+    var pass = encoder.beginRenderPass({
+        colorAttachments: [{
+                view: frame.output.createView(),
+                loadOp: 'clear',
+                clearValue: { r: 0, g: 0, b: 0, a: 0 },
+                storeOp: 'store',
+            }],
+    });
+    pass.setPipeline(frame.state.pipeline);
+    var bindGroup = device.createBindGroup({
+        layout: frame.state.pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: frame.state.uniforms } }],
+    });
+    pass.setBindGroup(0, bindGroup);
+    pass.setVertexBuffer(0, frame.state.quad);
+    pass.draw(6);
+    pass.end();
+    device.queue.submit([encoder.finish()]);
+}
+defineProperties(Effect, {
+    layout: {
+        type: 'number',
+        label: 'Light',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'Radial glow' },
+            { value: 1, label: 'Horizon' },
+            { value: 2, label: 'Diagonal sweep' },
+            { value: 3, label: 'Corner bloom' },
+            { value: 4, label: 'Twin lights' },
+            { value: 5, label: 'Clouds' },
+        ],
+    },
+    glass: {
+        type: 'number',
+        label: 'Surface',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'None' },
+            { value: 1, label: 'Fine flutes' },
+            { value: 2, label: 'Wide flutes' },
+            { value: 3, label: 'Glass tiles' },
+            { value: 4, label: 'Emboss grid' },
+            { value: 5, label: 'Bowed flutes' },
+            { value: 6, label: 'Liquid satin' },
+            { value: 7, label: 'Contour lines' },
+            { value: 8, label: 'Moire' },
+            { value: 9, label: 'Paper layers' },
+            { value: 10, label: 'Ring reeds' },
+        ],
+    },
+    ground: { type: 'color', label: 'Ground', defaultValue: { r: 0.078, g: 0.020, b: 0.039, a: 1 } },
+    mid: { type: 'color', label: 'Mid', defaultValue: { r: 0.345, g: 0.071, b: 0.165, a: 1 } },
+    glow: { type: 'color', label: 'Glow', defaultValue: { r: 0.537, g: 0.161, b: 0.255, a: 1 } },
+    core: { type: 'color', label: 'Core', defaultValue: { r: 0.851, g: 0.812, b: 0.761, a: 1 } },
+    highlight: { type: 'color', label: 'Highlight', defaultValue: { r: 0.949, g: 0.937, b: 0.902, a: 1 } },
+    position: { type: 'point', label: 'Light position', defaultValue: { x: 50, y: 55 }, mode: 'canvas_and_ui', unit: '%' },
+    spread: { type: 'number', label: 'Spread', defaultValue: 0.6, min: 0.1, max: 2.5, step: 0.01, control: 'slider' },
+    warp: { type: 'number', label: 'Warp', defaultValue: 0.5, min: 0, max: 3, step: 0.01, control: 'slider' },
+    intensity: { type: 'number', label: 'Intensity', defaultValue: 2.2, min: 0.2, max: 6, step: 0.01, control: 'slider' },
+    contrast: { type: 'number', label: 'Contrast', defaultValue: 1, min: 0.3, max: 3, step: 0.01, control: 'slider' },
+    stop1: { type: 'number', label: 'Mid stop', defaultValue: 0.35, min: 0.05, max: 0.8, step: 0.01, control: 'slider' },
+    stop2: { type: 'number', label: 'Glow stop', defaultValue: 0.72, min: 0.2, max: 0.95, step: 0.01, control: 'slider' },
+    seed: { type: 'number', label: 'Variation', defaultValue: 1, min: 0, max: 10, step: 0.01, control: 'slider' },
+    density: { type: 'number', label: 'Density', defaultValue: 28, min: 1, max: 90, step: 0.1, control: 'slider' },
+    angle: { type: 'number', label: 'Angle', defaultValue: 0, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    refraction: { type: 'number', label: 'Refraction', defaultValue: 0.35, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    light: { type: 'number', label: 'Highlights', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    edge: { type: 'number', label: 'Edge shadow', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    bow: { type: 'number', label: 'Bow', defaultValue: 1, min: -3, max: 3, step: 0.01, control: 'slider' },
+    reveal: { type: 'number', label: 'Feather reveal', defaultValue: 0, min: 0, max: 1, step: 0.01, control: 'slider' },
+    revealAngle: { type: 'number', label: 'Reveal angle', defaultValue: 135, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    feather: { type: 'number', label: 'Feather', defaultValue: 0.25, min: 0.01, max: 0.8, step: 0.01, control: 'slider' },
+    revealOffset: { type: 'number', label: 'Reveal offset', defaultValue: 0, min: -0.8, max: 0.8, step: 0.01, control: 'slider' },
+    sheen2: { type: 'number', label: 'Second sheen', defaultValue: 0.2, min: 0, max: 1, step: 0.01, control: 'slider' },
+    grain: { type: 'number', label: 'Grain', defaultValue: 0.25, min: 0, max: 2, step: 0.01, control: 'slider' },
+    speed: { type: 'number', label: 'Motion speed', defaultValue: 0.1, min: 0, max: 1, step: 0.01, control: 'slider' },
+});
+
+const manifest = {
+  "isAnimated": true,
+  "name": "OXS light studio",
+  "usesMouse": false,
+  "version": 2
+}
+
+return { setup, render };
+})();
+
+/* Shared engine for the three directions: live OXS light studio background, flow state, answer rendering.
+   Backend contract (unchanged): POST http://127.0.0.1:8000/chat { message } -> { response: markdown }.
+   Add ?live=1 to call the real backend; otherwise the page runs a timed demo. ?state=answer etc. opens a state. */
+
+const PALETTE = {
+  deep: [0.122, 0.125, 0.161], mid: [0.204, 0.212, 0.271], blue: [0.384, 0.753, 0.965],
+  lime: [0.698, 0.965, 0.004], white: [0.988, 1, 1], blueDim: [0.278, 0.455, 0.58],
+};
+const rgb = a => ({ r: a[0], g: a[1], b: a[2] });
+
+/* Base shader settings in the new palette. Each direction passes overrides per state. */
+const BASE_FX = {
+  ground: rgb(PALETTE.deep), mid: rgb(PALETTE.mid), glow: rgb(PALETTE.blue), core: rgb(PALETTE.lime), highlight: rgb(PALETTE.white),
+  layout: 2, glass: 1, density: 46, refraction: 0.6, light: 1.2, edge: 0.6, grain: 0.06, bow: 0, angle: 0, seed: 3,
+  contrast: 1.35, sheen2: 0.4, spread: 0.42, warp: 1.5, intensity: 2.7, stop1: 0.46, stop2: 0.82,
+  reveal: 0.85, revealAngle: 150, feather: 0.3, revealOffset: 0.1, speed: 0.6, position: { x: 74, y: 40 },
+};
+const COOL = { glow: rgb(PALETTE.blueDim), core: rgb(PALETTE.blue), intensity: 2.0, light: 0.85, speed: 0.25, contrast: 1.2 };
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const mixVal = (a, b, t) => {
+  if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * t;
+  if (a && typeof a === 'object') { const o = {}; for (const k in b) o[k] = mixVal(a[k], b[k], t); return o; }
+  return t < 1 ? a : b;
+};
+
+/* createLight(canvas, params): runs the shader live. light.to(params, ms) eases every value; phase is
+   accumulated so changing speed never jumps. Falls back to a CSS gradient when WebGPU is missing. */
+async function createLight(canvas, params) {
+  let cur = structuredClone({ ...BASE_FX, ...params }), from = cur, target = cur, t0 = 0, dur = 0;
+  let pointer = null, follow = 0;
+  const api = {
+    to(p, ms = 1200) { from = structuredClone(cur); target = structuredClone({ ...target, ...p }); t0 = performance.now(); dur = reduceMotion ? 1 : ms; },
+    follow(amount) { follow = amount; },
+    ok: false,
+  };
+  addEventListener('pointermove', e => { pointer = { x: (e.clientX / innerWidth) * 100, y: (e.clientY / innerHeight) * 100 }; });
+  if (!navigator.gpu) { canvas.classList.add('fx-fallback'); return api; }
+  try {
+    const adapter = await navigator.gpu.requestAdapter(); const device = await adapter.requestDevice();
+    const ctx = canvas.getContext('webgpu'); const format = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format, alphaMode: 'opaque' });
+    const frame = { state: {}, params: {}, time: 0 };
+    LS.setup(device, frame);
+    let phase = 0, last = performance.now();
+    const loop = now => {
+      const dt = Math.min(64, now - last); last = now;
+      if (dur) { const k = Math.min(1, (now - t0) / dur); cur = mixVal(from, target, ease(k)); if (k >= 1) dur = 0; }
+      const shown = structuredClone(cur);
+      shown.density = Math.max(14, Math.round(canvas.clientWidth / 31)); // flutes stay about 31px wide at every width
+      if (follow && pointer && !reduceMotion) { shown.position = { x: cur.position.x + (pointer.x - cur.position.x) * follow, y: cur.position.y + (pointer.y - cur.position.y) * follow }; }
+      phase += dt * (reduceMotion ? 0 : cur.speed);
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      const w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      frame.params = { ...shown, speed: 1 }; frame.time = phase;
+      frame.output = { width: w, height: h, format, createView: () => ctx.getCurrentTexture().createView() };
+      LS.render(device, frame);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+    api.ok = true; document.documentElement.classList.add('fx-live');
+  } catch (e) { canvas.classList.add('fx-fallback'); }
+  return api;
+}
+
+/* Sample answer, shaped like the Writer agent's Markdown. Placeholder content for the design. */
+const SAMPLE_Q = "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.";
+const SUGGESTIONS = [SAMPLE_Q, "What is changing in AI chip supply?", "How are universities using AI agents?"];
+const SAMPLE_MD = `## Short answer
+Microsoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and [Azure OpenAI](https://azure.microsoft.com/products/ai-services/openai-service) for custom builds. Google leans on its own Gemini models and [Vertex AI](https://cloud.google.com/vertex-ai), and pushes hardest with teams already on Google Cloud and Workspace.
+
+## Where they differ
+- Microsoft bundles AI into seats companies already license, so adoption follows existing contracts.
+- Google competes on model quality and price per use, backed by its own chips for training and serving.
+- Both are adding agents that act inside other apps, which is where new spending is moving.
+
+## What a mid-sized software company should watch
+- Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product.
+- Price changes for model use, which move the cost of every AI feature you ship.
+- Agent standards for connecting apps, which decide whether their agents can use your product.
+
+## Sources
+- [Microsoft 365 Copilot overview](https://www.microsoft.com/microsoft-365/copilot)
+- [Azure OpenAI Service](https://azure.microsoft.com/products/ai-services/openai-service)
+- [Vertex AI and Gemini](https://cloud.google.com/vertex-ai)
+- [Gemini for Workspace](https://workspace.google.com/solutions/ai/)`;
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inline = s => esc(s).replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+/* Renders the subset of Markdown the Writer uses: ## headings, - lists, paragraphs, links, bold. */
+function renderMarkdown(md, { skipSources = false } = {}) {
+  const out = []; let list = null; const heads = []; let skipping = false;
+  for (const raw of md.split('\n')) {
+    const line = raw.trim();
+    // The page lists sources in its own panel, so the Writer's Sources section is not repeated in the text.
+    if (skipSources && /^#{1,3}\s+sources\s*$/i.test(line)) { skipping = true; continue; }
+    if (skipping) { if (/^#{1,3}\s+/.test(line)) skipping = false; else continue; }
+    if (!line) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } continue; }
+    const h = line.match(/^#{1,3}\s+(.*)$/);
+    if (h) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } const id = 'h-' + heads.length; heads.push({ id, text: h[1] }); out.push(`<h2 id="${id}">${inline(h[1])}</h2>`); continue; }
+    const li = line.match(/^[-*]\s+(.*)$/);
+    if (li) { (list ||= []).push('<li>' + inline(li[1]) + '</li>'); continue; }
+    out.push('<p>' + inline(line) + '</p>');
+  }
+  if (list) out.push('<ul>' + list.join('') + '</ul>');
+  return { html: out.join(''), heads };
+}
+/* Pulls every link out of the answer so the page can list sources without a backend change. */
+function sourcesFrom(md) {
+  const seen = new Map();
+  for (const m of md.matchAll(/\[([^\]]+)\]\((https?:[^)]+)\)/g)) if (!seen.has(m[2])) seen.set(m[2], { title: m[1], url: m[2], host: new URL(m[2]).hostname.replace(/^www\./, '') });
+  return [...seen.values()];
+}
+
+/* Flow: ask -> working -> answer | error. Mirrors App.tsx (message, loading, error, response). */
+function createFlow(onChange) {
+  const q = new URLSearchParams(location.search);
+  const live = q.get('live') === '1', fail = q.get('fail');
+  const s = { state: 'ask', question: '', answer: '', error: null, startedAt: 0 };
+  const set = patch => { Object.assign(s, patch); onChange({ ...s }); };
+  async function send(text) {
+    const question = (text ?? s.question).trim(); if (!question || s.state === 'working') return;
+    set({ state: 'working', question, error: null, startedAt: performance.now() });
+    try {
+      let md;
+      if (live) {
+        const r = await fetch('http://127.0.0.1:8000/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: question }) });
+        if (!r.ok) throw Object.assign(new Error('server'), { kind: 'server' });
+        md = (await r.json()).response || '';
+      } else {
+        await new Promise(r => setTimeout(r, 6500));
+        if (fail === 'net') throw new TypeError('net');
+        if (fail === 'server') throw Object.assign(new Error('server'), { kind: 'server' });
+        md = SAMPLE_MD;
+      }
+      set({ state: 'answer', answer: md });
+    } catch (e) { set({ state: 'error', error: e instanceof TypeError ? 'net' : 'server' }); }
+  }
+  const api = {
+    get: () => ({ ...s }),
+    type: text => set({ question: text, state: s.state === 'error' ? 'ask' : s.state === 'answer' ? s.state : 'ask' }),
+    send, reset: () => set({ state: 'ask', question: '', answer: '', error: null }),
+    edit: () => set({ state: 'ask', error: null }),
+    copy: async () => { try { await navigator.clipboard.writeText(s.answer); } catch (e) {} set({ copied: Date.now() }); },
+  };
+  // Open a named state for review and screenshots: ?state=ask|typed|working|answer|error-net|error-server
+  const st = q.get('state');
+  if (st === 'typed') s.question = SAMPLE_Q;
+  if (st === 'working') Object.assign(s, { state: 'working', question: SAMPLE_Q, startedAt: performance.now() - 14000 });
+  if (st === 'answer' || st === 'copied') Object.assign(s, { state: 'answer', question: SAMPLE_Q, answer: SAMPLE_MD, copied: st === 'copied' ? Date.now() + 1e9 : 0 });
+  if (st === 'error-net' || st === 'error-server') Object.assign(s, { state: 'error', question: SAMPLE_Q, error: st.slice(6) });
+  queueMicrotask(() => onChange({ ...s }));
+  return api;
+}
+/* Picks a state's light settings, with the phone override when the screen is narrow. */
+const isPhone = () => innerWidth < 768;
+const fxFor = (states, name) => ({ ...states[name], ...(isPhone() && states[name + 'Phone'] ? states[name + 'Phone'] : {}) });
+const fmtTime = ms => { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+const ERRORS = {
+  net: { title: "We couldn't reach the research server.", body: 'Check that the backend is running, then try again. Your question is still here.' },
+  server: { title: "The agents couldn't finish this one.", body: 'Something went wrong while they worked. Try again, or reword your question.' },
+};
+const AGENTS = [['Supervisor', 'Reads your question first'], ['Researcher', 'Searches the web with Tavily'], ['Analyst', 'Weighs what the sources say'], ['Writer', 'Writes the answer with its sources']];
+
+const $ = id => document.getElementById(id);
+const FX_STATES = {
+  ask:    { layout:5, position:{x:55,y:45}, spread:.42, warp:1.8, intensity:2.4, speed:.5, stop1:.5, stop2:.84 },
+  working:{ layout:5, position:{x:55,y:50}, spread:.62, warp:2.4, intensity:3.0, speed:1.9, stop1:.42, stop2:.76 },
+  answer: { layout:5, position:{x:50,y:30}, spread:.4, warp:1.8, intensity:2.4, speed:.45 },
+  error:  { layout:5, position:{x:55,y:45}, spread:.36, warp:1.2, ...COOL, speed:.05, intensity:1.7 },
+};
+// Map for the fluted refraction: each 31px flute ramps red 0 to 255, so the words behind bend inside every flute.
+function buildFluteMap() {
+  const w = Math.max(2, document.querySelector('.window').clientWidth), h = 8, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'), img = g.createImageData(w, h);
+  for (let x = 0; x < w; x++) { const u = (x % 31) / 31, r = Math.round(255 * (1 - u)); for (let y = 0; y < h; y++) { const i = (y * w + x) * 4; img.data[i] = r; img.data[i + 1] = 128; img.data[i + 2] = 128; img.data[i + 3] = 255; } }
+  g.putImageData(img, 0, 0);
+  const fe = $('fluteMap'); fe.setAttribute('href', c.toDataURL()); fe.setAttribute('width', '100%'); fe.setAttribute('height', '100%');
+}
+const names = []; for (let i = 0; i < 3; i++) for (const a of AGENTS) names.push(`<span>${a[0]}</span>`);
+$('stream').innerHTML = names.join('');
+const drift = $('stream').animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-33.333%)' }], { duration: 42000, iterations: Infinity });
+$('crew').innerHTML = AGENTS.map(a => `<div><b>${a[0]}</b><span>${a[1]}</span></div>`).join('');
+$('sugs').innerHTML = SUGGESTIONS.map(s => `<button type="button"><span>${esc(s)}</span><span aria-hidden="true">Use</span></button>`).join('');
+let light, last = null, tick = null;
+const flow = createFlow(render);
+createLight($('fx'), fxFor(FX_STATES, 'ask')).then(l => { light = l; if (last) render(last, true); });
+buildFluteMap(); addEventListener('resize', buildFluteMap); setTimeout(buildFluteMap, 1200);
+
+function render(s, force) {
+  const prev = last ? last.state : null; last = s; document.body.dataset.state = s.state;
+  for (const [id, st] of [['vAsk','ask'],['vWork','working'],['vAns','answer'],['vErr','error']]) $(id).classList.toggle('on', s.state === st);
+  $('newTop').hidden = s.state !== 'error';
+  if ($('q').value !== s.question) $('q').value = s.question;
+  $('send').disabled = !s.question.trim();
+  if (prev !== s.state || force) {
+    if (light) light.to(fxFor(FX_STATES, s.state), 1400);
+    drift.updatePlaybackRate(s.state === 'working' ? 3.2 : s.state === 'error' ? 0.0001 : 1);
+    setTimeout(buildFluteMap, 1150);
+  }
+  if (s.state === 'working') { $('workQ').textContent = s.question; clearInterval(tick); const up = () => $('clock').textContent = fmtTime(performance.now() - s.startedAt); up(); tick = setInterval(up, 250); } else clearInterval(tick);
+  if (s.state === 'answer') {
+    $('ansQ').textContent = s.question; $('doc').innerHTML = renderMarkdown(s.answer, { skipSources: true }).html;
+    const links = sourcesFrom(s.answer).map(x => `<a href="${x.url}" target="_blank" rel="noopener"><span>${x.host}</span><b>${esc(x.title)}</b></a>`).join('');
+    $('srcs').innerHTML = links; $('phoneSrcs').innerHTML = links;
+  }
+  if (s.state === 'error') { $('errTitle').textContent = ERRORS[s.error].title; $('errBody').textContent = ERRORS[s.error].body; }
+  const on = s.copied && Date.now() - s.copied < 2200; $('toast').classList.toggle('on', !!on);
+  if (on && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+$('q').addEventListener('input', e => flow.type(e.target.value));
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); flow.send(); } });
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+$('sugs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { flow.type(b.firstElementChild.textContent); $('q').focus(); } });
+for (const id of ['newTop', 'newAns']) $(id).addEventListener('click', () => { flow.reset(); setTimeout(() => $('q').focus(), 300); });
+$('copy').addEventListener('click', () => flow.copy());
+$('retry').addEventListener('click', () => flow.send());
+$('edit').addEventListener('click', () => { flow.edit(); setTimeout(() => $('q').focus(), 300); });
+</script>
+</body>
+</html>

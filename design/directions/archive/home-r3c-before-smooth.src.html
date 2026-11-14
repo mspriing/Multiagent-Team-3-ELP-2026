@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Home</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<style>
+/*__BCSS__*/
+/* Home, round 3 (2026-11-03). From his notes on the Isotherm page:
+   the heat is the thermal glow from his Textures section ("effect background · test"), with more defined heat
+   sources instead of one wash, and it is the ground of every app screen edge to edge (no flat strip under a band).
+   The lime fill runs inside the Send button only. Lime marks the one primary action. Words start from the repo. */
+html{scroll-behavior:smooth}
+body{background:var(--deep)}
+.wrap{width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+.heat{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.page{position:relative;z-index:1}
+
+/* Nav: solid deep, with the OXS scroll fill under it */
+.nav{position:sticky;top:0;z-index:20;background:var(--deep)}
+.nav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:4rem;width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+.brand{display:flex;align-items:center;gap:.7rem;font-weight:600;letter-spacing:-.01em;color:var(--white);text-decoration:none}
+.brand i{width:2rem;height:2rem;border-radius:9px;background:var(--white);color:var(--deep);display:grid;place-items:center;font-size:1.15rem}
+.links{display:flex;gap:.35rem}
+.links a{color:var(--white);text-decoration:none;font-size:.9375rem;font-weight:500;padding:.55rem .9rem;border-radius:999px;transition:background .15s}
+@media (hover:hover){.links a:hover{background:rgb(252 255 255 / .1)}}
+.nav .cta{justify-self:end}
+.bar{height:4px;background:var(--mid)}
+.bar span{display:block;height:100%;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+body:not([data-state=ask]) .links{visibility:hidden}
+
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:999px;padding:.85rem 1.5rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:transform .15s var(--ease)}
+.pill:active{transform:scale(.98)}
+.pill.lime{background:var(--lime);color:var(--deep)} .pill.deep{background:var(--deep);color:var(--white)}
+.pill.white{background:var(--white);color:var(--deep)} .pill.tint{background:var(--mid-8);color:var(--deep)}
+.pill.frost{background:rgb(252 255 255 / .14);color:var(--white);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.pill.sm{padding:.6rem 1.1rem;font-size:.9375rem}
+.pill i{font-size:1.15em}
+
+/* Hero: the ask screen. Heat behind, type in its cool middle, the question box centred under it */
+.hero{min-height:calc(100dvh - 4rem - 4px);display:grid;place-content:center;justify-items:center;gap:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);padding:clamp(2rem,4vw,3.5rem) var(--pad);text-align:center}
+.hero h1{font-size:var(--t-hero);line-height:1.02;max-width:16ch}
+.hero .lead{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1rem auto 0;color:var(--white)}
+.qwrap{width:min(100%,46rem);display:grid;gap:.9rem;text-align:left}
+.qcard .chips{padding:0 .35rem}
+.qcard textarea{overflow:hidden}
+body[data-state=working] .qcard .chips{display:none}
+body[data-state=working] .qcard textarea{pointer-events:none}
+.status{display:none;align-items:center;gap:.55rem;color:var(--mid);font-size:.875rem;font-weight:500;padding-left:.45rem}
+.status .dot{width:.55rem;height:.55rem;border-radius:999px;background:var(--lime);animation:pulse 1.4s var(--ease) infinite}
+@keyframes pulse{50%{opacity:.25}}
+body[data-state=working] .status{display:flex} body[data-state=working] .hint{display:none}
+
+/* Send: lime when ready. Pressed, it frosts over and lime fills it from the left until it is full lime again */
+.send{position:relative;overflow:hidden;isolation:isolate;min-width:9.5rem;background:var(--lime);color:var(--deep);transition:background .35s var(--ease),color .35s}
+.send:disabled{background:var(--mid-14);color:rgb(52 54 69 / .55);cursor:default}
+.send .fillbar{position:absolute;inset:0;z-index:-1;background:var(--lime);transform-origin:left;transform:scaleX(var(--p,0));border-radius:inherit}
+.send .busy{display:none}
+body[data-state=working] .send,body[data-state=working] .send:disabled{background:rgb(52 54 69 / .16);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);color:var(--deep);cursor:progress}
+body[data-state=working] .send .idle{display:none} body[data-state=working] .send .busy{display:inline}
+
+/* Answer, shared head */
+.ans{padding:clamp(2.5rem,2rem + 3vw,5rem) var(--pad) clamp(3rem,2rem + 4vw,6rem)}
+.ahead{width:min(100%,52rem);margin:0 auto clamp(2rem,1.6rem + 1.6vw,3rem);text-align:center;display:grid;justify-items:center;gap:1.1rem}
+.ahead h1{font-size:var(--t-h2);line-height:1.14;max-width:30ch}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.meta span{display:inline-flex;align-items:center;gap:.4rem;background:rgb(252 255 255 / .12);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:999px;padding:.45rem .9rem;font-size:.875rem;font-weight:500;color:var(--white)}
+.acts{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
+.cite{display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;margin-left:.25rem;border-radius:999px;font-size:.72rem;font-weight:600;vertical-align:.12em;text-decoration:none!important;line-height:1}
+.nw{white-space:nowrap}
+.doc.on-white .cite{background:var(--deep);color:var(--white)}
+.doc.on-dark .cite{background:var(--white);color:var(--deep)}
+/* Source rows: an Apple list, each row its own filled platter */
+.rows{display:grid;gap:.4rem}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:center;background:var(--mid-8);color:var(--deep);text-decoration:none;border-radius:14px;padding:.75rem .9rem;transition:transform .15s var(--ease)}
+@media (hover:hover){.row:hover{transform:translateY(-2px)}}
+.row .fav{width:2.4rem;height:2.4rem;border-radius:11px;background:var(--white);display:grid;place-items:center}
+.row .fav img{width:1.4rem;height:1.4rem;border-radius:4px}
+.row .tx{display:grid;gap:.1rem}
+.row .tx strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+.row .tx span{font-size:.8125rem;color:var(--mid-70)}
+.row b{min-width:1.5rem;height:1.5rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.75rem;display:grid;place-items:center}
+
+/* Answer option A, Sections: Apple's grouped style. Each part of the answer is its own group with its label above */
+.groups{width:min(100%,46rem);margin:0 auto;display:grid;gap:clamp(1.6rem,1.2rem + 1vw,2.2rem)}
+.grp{display:grid;gap:.6rem}
+.glabel{font-size:.9375rem;font-weight:600;letter-spacing:-.005em;color:var(--w-72);padding-left:1.1rem}
+.gcard{background:var(--white);color:var(--deep);border-radius:22px;padding:clamp(1.15rem,1rem + .6vw,1.6rem)}
+.gcard.doc{max-width:none}
+.gcard.doc > :first-child{margin-top:0}
+.grp.lead .gcard p{font-size:clamp(1.0625rem,1rem + .25vw,1.1875rem);line-height:1.6}
+/* Answer option B, Report: the answer reads straight on the page, a rail beside it shows how it was made and its sources */
+.report{width:min(100%,74rem);margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 21rem;gap:clamp(2rem,1.4rem + 2.4vw,4rem);align-items:start}
+.report .doc{max-width:64ch}
+.doc.on-dark{color:var(--white)} .doc.on-dark p,.doc.on-dark li{color:rgb(252 255 255 / .88)} .doc.on-dark li::marker{color:var(--blue)} .doc.on-dark a{text-decoration-color:var(--blue)}
+.rail{position:sticky;top:calc(4rem + 4px + 1.5rem);display:grid;gap:1rem}
+.rcard{background:var(--white);color:var(--deep);border-radius:22px;padding:1.2rem;display:grid;gap:.85rem}
+.rcard h3{font-size:1.0625rem;letter-spacing:-.015em}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:center;background:var(--mid-8);border-radius:14px;padding:.6rem .75rem}
+.steps i{width:2rem;height:2rem;border-radius:10px;background:var(--deep);color:var(--lime);display:grid;place-items:center;font-size:1.05rem}
+.steps b{font-size:.9375rem;font-weight:600;display:block} .steps span{font-size:.8125rem;color:var(--mid-70)}
+.ans-a .report,.ans-b .groups{display:none}
+.ans-b .ahead{width:min(100%,74rem);text-align:left;justify-items:start}
+.ans-b .ahead .meta,.ans-b .ahead .acts{justify-content:flex-start}
+.ans-b .ahead h1{max-width:34ch}
+
+/* Errors: the alert he liked, over a cold field */
+.errwrap{min-height:calc(100dvh - 4rem - 4px);display:grid;place-items:center;padding:var(--pad)}
+.alert{width:min(100%,30rem);background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);text-align:center;display:grid;justify-items:center;gap:.9rem;box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.alert .badge{min-width:4rem;height:4rem;padding:0 1.1rem;border-radius:999px;background:var(--deep);color:var(--blue);display:grid;place-items:center;font-size:2rem}
+.alert .badge b{font-size:1.125rem;font-weight:600;letter-spacing:-.01em}
+.alert h2{font-size:1.4rem;line-height:1.2;max-width:22ch}
+.alert p{color:var(--mid-70);line-height:1.5}
+.alert .yourq{width:100%;background:var(--mid-8);border-radius:16px;padding:.9rem 1rem;text-align:left;display:grid;gap:.3rem}
+.alert .yourq span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.alert .yourq q{quotes:none;line-height:1.45;font-size:.9375rem;color:var(--deep)}
+.alert .stack{width:100%;display:grid;gap:.55rem;margin-top:.3rem}
+.alert .stack .pill{width:100%}
+
+/* Homepage sections, shown while asking */
+.home{display:none} body[data-state=ask] .home{display:block}
+.built{background:var(--white);color:var(--deep);padding:clamp(1.6rem,1.2rem + 1vw,2.2rem) 0}
+.built .mask{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.built .track{display:flex;gap:clamp(2.5rem,2rem + 2vw,4rem);width:max-content;animation:mq 40s linear infinite;align-items:center}
+.logo{display:inline-flex;align-items:center;gap:.65rem;font-size:clamp(1.0625rem,1rem + .3vw,1.3rem);font-weight:600;letter-spacing:-.02em;white-space:nowrap;color:var(--deep)}
+.logo svg{width:clamp(1.5rem,1.3rem + .5vw,1.9rem);height:auto;aspect-ratio:1;fill:currentColor}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* How it works: the four agents in one list. Scrolling lights one agent at a time and opens what it hands on */
+.s-how{background:var(--mid)}
+.howpin{height:260vh;position:relative}
+.howstage{position:sticky;top:calc(4rem + 4px);min-height:calc(100dvh - 4rem - 4px);display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(2rem,1rem + 4vw,5rem);align-items:center;padding:clamp(2.5rem,2rem + 2vw,4rem) 0}
+.howtext{display:grid;gap:1rem;align-content:center}
+.howtext h2{font-size:var(--t-h2);line-height:1.1;max-width:16ch}
+.howtext p{font-size:var(--t-lead);line-height:1.5;color:var(--w-72);max-width:38ch}
+.howtext .sample{background:rgb(252 255 255 / .1);border-radius:18px;padding:1rem 1.15rem;display:grid;gap:.35rem;margin-top:.6rem}
+.howtext .sample span{font-size:.8125rem;font-weight:600;color:var(--w-72)}
+.howtext .sample q{quotes:none;line-height:1.5}
+.agentlist{display:grid;gap:.6rem}
+.ag{background:rgb(252 255 255 / .07);color:var(--white);border-radius:20px;padding:1rem 1.15rem;display:grid;grid-template-columns:auto 1fr;column-gap:1rem;transition:background .45s var(--ease),color .45s var(--ease)}
+.ag .ic{margin:0;width:2.75rem;height:2.75rem;background:rgb(252 255 255 / .12);color:var(--white);transition:background .45s,color .45s}
+.ag .nm{display:grid;gap:.15rem;align-content:center}
+.ag h3{font-size:1.15rem;letter-spacing:-.02em} .ag .nm span{font-size:.9375rem;line-height:1.45;color:var(--w-72);transition:color .45s}
+.ag .more{grid-column:2;display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.ag .more > div{overflow:hidden}
+.ag .more .in{padding-top:.85rem;display:grid;gap:.45rem}
+.ag .more .in > span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.ag .q{background:var(--mid-8);border-radius:12px;padding:.55rem .75rem;font-size:.875rem;font-weight:500;line-height:1.4}
+.ag ul{margin:0;padding-left:1.1rem;display:grid;gap:.3rem;font-size:.9375rem;line-height:1.45;color:rgb(31 32 41 / .86)}
+.ag .ok{display:inline-flex;align-items:center;gap:.4rem;justify-self:start;background:var(--deep);color:var(--white);border-radius:999px;padding:.4rem .8rem;font-size:.8125rem;font-weight:600}
+.ag.on{background:var(--white);color:var(--deep)}
+.ag.on .ic{background:var(--deep);color:var(--lime)} .ag.on .nm span{color:var(--mid-70)}
+.ag.on .more{grid-template-rows:1fr}
+
+.closing{background:var(--deep);padding:clamp(4rem,3rem + 4vw,7rem) 0 clamp(2.5rem,2rem + 2vw,3.5rem);text-align:center}
+.closing h2{font-size:var(--t-h2);line-height:1.1;max-width:22ch;margin:0 auto}
+.closing .wrap > p{max-width:40ch;margin:1rem auto 2rem;font-size:var(--t-lead);line-height:1.5;color:var(--w-72)}
+.foot{display:grid;justify-items:center;gap:1rem;margin-top:clamp(4rem,3rem + 4vw,6rem)}
+.foot p{color:var(--w-72);font-size:.9375rem}
+.foot .row2{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+
+/* Review control (not part of the design) */
+.review{position:fixed;left:1rem;bottom:1rem;z-index:30;display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;background:var(--white);color:var(--deep);border-radius:22px;padding:.3rem .3rem .3rem .9rem;font-size:.8125rem;font-weight:600;box-shadow:0 20px 40px -20px rgb(10 11 16 / .6);max-width:calc(100% - 2rem)}
+.review button{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.45rem .8rem;font-size:.8125rem;font-weight:600}
+.review button[aria-pressed=true]{background:var(--deep);color:var(--lime)}
+.review em{font-style:normal;margin-left:.4rem}
+
+@media (max-width:1023px){
+  .report{grid-template-columns:1fr} .rail{position:static}
+  .howstage{grid-template-columns:1fr;align-content:center;gap:1.6rem}
+}
+@media (max-width:767px){
+  .nav .in{grid-template-columns:1fr auto}
+  .links{display:none}
+  .hero h1{max-width:12ch}
+  .howpin{height:auto} .howstage{position:static;min-height:0}
+  .ag .more{grid-template-rows:1fr}
+  .ag{background:var(--white);color:var(--deep)} .ag .ic{background:var(--deep);color:var(--lime)} .ag .nm span{color:var(--mid-70)}
+  .review{left:.5rem;right:.5rem;bottom:.5rem;justify-content:center;padding-left:.7rem}
+  .review em{display:none}
+  body[data-state=working] .qrow{flex-direction:column-reverse;align-items:stretch;gap:.8rem} body[data-state=working] .send{width:100%}
+}
+@media (prefers-reduced-motion:reduce){.built .track{animation:none}}
+</style>
+</head>
+<body data-state="ask" class="ans-a">
+<canvas class="heat" id="heat" aria-hidden="true"></canvas>
+<div class="page">
+<header class="nav">
+  <div class="in">
+    <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a>
+    <nav class="links" aria-label="Sections"><a href="#how">How it works</a><a href="#built">Built with</a></nav>
+    <a class="pill white sm cta" href="#top" data-act="ask">Ask a question</a>
+  </div>
+  <div class="bar" aria-hidden="true"><span id="sbar"></span></div>
+</header>
+
+<main id="top">
+  <section class="hero st s-ask s-working" style="--d:grid">
+    <div>
+      <h1>Research powered by multiple AI agents</h1>
+      <p class="lead">A Supervisor routes your question, then a Researcher, an Analyst and a Writer each do one part of the work.</p>
+    </div>
+    <div class="qwrap">
+      <form class="qcard" id="form">
+        <label for="q" class="sr">Your research question</label>
+        <textarea id="q" rows="2" placeholder="Ask a research question..."></textarea>
+        <div class="chips" data-sugs></div>
+        <div class="qrow"><span class="hint">Press Enter to send</span><span class="status" aria-live="polite"><span class="dot" aria-hidden="true"></span>Researcher, Analyst, and Writer agents are working...</span>
+          <button class="pill send" id="send" data-act="send" disabled><span class="fillbar" aria-hidden="true"></span><span class="idle">Send</span><span class="busy">Researching...</span></button></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="ans st s-answer" style="--d:block">
+    <div class="ahead">
+      <h1 data-fill="question"></h1>
+      <div class="meta"><span><i class="ph-fill ph-link" aria-hidden="true"></i><b data-fill="srccount">4</b> sources</span></div>
+      <div class="acts"><button class="pill lime" data-act="copy"><i class="ph-fill ph-copy" aria-hidden="true"></i>Copy answer</button><button class="pill frost" data-act="new"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i>New question</button></div>
+    </div>
+    <div class="groups" data-fill="groups"></div>
+    <div class="report">
+      <article class="doc on-dark" data-fill="doc"></article>
+      <aside class="rail">
+        <div class="rcard"><h3>How it was made</h3><ol class="steps" data-fill="steps"></ol></div>
+        <div class="rcard"><h3>Sources</h3><nav class="rows" aria-label="Sources" data-fill="srcrows"></nav></div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="errwrap st s-error" style="--d:grid">
+    <div class="alert" role="alert">
+      <div class="badge" data-fill="err-badge"></div>
+      <h2 data-fill="err-head"></h2>
+      <p data-fill="err-body"></p>
+      <div class="yourq"><span>Your question</span><q data-fill="question"></q></div>
+      <div class="stack"><button class="pill deep" data-act="retry"><i class="ph-fill ph-arrow-clockwise" aria-hidden="true"></i>Try again</button><button class="pill tint" data-act="edit">Edit question</button></div>
+    </div>
+  </section>
+</main>
+
+<div class="home">
+  <div class="built" id="built" aria-label="Built with"><div class="mask"><div class="track" id="mq"></div></div></div>
+
+  <section class="s-how" id="how">
+    <div class="howpin" id="howpin">
+      <div class="howstage wrap">
+        <div class="howtext">
+          <h2>One question, four agents</h2>
+          <p>Each agent does one job, then hands its work to the next. Scroll to follow a question through.</p>
+          <div class="sample"><span>Sample question</span><q data-fill="sampleq"></q></div>
+        </div>
+        <div class="agentlist" id="agentlist"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="wrap">
+      <h2>Try it with your own question</h2>
+      <p>Type anything you would normally research, and the agents will bring back an answer with its sources.</p>
+      <a class="pill lime" href="#top" data-act="ask">Ask a question <i class="ph-fill ph-arrow-up" aria-hidden="true"></i></a>
+      <div class="foot">
+        <a class="brand" href="#top" data-act="home"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a>
+        <p>Built by Multi-Agent Team 3 in Nittany AI's ELP, Fall 2026.</p>
+        <div class="row2"><a class="pill white sm" href="https://github.com/mspriing/Multiagent-Team-3-ELP-2026" target="_blank" rel="noopener"><i class="ph-fill ph-github-logo" aria-hidden="true"></i>View the code</a><a class="pill frost sm" href="#top" data-act="home">Back to top</a></div>
+      </div>
+    </div>
+  </section>
+</div>
+</div>
+
+<div class="review" role="group" aria-label="Review options"><em>Heat</em><button data-heat="2">Fluted (round 3)</button><button data-heat="6">Fluted Isotherm</button><em>Answer</em><button data-ans="a">Sections</button><button data-ans="b">Report</button></div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+
+<script>
+/*__SHARED__*/
+const $ = id => document.getElementById(id);
+const all = sel => [...document.querySelectorAll(sel)];
+const ICONS = { Supervisor:'compass', Researcher:'magnifying-glass', Analyst:'chart-bar', Writer:'pen-nib' };
+const JOBS = { Supervisor:'Reads your question and routes it to the Researcher.', Researcher:'Writes its own web searches and reads the results through Tavily.', Analyst:'Weighs what the sources say and pulls out the conclusions.', Writer:'Turns the findings into one answer and lists every source it used.' };
+const MORE = {
+  Supervisor:`<span>Routes it to</span><div class="q">Researcher, then Analyst, then Writer</div>`,
+  Researcher:`<span>Searches it ran</span><div class="q">Microsoft enterprise AI strategy</div><div class="q">Google Vertex AI enterprise adoption</div><div class="q">AI opportunities for mid-sized software firms</div>`,
+  Analyst:`<span>What it found</span><ul><li>Microsoft sells AI inside seats companies already license.</li><li>Google competes on model quality and price per use.</li><li>Both are adding agents that act inside other apps.</li></ul>`,
+  Writer:`<span>Hands back</span><span class="ok"><i class="ph-fill ph-check-circle" aria-hidden="true"></i>Answer with 4 sources</span>`,
+};
+$('agentlist').innerHTML = AGENTS.map(([n]) => `<article class="ag"><i class="ic ph-fill ph-${ICONS[n]}" aria-hidden="true"></i><div class="nm"><h3>${n}</h3><span>${JOBS[n]}</span></div><div class="more"><div><div class="in">${MORE[n]}</div></div></div></article>`).join('');
+for (const el of all('[data-sugs]')) el.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="chip">${esc(s)}</button>`).join('');
+const STACK = ['React','TypeScript','Vite','FastAPI','Python','LangGraph','DeepSeek','Tavily'];
+const logo = n => { const [l, vb, inner] = LOGOS.find(x => x[0] === n); return `<span class="logo"><svg viewBox="${vb}" aria-hidden="true">${inner}</svg>${l}</span>`; };
+$('mq').innerHTML = [...STACK, ...STACK, ...STACK].map(logo).join('');
+all('[data-fill=sampleq]').forEach(el => el.textContent = SAMPLE_Q);
+$('send').disabled = true;
+
+/* ---------- Heat (WebGL2): the thermal glow from his Textures section, with defined heat sources.
+   E energy, H/H2 the two heat sources, K their size, C a cool zone behind type, D how defined the thermal steps
+   are, G fluted glass on or off, Q softness (lowers the peak so reading screens never go white-hot). ---------- */
+const HEAT = (() => {
+  const c = $('heat'); const gl = c.getContext('webgl2', { premultipliedAlpha:false, antialias:false });
+  if (!gl) { c.style.background = 'radial-gradient(40% 50% at 80% 30%, #B2F601, #62C0F6 45%, #343645 75%, #1F2029)'; return { to(){}, set(){}, look(){} }; }
+  const vs = `#version 300 es
+  in vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
+  const fs = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform vec2 R; uniform float T, E, S, K, D, G, Q, F, M, DN, RF; uniform vec2 H, H2; uniform vec3 C;
+  float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+  float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+    return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v; }
+  vec3 ramp(float x){
+    vec3 c0=vec3(.122,.125,.161), c1=vec3(.204,.212,.271), c2=vec3(.122,.306,.451), c3=vec3(.384,.753,.965), c4=vec3(.698,.965,.004), c5=vec3(.902,1.,.651), c6=vec3(.988,1.,1.);
+    x=clamp(x,0.,1.);
+    if(x<.20) return mix(c0,c1,x/.20);
+    if(x<.38) return mix(c1,c2,(x-.20)/.18);
+    if(x<.56) return mix(c2,c3,(x-.38)/.18);
+    if(x<.74) return mix(c3,c4,(x-.56)/.18);
+    if(x<.90) return mix(c4,c5,(x-.74)/.16);
+    return mix(c5,c6,(x-.90)/.10);
+  }
+  float src(vec2 u, vec2 c, float r, float ar){ vec2 d=(u-c)*vec2(ar,1.); return exp(-dot(d,d)/(r*r)); }
+  float heatAt(vec2 uv){
+    float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.2+vec2(0.,t*.16)), fbm(p*1.2+vec2(5.2,1.3)-t*.13));
+    vec2 u=uv+(q-.5)*vec2(.20/ar,.20);
+    vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    float h=E*(1.05*src(u,H,.27*K,ar)+.62*src(u,H2,.17*K,ar)+.30*src(u,h3,.11*K,ar));
+    float det=fbm(p*3.4+q*2.2+vec2(t*.07,-t*.05));
+    h+=(det-.5)*.34*smoothstep(.04,.55,h);
+    h+=(fbm(p*.7+t*.03)-.5)*.12+.05;
+    vec2 cz=(uv-C.xy)/vec2(.40,.22); h-=C.z*exp(-dot(cz,cz));
+    h=clamp(h,0.,1.)*mix(1.,.6,Q);
+    float x=h*8.; float st=(floor(x)+smoothstep(0.,.32,fract(x)))/8.;
+    return mix(h,st,D*(1.-Q));
+  }
+
+  /* ---- Geothermal looks (round 3b), built on the glass from his "effect background · test" (OXS light studio 2, fine flutes) ---- */
+  float sources(vec2 u, float ar, float t){ vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    return 1.05*src(u,H,.27*K,ar)+.62*src(u,H2,.17*K,ar)+.30*src(u,h3,.11*K,ar); }
+  float coolSoft(float h, vec2 uv){ vec2 cz=(uv-C.xy)/vec2(.40,.22); h-=C.z*exp(-dot(cz,cz)); return clamp(h,0.,1.)*mix(1.,.6,Q); }
+  float bands(float h, float n){ float x=h*n; float w=clamp(fwidth(x)*1.5,.03,.5);
+    float st=(floor(x)+smoothstep(1.-w,1.,fract(x)))/n; return mix(h,st,D*(1.-Q)); }
+  /* 1 Thermal: a lumpy heat body read like a thermal camera, in crisp temperature bands with a white-hot core */
+  float geoThermal(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.1+vec2(0.,t*.12)), fbm(p*1.1+vec2(5.2,1.3)-t*.10));
+    vec2 r=vec2(fbm(p*1.3+q*1.4+vec2(1.7,9.2)+t*.05), fbm(p*1.3+q*1.4+vec2(8.3,2.8)-t*.04));
+    vec2 u=uv+(r-.5)*vec2(.36/ar,.36);
+    float h=E*sources(u,ar,t); h*=.84+.32*fbm(p*1.2+r*1.3); h+=(fbm(p*.8+t*.02)-.5)*.10+.03;
+    return bands(coolSoft(h,uv),9.); }
+  /* 2 Vents: hot fissures glowing lime and white through the warm zones, like cracks in volcanic ground */
+  float geoVents(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.1+vec2(0.,t*.10)), fbm(p*1.1+vec2(5.2,1.3)-t*.08));
+    vec2 u=uv+(q-.5)*vec2(.18/ar,.18);
+    float body=E*sources(u,ar,t);
+    float n1=fbm(p*1.6+q*1.5+vec2(t*.02,-t*.035)), n2=fbm(p*3.4+q*2.4+vec2(3.1,-t*.05));
+    float c1=pow(1.-abs(2.*n1-1.),9.), c2=pow(1.-abs(2.*n2-1.),12.);
+    vec2 cz=(uv-C.xy)/vec2(.46,.28); float warm=smoothstep(.04,.7,body)*(1.-min(1.,1.3*C.z)*exp(-dot(cz,cz)));
+    float h=body*.62+(c1*.8+c2*.45)*warm+(fbm(p*.8)-.5)*.08;
+    return bands(coolSoft(h,uv),7.); }
+  /* 3 Plumes: heat rising off the sources in wavering columns */
+  float plume(vec2 u, vec2 c, float r, float ar, float t){ vec2 d=(u-c)*vec2(ar,1.); float up=max(d.y,0.);
+    d.x+=(fbm(vec2(u.x*2.4,u.y*2.-t*.5)+c*7.)-.5)*.7*up+sin(u.y*7.-t*1.1+c.x*9.)*.035*up/(r+.05); d.x/=1.+up*.7; d.y*=d.y>0.?.5:1.5; return exp(-dot(d,d)/(r*r))*exp(-up*1.1); }
+  float geoPlumes(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 ps=vec2(p.x*1.4,p.y*.6-t*.45); vec2 q=vec2(fbm(ps), fbm(ps+vec2(4.1,2.7)));
+    vec2 u=uv+(q-.5)*vec2(.16/ar,.06); vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    float h=E*(1.05*plume(u,H,.24*K,ar,t)+.62*plume(u,H2,.16*K,ar,t)+.25*src(u,h3,.10*K,ar));
+    h*=.7+.6*fbm(ps*1.8+q*2.); h+=(fbm(p*.8+t*.02)-.5)*.08+.03;
+    return bands(coolSoft(h,uv),8.); }
+  /* 4 Isotherm, fluted (round 3c): the big banded field from his Home (Isotherm) page, measured in screen pixels so it keeps
+     the same proportion on desktop and phone. Heat rises from the ground at H, the top stays calm, the peak stops at lime
+     (no white core), and C is the quiet zone behind type. */
+  float geoIso(vec2 uv){ float L=.26*(R.x+R.y)*.5; vec2 px=uv*R; vec2 p=px/L; float t=T*S;
+    vec2 q=vec2(fbm(p+vec2(0.,t*.12)), fbm(p+vec2(5.2,1.3)-t*.1));
+    float f=fbm(p+1.7*q+vec2(t*.05,-t*.04));
+    vec2 d=(px-H*R)/(L*3.1); float hot=exp(-dot(d,d)*2.6);
+    float h=f*1.05-.30+E*.62*hot+E*.24-.09*smoothstep(.5,1.,uv.y);
+    vec2 cz=(uv-C.xy)/vec2(.46,.26); h-=C.z*exp(-dot(cz,cz));
+    h=clamp(h,0.,mix(.84,.45,Q));
+    float x=h*9.; return (floor(x)+smoothstep(0.,.08,fract(x)))/9.; }
+  float heat(vec2 uv){ if(M>3.5) return geoIso(uv); if(M<.5) return heatAt(uv); if(M<1.5) return geoThermal(uv); if(M<2.5) return geoVents(uv); return geoPlumes(uv); }
+  /* His glass: fine flutes that refract the field, a dark edge per flute and a thin white ridge on the lit side */
+  float ridgeAt(float local){ float rd=(local+.365)*36.; return exp(-rd*rd); }
+  vec3 glass(vec2 uv){ float ar=R.x/R.y; vec2 p0=(uv-.5)*vec2(ar,1.);
+    float x=p0.x*DN; float local=fract(x)-.5;
+    vec3 nl=normalize(vec3(local*2.,0.,sqrt(max(.02,1.-local*local*3.7))));
+    vec3 ray=refract(vec3(0.,0.,-1.),nl,.68);
+    vec2 p=p0+vec2(ray.x*RF,0.);
+    vec3 col=ramp(heat(p/vec2(ar,1.)+.5));
+    float dx=DN/R.y*.25, rid=0.;
+    for(int i=0;i<4;i++){ rid+=ridgeAt(fract(x+(float(i)-1.5)*dx)-.5); } rid*=.25;
+    float edge=pow(abs(local)*2.,7.);
+    float gate=.15+.85*smoothstep(.04,.55,dot(col,vec3(.2126,.7152,.0722)));
+    col*=1.-edge*.78*.55;
+    return mix(col,vec3(.988,1.,1.),clamp(rid*gate*.76,0.,1.)); }
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R;
+    if(G>1.5){ vec3 col=glass(uv); float g=(h21(gl_FragCoord.xy+vec2(floor(T*12.)*7.,1.))-.5)*.016; o=vec4(col*(1.+g*2.)+g*.4,1.); return; }
+    if(G>.5){
+      float fl=fract(gl_FragCoord.x/F);
+      float h=heatAt(uv+vec2((fl-.5)*F/R.x*1.6,0.));
+      vec3 col=ramp(h);
+      col*=.86+.14*smoothstep(0.,.5,fl)-.10*smoothstep(.82,1.,fl);
+      col+=.05*smoothstep(.9,1.,fl);
+      o=vec4(col,1.);
+    } else o=vec4(ramp(heatAt(uv)),1.);
+  }`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const cur = { E:.95, S:.35, K:1, Q:0, hx:.8, hy:.7, h2x:.14, h2y:.22, cx:.5, cy:.55, cz:.55 }, tgt = { ...cur };
+  const look = { D:.65, G:0 }; let simT = 3, last = performance.now(), scale = .6;
+  const fit = () => { const r = Math.min(devicePixelRatio, 1.5); c.width = Math.max(1, c.clientWidth * r * scale); c.height = Math.max(1, c.clientHeight * r * scale); gl.viewport(0, 0, c.width, c.height); };
+  new ResizeObserver(fit).observe(c); fit();
+  const frame = now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    for (const k in cur) cur[k] += (tgt[k] - cur[k]) * Math.min(1, dt * 1.4);
+    if (!reduceMotion) simT += dt;
+    gl.uniform2f(U('R'), c.width, c.height); gl.uniform1f(U('T'), simT);
+    for (const k of ['E','S','K','Q']) gl.uniform1f(U(k), cur[k]);
+    gl.uniform1f(U('D'), look.D); gl.uniform1f(U('G'), look.G); gl.uniform1f(U('M'), look.M || 0); gl.uniform1f(U('DN'), 44); gl.uniform1f(U('RF'), look.RF ?? .55); gl.uniform1f(U('F'), Math.max(6, 26 * Math.min(devicePixelRatio, 1.5) * scale));
+    gl.uniform2f(U('H'), cur.hx, cur.hy); gl.uniform2f(U('H2'), cur.h2x, cur.h2y); gl.uniform3f(U('C'), cur.cx, cur.cy, cur.cz);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  return { to(p){ Object.assign(tgt, p); }, set(p){ Object.assign(tgt, p); Object.assign(cur, p); }, look(p){ Object.assign(look, p); if ('scale' in p) { scale = p.scale; fit(); } } };
+})();
+/* Where a rect sits in the shader's space (0..1, y up) */
+const uvOf = el => { const r = el.getBoundingClientRect(); return { x:(r.left + r.width / 2) / innerWidth, y:1 - (r.top + r.height / 2) / innerHeight }; };
+const phone = () => innerWidth < 768;
+let lookIx = 6;
+function isoFor(state) {
+  const h = uvOf(document.querySelector('.hero h1'));
+  if (state === 'ask') return phone() ? { E:.6, S:.35, Q:0, hx:.5, hy:.04, cx:.5, cy:h.y, cz:.55 } : { E:.62, S:.35, Q:0, hx:.5, hy:.1, cx:.5, cy:h.y, cz:.6 };
+  if (state === 'working') return { E:.58 + .14 * fillP, S:1, Q:0, hx:.5, hy:phone() ? .04 : .08, cx:.5, cy:h.y, cz:.78 };
+  if (state === 'answer' || state === 'copied') return { E:.4, S:.25, Q:1, hx:.5, hy:-.04, cx:.5, cy:(() => { const a = document.querySelector('.ahead h1'); return a && a.offsetHeight ? uvOf(a).y : .78; })(), cz:.62 };
+  return { E:.15, S:.08, Q:1, hx:.5, hy:-.2, cx:.5, cy:.5, cz:0 };
+}
+function heatFor(state) {
+  if (lookIx === 6) return isoFor(state);
+  if (state === 'ask') { const h = uvOf(document.querySelector('.hero h1')); return phone() ? { E:.95, S:.35, K:.82, Q:0, hx:.98, hy:.04, h2x:.0, h2y:.96, cx:h.x, cy:h.y, cz:.75 } : { E:.95, S:.35, K:1, Q:0, hx:.82, hy:.74, h2x:.12, h2y:.2, cx:h.x, cy:h.y, cz:.62 }; }
+  if (state === 'working') { const q = uvOf(document.querySelector('.qcard')), h = uvOf(document.querySelector('.hero h1')); return { E:.85 + .3 * fillP, S:1, K:phone() ? .7 : .95, Q:0, hx:q.x, hy:phone() ? q.y - .12 : q.y - .1, h2x:phone() ? .98 : .86, h2y:phone() ? .97 : .86, cx:h.x, cy:h.y, cz:phone() ? .75 : .55 }; }
+  if (state === 'answer') return phone() ? { E:.6, S:.25, K:.75, Q:.6, hx:.98, hy:.99, h2x:.02, h2y:.62, cx:.5, cy:.8, cz:.6 } : { E:.7, S:.25, K:1.35, Q:.55, hx:.94, hy:.98, h2x:.04, h2y:.7, cx:.5, cy:.45, cz:.5 };
+  return { E:.55, S:.08, K:1.6, Q:1, hx:.5, hy:.55, h2x:.5, h2y:.5, cx:.5, cy:.5, cz:0 };
+}
+const LOOKS = [{ D:.65, G:0, M:0, scale:.6 }, { D:0, G:0, M:0, scale:.6 }, { D:.25, G:1, M:0, scale:.6 }, { D:.85, G:2, M:1, RF:.05, scale:1 }, { D:.55, G:2, M:2, RF:.04, scale:1 }, { D:.8, G:2, M:3, RF:.05, scale:1 }, { D:1, G:2, M:4, RF:.04, scale:1 }];
+const params = new URLSearchParams(location.search);
+const setLook = i => { lookIx = i; HEAT.look(LOOKS[i]); all('[data-heat]').forEach(b => b.setAttribute('aria-pressed', +b.dataset.heat === i)); };
+const setAns = a => { document.body.classList.toggle('ans-a', a === 'a'); document.body.classList.toggle('ans-b', a === 'b'); all('[data-ans]').forEach(b => b.setAttribute('aria-pressed', b.dataset.ans === a)); };
+setLook(+(params.get('heat') ?? 6)); setAns(params.get('ans') || 'a');
+document.addEventListener('click', e => { const h = e.target.closest('[data-heat]'); if (h) { setLook(+h.dataset.heat); HEAT.to(heatFor(visual)); } const a = e.target.closest('[data-ans]'); if (a) setAns(a.dataset.ans); });
+if (params.get('review') === '0') document.querySelector('.review').remove();
+
+/* ---------- OXS scroll fill: a spring follows scroll progress. The How it works list lights from the same scroll ---------- */
+(() => {
+  let x = 0, v = 0, target = 0; const bar = $('sbar');
+  const read = () => { const h = document.documentElement.scrollHeight - innerHeight; target = h > 0 ? scrollY / h : 0; };
+  addEventListener('scroll', read, { passive:true }); addEventListener('resize', read); read();
+  const tick = () => { const k = 220, d = 40, dt = 1/60; v += (k * (target - x) - d * v) * dt; x += v * dt; if (reduceMotion) x = target; bar.style.transform = `scaleX(${Math.max(0, Math.min(1, x))})`;
+    const pin = $('howpin'); if (pin && !phone()) { const r = pin.getBoundingClientRect(); const pp = Math.max(0, Math.min(1, -r.top / Math.max(1, r.height - innerHeight))); const step = Math.min(3, Math.floor(pp * 4)); all('#agentlist .ag').forEach((s, i) => s.classList.toggle('on', i === step)); }
+    requestAnimationFrame(tick); };
+  tick();
+})();
+
+/* ---------- Send fill: the button frosts and lime fills it. The backend sends no progress, so the fill eases
+   toward 92% over time and runs to full when the answer lands. ---------- */
+const sendBtn = $('send'); let fillP = 0, fillTarget = 0, fillVel = 0, startedAt = 0, filling = false;
+(function fillLoop(){
+  if (filling) { fillTarget = .92 * (1 - Math.exp(-(performance.now() - startedAt) / 5200)); if (visual === 'working') HEAT.to(heatFor('working')); }
+  const dt = 1 / 60; fillVel += (200 * (fillTarget - fillP) - 32 * fillVel) * dt;
+  fillP += fillVel * dt; if (reduceMotion) fillP = fillTarget;
+  sendBtn.style.setProperty('--p', Math.max(0, Math.min(1, fillP)).toFixed(4));
+  requestAnimationFrame(fillLoop);
+})();
+const finishFill = full => new Promise(res => { filling = false; fillTarget = full ? 1 : 0; setTimeout(res, full ? 900 : 500); });
+
+let visual = 'ask', pending = Promise.resolve();
+const flow = createFlow(s => { pending = pending.then(() => render(s)); });
+async function render(s) {
+  const prev = visual;
+  if (prev === 'working' && s.state !== 'working') await finishFill(s.state === 'answer');
+  visual = s.state; document.body.dataset.state = s.state;
+  if ($('q').value !== s.question) { $('q').value = s.question; requestAnimationFrame(grow); }
+  sendBtn.disabled = s.state === 'working' || !s.question.trim();
+  for (const el of all('[data-fill=question]')) el.textContent = s.question;
+  if (s.state === 'working' && prev !== 'working') { startedAt = s.startedAt; fillP = 0; fillVel = 0; filling = true; scrollTo({ top:0 }); }
+  if (s.state !== 'working') { fillP = 0; fillVel = 0; fillTarget = 0; }
+  if (s.state === 'answer') {
+    const srcs = sourcesFrom(s.answer);
+    let html = renderMarkdown(s.answer, { skipSources:true }).html;
+    srcs.forEach((x, i) => { html = html.split(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a><a class="cite" href="#src-${i+1}" aria-label="Source ${i+1}">${i+1}</a>`); });
+    html = html.replace(/(<a href="[^"]+" target="_blank" rel="noopener">[^<]+<\/a><a class="cite"[^>]*>\d+<\/a>[,.;:]?)/g, '<span class="nw">$1</span>');
+    const rows = srcs.map((x, i) => `<a class="row" id="src-${i+1}" href="${x.url}" target="_blank" rel="noopener"><span class="fav"><img src="https://www.google.com/s2/favicons?domain=${x.host}&sz=64" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph-fill ph-globe'}))"></span><span class="tx"><strong>${esc(x.title)}</strong><span>${x.host}</span></span><b>${i+1}</b></a>`).join('');
+    // Sections: split the answer at its headings, one group each, then the sources as the last group
+    const parts = html.split(/<h2 id="h-\d+">/).filter(Boolean).map(p => { const [h, ...rest] = p.split('</h2>'); return { h, body: rest.join('</h2>') }; });
+    all('[data-fill=groups]').forEach(el => el.innerHTML = parts.map((p, i) => `<section class="grp${i === 0 ? ' lead' : ''}"><h2 class="glabel">${p.h}</h2><div class="gcard doc on-white">${p.body}</div></section>`).join('') + `<section class="grp"><h2 class="glabel">Sources</h2><div class="gcard"><nav class="rows" aria-label="Sources">${rows}</nav></div></section>`);
+    all('[data-fill=doc]').forEach(el => el.innerHTML = html);
+    all('[data-fill=srcrows]').forEach(el => el.innerHTML = rows.replaceAll('id="src-', 'data-src="'));
+    all('[data-fill=srccount]').forEach(el => el.textContent = srcs.length);
+    all('[data-fill=steps]').forEach(el => el.innerHTML = AGENTS.map(([n]) => `<li><i class="ph-fill ph-${ICONS[n]}" aria-hidden="true"></i><div><b>${n}</b><span>${{ Supervisor:'Routed your question', Researcher:`Searched the web, ${srcs.length} sources kept`, Analyst:'Pulled out the conclusions', Writer:'Wrote this answer' }[n]}</span></div></li>`).join(''));
+  }
+  if (s.state === 'error') {
+    const E = { net:{ badge:'<b>Offline</b>', head:"Can't reach the research server" }, server:{ badge:'<i class="ph-fill ph-warning" aria-hidden="true"></i>', head:"The agents couldn't finish" } }[s.error];
+    all('[data-fill=err-head]').forEach(el => el.textContent = E.head);
+    all('[data-fill=err-badge]').forEach(el => el.innerHTML = E.badge);
+    all('[data-fill=err-body]').forEach(el => el.textContent = ERRORS[s.error].body);
+  }
+  requestAnimationFrame(() => HEAT.to(heatFor(s.state)));
+  const on = s.copied && Date.now() - s.copied < 2200; $('toast').classList.toggle('on', !!on);
+  if (on && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+addEventListener('resize', () => HEAT.to(heatFor(visual)));
+// Opened straight into the working state for review: start the fill where it would be 14 seconds in.
+if (params.get('state') === 'working') { visual = 'working'; startedAt = performance.now() - 14000; filling = true; }
+
+const grow = () => { const t = $('q'); t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+$('q').addEventListener('input', e => { flow.type(e.target.value); grow(); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); flow.send(); } });
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+document.addEventListener('click', e => {
+  const chip = e.target.closest('.chip'); if (chip) { flow.type(chip.textContent); $('q').focus(); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const act = b.dataset.act;
+  if (act === 'ask' || act === 'home') { e.preventDefault(); if (flow.get().state !== 'ask' && act === 'home') flow.reset(); scrollTo({ top:0, behavior:'smooth' }); if (act === 'ask') setTimeout(() => $('q').focus({ preventScroll:true }), 500); }
+  if (act === 'new') { flow.reset(); scrollTo({ top:0 }); setTimeout(() => $('q').focus(), 300); }
+  if (act === 'copy') flow.copy();
+  if (act === 'retry') flow.send();
+  if (act === 'edit') { flow.edit(); setTimeout(() => $('q').focus(), 300); }
+});
+</script>
+</body>
+</html>

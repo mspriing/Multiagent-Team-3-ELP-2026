@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Conversations</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" rel="stylesheet">
+<style>
+/* Shared base for the B rebuild (2026-11-03). Rules from taste.md: no hairlines or borders, every element
+   has a fill that contrasts with what it sits on, content centred in its space, no dead bands. */
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --mid-8:rgb(52 54 69 / .08); --mid-14:rgb(52 54 69 / .14); --mid-70:rgb(52 54 69 / .78);
+  --w-72:rgb(252 255 255 / .78);
+  --font:"Geist", -apple-system, "SF Pro Display", system-ui, sans-serif;
+  --t-hero:clamp(2.6rem, 1.6rem + 3.4vw, 4.75rem); --t-h2:clamp(1.6rem, 1.2rem + 1.3vw, 2.4rem);
+  --t-lead:clamp(1.05rem, .98rem + .3vw, 1.25rem); --t-body:1.0625rem; --t-small:.9375rem;
+  --pad:clamp(1.25rem, .7rem + 2.4vw, 3rem); --r:16px; --ease:cubic-bezier(.16,1,.3,1);
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;min-height:100%;background:var(--deep);color:var(--white);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+h1,h2,h3{font-family:var(--font);font-weight:600;letter-spacing:-.035em;margin:0;text-wrap:balance}
+p{margin:0}
+.sr{position:absolute;left:-9999px}
+
+/* State switching: an element with .st and .s-<state> shows only in that state. */
+.st{display:none!important}
+body[data-state=ask] .s-ask, body[data-state=working] .s-working,
+body[data-state=answer] .s-answer, body[data-state=error] .s-error{display:var(--d,block)!important;animation:in .7s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* The light */
+.fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(70% 60% at 50% 70%, rgb(98 192 246 / .55), transparent 70%),var(--deep)}
+
+/* Question card: white, dark type, filled chips inside, no borders */
+.qcard{background:var(--white);color:var(--mid);border-radius:22px;padding:1.1rem 1.1rem 1rem;display:grid;gap:.9rem;box-shadow:0 30px 60px -30px rgb(10 11 16 / .55)}
+.qcard textarea{resize:none;background:none;border:0;outline:0;font-size:var(--t-lead);line-height:1.45;color:var(--deep);min-height:3.2em;padding:.35rem .45rem}
+.qcard textarea::placeholder{color:rgb(52 54 69 / .55)}
+.qrow{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.hint{font-size:.8125rem;color:rgb(52 54 69 / .62);padding-left:.45rem}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.55rem .95rem;font-size:.875rem;font-weight:500;text-align:left;line-height:1.3;transition:background .15s}
+@media (hover:hover){.chip:hover{background:var(--mid-14)}}
+
+/* Crew tiles: solid white, dark type */
+.crew{display:grid;gap:.75rem}
+.tile{background:var(--white);color:var(--deep);border-radius:var(--r);padding:1.05rem 1.15rem;display:grid;align-content:start}
+.tile .tx{display:grid;gap:.25rem}
+.ic{width:2.6rem;height:2.6rem;border-radius:12px;background:var(--deep);color:var(--lime);display:grid;place-items:center;font-size:1.55rem;margin-bottom:.9rem}
+.tile b{font-weight:600;font-size:1.0625rem;letter-spacing:-.01em}
+.tile span{font-size:.875rem;color:var(--mid-70);line-height:1.35}
+
+/* Answer text, for a white surface */
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.25rem,1.1rem + .6vw,1.6rem);margin:2.2rem 0 .7rem;line-height:1.2;letter-spacing:-.025em}
+.doc h2:first-child{margin-top:0}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.68}
+.doc ul{padding-left:1.2rem;margin:0;display:grid;gap:.4rem}
+.doc a{color:inherit;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.doc.on-white{color:var(--deep)} .doc.on-white p,.doc.on-white li{color:rgb(31 32 41 / .86)}
+.doc.on-white li::marker{color:var(--mid)} .doc.on-white a{text-decoration-color:var(--blue)}
+
+/* Source cards: solid white */
+.srcs{display:grid;gap:.6rem}
+.src{display:grid;gap:.2rem;background:var(--white);color:var(--deep);border-radius:14px;padding:.95rem 1.1rem;text-decoration:none;transition:transform .15s}
+.src span{font-size:.8125rem;color:var(--mid-70)}
+.src b{font-weight:600;font-size:var(--t-small)}
+@media (hover:hover){.src:hover{transform:translateY(-2px)}}
+
+.toast{position:fixed;left:50%;bottom:1.5rem;translate:-50% 0;background:var(--lime);color:var(--deep);border-radius:999px;padding:.85rem 1.4rem;font-weight:600;visibility:hidden;transform:translateY(160%);transition:transform .5s var(--ease),visibility .5s;z-index:9}
+.toast.on{visibility:visible;transform:none}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+
+/* Home, round 3 (2026-11-03). From his notes on the Isotherm page:
+   the heat is the thermal glow from his Textures section ("effect background · test"), with more defined heat
+   sources instead of one wash, and it is the ground of every app screen edge to edge (no flat strip under a band).
+   The lime fill runs inside the Send button only. Lime marks the one primary action. Words start from the repo. */
+html{scroll-behavior:smooth}
+body{background:var(--deep)}
+.wrap{width:min(100% - 2*var(--pad), 78rem);margin-inline:auto}
+.heat{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+.page{position:relative;z-index:1}
+
+/* Nav: solid deep, with the OXS scroll fill under it */
+.nav{position:sticky;top:0;z-index:20;background:var(--deep)}
+/* Brand and button sit near the screen edges like the OXS hub nav (about 24px at 1440) and come in as the window narrows */
+.nav .in{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:4rem;width:100%;padding-inline:clamp(1rem,1.7vw,2rem)}
+.brand{display:flex;align-items:center;gap:.7rem;font-weight:600;letter-spacing:-.01em;color:var(--white);text-decoration:none}
+.brand i{width:2rem;height:2rem;border-radius:9px;background:var(--white);color:var(--deep);display:grid;place-items:center;font-size:1.15rem}
+.links{display:flex;gap:.35rem}
+.links a{color:var(--white);text-decoration:none;font-size:.9375rem;font-weight:500;padding:.55rem .9rem;border-radius:999px;transition:background .15s}
+@media (hover:hover){.links a:hover{background:rgb(252 255 255 / .1)}}
+.nav .cta{justify-self:end}
+.bar{height:4px;background:var(--mid)}
+.bar span{display:block;height:100%;background:var(--lime);transform-origin:left;transform:scaleX(0)}
+body:not([data-state=ask]) .links{visibility:hidden}
+
+.pill{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border-radius:999px;padding:.85rem 1.5rem;font-weight:600;text-decoration:none;white-space:nowrap;transition:transform .15s var(--ease)}
+.pill:active{transform:scale(.98)}
+.pill.lime{background:var(--lime);color:var(--deep)} .pill.deep{background:var(--deep);color:var(--white)}
+.pill.white{background:var(--white);color:var(--deep)} .pill.tint{background:var(--mid-8);color:var(--deep)}
+.pill.frost{background:rgb(252 255 255 / .14);color:var(--white);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.pill.sm{padding:.6rem 1.1rem;font-size:.9375rem}
+.pill i{font-size:1.15em}
+
+/* Hero: the ask screen. Heat behind, type in its cool middle, the question box centred under it */
+.hero{min-height:calc(100dvh - 4rem - 4px);display:grid;place-content:center;justify-items:center;gap:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);padding:clamp(2rem,4vw,3.5rem) var(--pad);text-align:center}
+.hero h1{font-size:var(--t-hero);line-height:1.02;max-width:16ch}
+.hero .lead{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1rem auto 0;color:var(--white)}
+.qwrap{width:min(100%,46rem);display:grid;gap:.9rem;text-align:left}
+.qcard .chips{padding:0 .35rem}
+.qcard textarea{overflow:hidden}
+body[data-state=working] .qcard .chips{display:none}
+body[data-state=working] .qcard textarea{pointer-events:none}
+.status{display:none;align-items:center;gap:.55rem;color:var(--mid);font-size:.875rem;font-weight:500;padding-left:.45rem}
+.status .dot{width:.55rem;height:.55rem;border-radius:999px;background:var(--lime);animation:pulse 1.4s var(--ease) infinite}
+@keyframes pulse{50%{opacity:.25}}
+body[data-state=working] .status{display:flex} body[data-state=working] .hint{display:none}
+
+/* Send: lime when ready. Pressed, it frosts over and lime fills it from the left until it is full lime again */
+.send{position:relative;overflow:hidden;isolation:isolate;min-width:9.5rem;background:var(--lime);color:var(--deep);transition:background .35s var(--ease),color .35s}
+.send:disabled{background:var(--mid-14);color:rgb(52 54 69 / .55);cursor:default}
+.send .fillbar{position:absolute;inset:0;z-index:-1;background:var(--lime);transform-origin:left;transform:scaleX(var(--p,0));border-radius:inherit}
+.send .busy{display:none}
+body[data-state=working] .send,body[data-state=working] .send:disabled{background:rgb(52 54 69 / .16);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);color:var(--deep);cursor:progress}
+body[data-state=working] .send .idle{display:none} body[data-state=working] .send .busy{display:inline}
+
+/* Answer, shared head */
+.ans{padding:clamp(2.5rem,2rem + 3vw,5rem) var(--pad) clamp(3rem,2rem + 4vw,6rem)}
+.ahead{width:min(100%,52rem);margin:0 auto clamp(2rem,1.6rem + 1.6vw,3rem);text-align:center;display:grid;justify-items:center;gap:1.1rem}
+.ahead h1{font-size:var(--t-h2);line-height:1.14;max-width:30ch}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem}
+.meta span{display:inline-flex;align-items:center;gap:.4rem;background:rgb(252 255 255 / .12);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border-radius:999px;padding:.45rem .9rem;font-size:.875rem;font-weight:500;color:var(--white)}
+.acts{display:flex;flex-wrap:wrap;justify-content:center;gap:.6rem}
+.cite{display:inline-grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .3rem;margin-left:.25rem;border-radius:999px;font-size:.72rem;font-weight:600;vertical-align:.12em;text-decoration:none!important;line-height:1}
+.nw{white-space:nowrap}
+.doc.on-white .cite{background:var(--deep);color:var(--white)}
+.doc.on-dark .cite{background:var(--white);color:var(--deep)}
+/* Source rows: an Apple list, each row its own filled platter */
+.rows{display:grid;gap:.4rem}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:center;background:var(--mid-8);color:var(--deep);text-decoration:none;border-radius:14px;padding:.75rem .9rem;transition:transform .15s var(--ease)}
+@media (hover:hover){.row:hover{transform:translateY(-2px)}}
+.row .fav{width:2.4rem;height:2.4rem;border-radius:11px;background:var(--white);display:grid;place-items:center}
+.row .fav img{width:1.4rem;height:1.4rem;border-radius:4px}
+.row .tx{display:grid;gap:.1rem}
+.row .tx strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+.row .tx span{font-size:.8125rem;color:var(--mid-70)}
+.row b{min-width:1.5rem;height:1.5rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.75rem;display:grid;place-items:center}
+
+/* Answer option A, Sections: Apple's grouped style. Each part of the answer is its own group with its label above */
+.groups{width:min(100%,46rem);margin:0 auto;display:grid;gap:clamp(1.6rem,1.2rem + 1vw,2.2rem)}
+.grp{display:grid;gap:.6rem}
+.glabel{font-size:.9375rem;font-weight:600;letter-spacing:-.005em;color:var(--w-72);padding-left:1.1rem}
+.gcard{background:var(--white);color:var(--deep);border-radius:22px;padding:clamp(1.15rem,1rem + .6vw,1.6rem)}
+.gcard.doc{max-width:none}
+.gcard.doc > :first-child{margin-top:0}
+/* Desktop: the answer spreads across the page. The short answer and the sources run full width; the sections between sit
+   side by side as equal-height cards (an odd one out runs full width), and the source rows sit two to a line. */
+@media (min-width:1024px){
+  .ans-a .groups{width:min(100%,76rem);grid-template-columns:1fr 1fr;column-gap:clamp(1.2rem,1rem + 1vw,2rem)}
+  .ans-a .groups{align-content:start}
+  .ans-a .grp{display:grid;grid-template-rows:auto 1fr;row-gap:.6rem}
+  .ans-a .grp .glabel{margin:0}
+  .ans-a .grp.wide{grid-column:1 / -1}
+  .ans-a .grp.sources .rows{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+  .ans-a .ahead{width:min(100%,60rem)}
+}
+.grp.lead .gcard p{font-size:clamp(1.0625rem,1rem + .25vw,1.1875rem);line-height:1.6}
+/* Answer option B, Report: the answer reads straight on the page, a rail beside it shows how it was made and its sources */
+.report{width:min(100%,74rem);margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 21rem;gap:clamp(2rem,1.4rem + 2.4vw,4rem);align-items:start}
+.report .doc{max-width:64ch}
+.doc.on-dark{color:var(--white)} .doc.on-dark p,.doc.on-dark li{color:rgb(252 255 255 / .88)} .doc.on-dark li::marker{color:var(--blue)} .doc.on-dark a{text-decoration-color:var(--blue)}
+.rail{position:sticky;top:calc(4rem + 4px + 1.5rem);display:grid;gap:1rem}
+.rcard{background:var(--white);color:var(--deep);border-radius:22px;padding:1.2rem;display:grid;gap:.85rem}
+.rcard h3{font-size:1.0625rem;letter-spacing:-.015em}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:.4rem}
+.steps li{display:grid;grid-template-columns:auto 1fr;gap:.75rem;align-items:center;background:var(--mid-8);border-radius:14px;padding:.6rem .75rem}
+.steps i{width:2rem;height:2rem;border-radius:10px;background:var(--deep);color:var(--lime);display:grid;place-items:center;font-size:1.05rem}
+.steps b{font-size:.9375rem;font-weight:600;display:block} .steps span{font-size:.8125rem;color:var(--mid-70)}
+.ans-a .report,.ans-b .groups{display:none}
+.ans-b .ahead{width:min(100%,74rem);text-align:left;justify-items:start}
+.ans-b .ahead .meta,.ans-b .ahead .acts{justify-content:flex-start}
+.ans-b .ahead h1{max-width:34ch}
+
+/* Errors: the alert he liked, over a cold field */
+.errwrap{min-height:calc(100dvh - 4rem - 4px);display:grid;place-items:center;padding:var(--pad)}
+.alert{width:min(100%,30rem);background:var(--white);color:var(--deep);border-radius:30px;padding:clamp(1.6rem,1.2rem + 1.4vw,2.4rem);text-align:center;display:grid;justify-items:center;gap:.9rem;box-shadow:0 40px 80px -40px rgb(10 11 16 / .6)}
+.alert .badge{min-width:4rem;height:4rem;padding:0 1.1rem;border-radius:999px;background:var(--deep);color:var(--blue);display:grid;place-items:center;font-size:2rem}
+.alert .badge b{font-size:1.125rem;font-weight:600;letter-spacing:-.01em}
+.alert h2{font-size:1.4rem;line-height:1.2;max-width:22ch}
+.alert p{color:var(--mid-70);line-height:1.5}
+.alert .yourq{width:100%;background:var(--mid-8);border-radius:16px;padding:.9rem 1rem;text-align:left;display:grid;gap:.3rem}
+.alert .yourq span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.alert .yourq q{quotes:none;line-height:1.45;font-size:.9375rem;color:var(--deep)}
+.alert .stack{width:100%;display:grid;gap:.55rem;margin-top:.3rem}
+.alert .stack .pill{width:100%}
+
+/* Homepage sections, shown while asking */
+.home{display:none} body[data-state=ask] .home{display:block}
+.built{background:var(--white);color:var(--deep);padding:clamp(1.6rem,1.2rem + 1vw,2.2rem) 0}
+.built .mask{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.built .track{display:flex;gap:clamp(2.5rem,2rem + 2vw,4rem);width:max-content;animation:mq 40s linear infinite;align-items:center}
+.logo{display:inline-flex;align-items:center;gap:.65rem;font-size:clamp(1.0625rem,1rem + .3vw,1.3rem);font-weight:600;letter-spacing:-.02em;white-space:nowrap;color:var(--deep)}
+.logo svg{width:clamp(1.5rem,1.3rem + .5vw,1.9rem);height:auto;aspect-ratio:1;fill:currentColor}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* How it works: the four agents in one list. Scrolling lights one agent at a time and opens what it hands on */
+.s-how{background:var(--mid)}
+.howpin{height:260vh;position:relative}
+.howstage{position:sticky;top:calc(4rem + 4px);min-height:calc(100dvh - 4rem - 4px);display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(2rem,1rem + 4vw,5rem);align-items:center;padding:clamp(2.5rem,2rem + 2vw,4rem) 0}
+.howtext{display:grid;gap:1rem;align-content:center}
+.howtext h2{font-size:var(--t-h2);line-height:1.1;max-width:16ch}
+.howtext p{font-size:var(--t-lead);line-height:1.5;color:var(--w-72);max-width:38ch}
+.howtext .sample{background:rgb(252 255 255 / .1);border-radius:18px;padding:1rem 1.15rem;display:grid;gap:.35rem;margin-top:.6rem}
+.howtext .sample span{font-size:.8125rem;font-weight:600;color:var(--w-72)}
+.howtext .sample q{quotes:none;line-height:1.5}
+.agentlist{display:grid;gap:.6rem}
+.ag{background:rgb(252 255 255 / .07);color:var(--white);border-radius:20px;padding:1rem 1.15rem;display:grid;grid-template-columns:auto 1fr;column-gap:1rem;transition:background .45s var(--ease),color .45s var(--ease)}
+.ag .ic{margin:0;width:2.75rem;height:2.75rem;background:rgb(252 255 255 / .12);color:var(--white);transition:background .45s,color .45s}
+.ag .nm{display:grid;gap:.15rem;align-content:center}
+.ag h3{font-size:1.15rem;letter-spacing:-.02em} .ag .nm span{font-size:.9375rem;line-height:1.45;color:var(--w-72);transition:color .45s}
+.ag .more{grid-column:2;display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s var(--ease)}
+.ag .more > div{overflow:hidden}
+.ag .more .in{padding-top:.85rem;display:grid;gap:.45rem}
+.ag .more .in > span{font-size:.8125rem;font-weight:600;color:var(--mid)}
+.ag .q{background:var(--mid-8);border-radius:12px;padding:.55rem .75rem;font-size:.875rem;font-weight:500;line-height:1.4}
+.ag ul{margin:0;padding-left:1.1rem;display:grid;gap:.3rem;font-size:.9375rem;line-height:1.45;color:rgb(31 32 41 / .86)}
+.ag .more .in > span.ok{color:var(--white)}
+.ag .ok{display:inline-flex;align-items:center;gap:.4rem;justify-self:start;background:var(--deep);color:var(--white);border-radius:999px;padding:.4rem .8rem;font-size:.8125rem;font-weight:600}
+.ag.on{background:var(--white);color:var(--deep)}
+.ag.on .ic{background:var(--deep);color:var(--lime)} .ag.on .nm span{color:var(--mid-70)}
+.ag.on .more{grid-template-rows:1fr}
+
+.closing{background:var(--deep);padding:clamp(4rem,3rem + 4vw,7rem) 0 clamp(2.5rem,2rem + 2vw,3.5rem);text-align:center}
+.closing h2{font-size:var(--t-h2);line-height:1.1;max-width:22ch;margin:0 auto}
+.closing .wrap > p{max-width:40ch;margin:1rem auto 2rem;font-size:var(--t-lead);line-height:1.5;color:var(--w-72)}
+.foot{display:grid;justify-items:center;gap:1rem;margin-top:clamp(4rem,3rem + 4vw,6rem)}
+.foot p{color:var(--w-72);font-size:.9375rem}
+.foot .row2{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+
+/* Review control (not part of the design) */
+.review{position:fixed;left:1rem;bottom:1rem;z-index:30;display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;background:var(--white);color:var(--deep);border-radius:22px;padding:.3rem .3rem .3rem .9rem;font-size:.8125rem;font-weight:600;box-shadow:0 20px 40px -20px rgb(10 11 16 / .6);max-width:calc(100% - 2rem)}
+.review button{background:var(--mid-8);color:var(--deep);border-radius:999px;padding:.45rem .8rem;font-size:.8125rem;font-weight:600}
+.review button[aria-pressed=true]{background:var(--deep);color:var(--lime)}
+.review em{font-style:normal;margin-left:.4rem}
+
+@media (max-width:1023px){
+  .report{grid-template-columns:1fr} .rail{position:static}
+  .howstage{grid-template-columns:1fr;align-content:center;gap:1.6rem}
+}
+@media (max-width:767px){
+  .nav .in{grid-template-columns:1fr auto}
+  .links{display:none}
+  .hero h1{max-width:12ch}
+  .howpin{height:auto} .howstage{position:static;min-height:0}
+  .ag .more{grid-template-rows:1fr}
+  .ag{background:var(--white);color:var(--deep)} .ag .ic{background:var(--deep);color:var(--lime)} .ag .nm span{color:var(--mid-70)}
+  .review{left:.5rem;right:.5rem;bottom:.5rem;justify-content:center;padding-left:.7rem}
+  .review em{display:none}
+  body[data-state=working] .qrow{flex-direction:column-reverse;align-items:stretch;gap:.8rem} body[data-state=working] .send{width:100%}
+}
+@media (prefers-reduced-motion:reduce){.built .track{animation:none}}
+
+/* Conversation screens (2026-11-09). The team's final-project branch added saved conversations, follow-up questions
+   and a per-answer evidence ledger. These screens keep the approved look: the same nav, the fluted heat under
+   everything, white cards for reading, lime for the one primary action. Words start from the repo. */
+body[data-view]{min-height:100dvh}
+body[data-view] .links{visibility:hidden}
+.navl{display:flex;align-items:center;gap:.6rem}
+.iconbtn{width:2.5rem;height:2.5rem;border-radius:12px;display:grid;place-items:center;color:var(--white);font-size:1.35rem;background:transparent;border:0;padding:0;box-shadow:none;transition:background .15s}
+@media (hover:hover){.iconbtn:hover{background:rgb(252 255 255 / .1)}}
+
+/* Shell: the sidebar sits under the nav on the left, the conversation fills the rest */
+.shell{display:grid;grid-template-columns:18rem minmax(0,1fr);min-height:calc(100dvh - 4rem - 4px)}
+body.sb-closed .shell{grid-template-columns:minmax(0,1fr)} body.sb-closed .side{display:none}
+.side{position:sticky;top:calc(4rem + 4px);height:calc(100dvh - 4rem - 4px);background:var(--deep);padding:1.25rem clamp(1rem,1.7vw,2rem) 1.5rem;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:1.1rem;overflow:hidden}
+.side .newchat{width:100%}
+.side h2{font-size:.8125rem;font-weight:600;color:var(--w-72);letter-spacing:-.005em;padding-left:.75rem}
+.convos{display:grid;gap:.3rem;align-content:start;overflow:auto;margin-top:-.5rem}
+.convo{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:.4rem;border-radius:14px;padding:.7rem .75rem;color:rgb(252 255 255 / .86);font-size:.9375rem;line-height:1.35;text-align:left;transition:background .15s}
+@media (hover:hover){.convo:not(.on):hover{background:rgb(252 255 255 / .08)}}
+.convo.on{background:var(--white);color:var(--deep)}
+.convo .x{display:none;width:1.75rem;height:1.75rem;border-radius:999px;place-items:center;background:var(--mid-8);color:var(--mid);font-size:.85rem;margin:-.15rem -.25rem 0 0}
+.convo.on .x{display:grid}
+.empty{display:grid;gap:.35rem;padding:.25rem .75rem}
+.empty b{font-weight:500;color:var(--white);font-size:.9375rem}
+.empty span{font-size:.875rem;line-height:1.45;color:var(--w-72)}
+
+/* Main: the thread scrolls, the question box stays docked at the bottom */
+.main{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;min-width:0}
+.thread{width:min(100% - 2*var(--pad), 62rem);margin:0 auto;padding:clamp(2.5rem,2rem + 2vw,4rem) 0 3rem;display:grid;gap:clamp(3.5rem,3rem + 2vw,5rem);align-content:start}
+.turn{display:grid;gap:1.6rem}
+.turn .qh{font-size:clamp(1.45rem,1.15rem + 1vw,2rem);line-height:1.18;letter-spacing:-.03em;max-width:34ch}
+.turn .groups{width:100%}
+@media (min-width:1024px){
+  .turn .groups{grid-template-columns:1fr 1fr;column-gap:clamp(1rem,.8rem + .8vw,1.6rem)}
+  .turn .grp{grid-template-rows:auto 1fr} .turn .grp.wide{grid-column:1 / -1}
+}
+.turn .groups{display:grid;gap:clamp(1.2rem,1rem + .8vw,1.8rem)}
+/* Under each answer: the evidence ledger and Copy answer */
+.after{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem;align-items:start}
+.ledger{background:var(--white);color:var(--deep);border-radius:22px;overflow:hidden}
+.ledger summary{list-style:none;display:flex;align-items:center;gap:.65rem;padding:1rem 1.2rem;cursor:pointer;font-weight:600}
+.ledger summary::-webkit-details-marker{display:none}
+.ledger summary .lk{width:2rem;height:2rem;border-radius:10px;background:var(--deep);color:var(--white);display:grid;place-items:center;font-size:1rem}
+.ledger summary .car{margin-left:auto;font-size:1.1rem;color:var(--mid)}
+.ledger summary .hide{display:none} .ledger[open] summary .hide{display:inline} .ledger[open] summary .show{display:none}
+.ledger[open] summary .car{transform:rotate(180deg)}
+.ledger .body{padding:0 1.2rem 1.2rem;display:grid;gap:.6rem}
+.ledger .note{font-size:.875rem;line-height:1.45;color:var(--mid-70);padding:0 .1rem .2rem}
+.ev{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.85rem;align-items:start;background:var(--mid-8);border-radius:14px;padding:.85rem .9rem;color:var(--deep);text-decoration:none}
+.ev .fav{width:2.4rem;height:2.4rem;border-radius:11px;background:var(--white);display:grid;place-items:center}
+.ev .fav img{width:1.4rem;height:1.4rem;border-radius:4px}
+.ev .tx{display:grid;gap:.2rem}
+.ev strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+.ev .host{font-size:.8125rem;color:var(--mid-70)}
+.ev p{font-size:.875rem;line-height:1.5;color:rgb(31 32 41 / .86);margin-top:.3rem}
+.ev b{min-width:1.5rem;height:1.5rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.75rem;display:grid;place-items:center}
+.after .pill{margin-top:.75rem}
+/* A follow-up in progress */
+.working{justify-self:start;display:inline-flex;align-items:center;gap:.6rem;background:var(--white);color:var(--deep);border-radius:999px;padding:.85rem 1.3rem;font-weight:500;font-size:.9375rem}
+.working .dot,.loadpill .dot{width:.6rem;height:.6rem;border-radius:999px;background:var(--lime);animation:pulse 1.4s var(--ease) infinite}
+/* Opening a saved conversation */
+.center{display:grid;place-items:center;padding:var(--pad);min-height:60vh}
+.loadpill{display:inline-flex;align-items:center;gap:.6rem;background:rgb(252 255 255 / .14);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:var(--white);border-radius:999px;padding:.85rem 1.3rem;font-weight:500}
+/* New chat: the home hero, inside the shell */
+.newview{display:grid;place-content:center;justify-items:center;gap:clamp(1.4rem,1rem + 1.4vw,2.2rem);padding:clamp(2rem,4vw,3.5rem) var(--pad);text-align:center;min-height:calc(100dvh - 4rem - 4px)}
+.newview h1{font-size:clamp(2.3rem,1.4rem + 2.8vw,4rem);line-height:1.04;max-width:16ch}
+.newview .lead{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1rem auto 0}
+.newview .qwrap{width:min(100%,44rem)}
+/* Docked question box */
+.dock{position:sticky;bottom:0;padding:0 var(--pad) 1.25rem;pointer-events:none}
+.dock .qcard{pointer-events:auto;width:min(100%,52rem);margin:0 auto;gap:.6rem;padding:.85rem .9rem .85rem}
+.dock textarea{min-height:1.5em;font-size:1.0625rem}
+body[data-view=new] .dock,body[data-view=missing] .dock{display:none}
+body.busy .dock .send,body.busy .dock .send:disabled{background:rgb(52 54 69 / .16);color:var(--deep);cursor:progress}
+body.busy .dock .send .idle{display:none} body.busy .dock .send .busy{display:inline}
+body.busy .dock .send .fillbar{transform:scaleX(.62)}
+body.busy .dock textarea,body[data-view=loading] .dock textarea{opacity:.45}
+.v{display:none} body[data-view=new] .v-new,body[data-view=thread] .v-thread,body[data-view=loading] .v-loading,body[data-view=missing] .v-missing{display:grid}
+
+/* Phone: the sidebar becomes a drawer over the page */
+.scrim{display:none}
+@media (max-width:767px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:min(86vw,20rem);height:100dvh;z-index:40;transform:translateX(-105%);transition:transform .35s var(--ease);grid-template-rows:auto auto auto minmax(0,1fr);padding-top:1rem}
+  body.drawer .side{transform:none}
+  body.sb-closed .side{display:grid}
+  .scrim{display:block;position:fixed;inset:0;z-index:35;background:rgb(16 17 24 / .62);opacity:0;pointer-events:none;transition:opacity .3s}
+  body.drawer .scrim{opacity:1;pointer-events:auto}
+  .dhead{display:flex;align-items:center;justify-content:space-between}
+  .after{grid-template-columns:1fr}
+  .after .pill{justify-self:start}
+  .dock{padding:0 .75rem .75rem}
+}
+@media (min-width:768px){ .dhead{display:none} }
+</style>
+</head>
+<body data-view="thread" class="ans-a">
+<canvas class="heat" id="heat" aria-hidden="true"></canvas>
+<div class="page">
+<header class="nav">
+  <div class="in">
+    <div class="navl"><button class="iconbtn" data-act="sb" aria-label="Show or hide conversations"><i class="ph-fill ph-list" aria-hidden="true"></i></button><a class="brand" href="#" data-act="new"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a></div>
+    <nav class="links" aria-label="Sections"></nav>
+    <a class="pill white sm cta" href="#" data-act="new">Ask a question</a>
+  </div>
+  <div class="bar" aria-hidden="true"><span></span></div>
+</header>
+
+<div class="shell">
+<div class="scrim" data-act="sb"></div>
+  <aside class="side" aria-label="Conversations">
+    <div class="dhead"><a class="brand" href="#" data-act="new"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a><button class="iconbtn" data-act="sb" aria-label="Close conversations"><i class="ph-bold ph-x" aria-hidden="true"></i></button></div>
+    <button class="pill white newchat" data-act="new"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i>New chat</button>
+    <h2>Previous conversations</h2>
+    <div class="convos" id="convos"></div>
+  </aside>
+
+  <main class="main">
+    <div>
+      <section class="v v-new newview">
+        <div><h1>Research powered by multiple AI agents</h1><p class="lead">A Supervisor routes your question, then a Researcher, an Analyst and a Writer each do one part of the work.</p></div>
+        <div class="qwrap"><form class="qcard" onsubmit="return false"><textarea rows="2" placeholder="Ask a research question..."></textarea><div class="chips" data-sugs></div><div class="qrow"><span class="hint">Press Enter to send</span><button class="pill send" disabled><span class="fillbar" aria-hidden="true"></span><span class="idle">Send</span><span class="busy">Researching...</span></button></div></form></div>
+      </section>
+      <section class="v v-thread thread" id="thread" aria-live="polite"></section>
+      <section class="v v-loading center"><span class="loadpill" role="status"><span class="dot" aria-hidden="true"></span>Loading conversation...</span></section>
+      <section class="v v-missing errwrap" style="min-height:calc(100dvh - 4rem - 4px)">
+        <div class="alert" role="alert">
+          <div class="badge"><i class="ph-fill ph-warning" aria-hidden="true"></i></div>
+          <h2>Couldn't load this conversation</h2>
+          <p>It may have been removed, or the server didn't answer. Try again, or start a new chat.</p>
+          <div class="stack"><button class="pill deep" data-act="retry-open"><i class="ph-fill ph-arrow-clockwise" aria-hidden="true"></i>Try again</button><button class="pill tint" data-act="new">New chat</button></div>
+        </div>
+      </section>
+    </div>
+    <div class="dock"><form class="qcard" onsubmit="return false"><label class="sr" for="fq">Your question</label><textarea id="fq" rows="1" placeholder="Ask a research question..."></textarea><div class="qrow"><span class="hint">Press Enter to send</span><button class="pill send" id="fsend" disabled><span class="fillbar" aria-hidden="true"></span><span class="idle">Send</span><span class="busy">Researching...</span></button></div></form></div>
+  </main>
+</div>
+</div>
+
+<script>
+const LS = (() => {
+// Property metadata is only used in Figma Design, so this is a no-op.
+function defineProperties(
+  _component,
+  _properties,
+) {}
+
+function Effect() { }
+function setup(device, frame) {
+    var wgsl = `diagnostic(off,derivative_uniformity);
+struct U {
+  c0: vec4f,
+  c1: vec4f,
+  c2: vec4f,
+  c3: vec4f,
+  hl: vec4f,
+  v0: vec4f,
+  v1: vec4f,
+  v2: vec4f,
+  v3: vec4f,
+  v4: vec4f,
+  v5: vec4f,
+  v6: vec4f,
+};
+@group(0) @binding(0) var<uniform> u: U;
+
+struct VsOut {
+  @builtin(position) position: vec4f,
+  @location(0) uv: vec2f,
+};
+
+@vertex fn vs_main(@location(0) pos: vec2f, @location(1) uv: vec2f) -> VsOut {
+  var o: VsOut;
+  o.position = vec4f(pos, 0.0, 1.0);
+  o.uv = uv;
+  return o;
+}
+
+fn hash2(p: vec2f) -> f32 {
+  var p3 = fract(vec3f(p.x, p.y, p.x) * 0.1031);
+  p3 = p3 + vec3f(dot(p3, vec3f(p3.y, p3.z, p3.x) + vec3f(33.33)));
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+fn vnoise(p: vec2f) -> f32 {
+  let i = floor(p);
+  let f = fract(p);
+  let w = f * f * (3.0 - 2.0 * f);
+  let a = hash2(i);
+  let b = hash2(i + vec2f(1.0, 0.0));
+  let c = hash2(i + vec2f(0.0, 1.0));
+  let d = hash2(i + vec2f(1.0, 1.0));
+  return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);
+}
+
+fn fbm(p0: vec2f) -> f32 {
+  var p = p0;
+  var amp: f32 = 0.5;
+  var total: f32 = 0.0;
+  for (var i: i32 = 0; i < 4; i = i + 1) {
+    total = total + amp * vnoise(p);
+    p = p * 2.02 + vec2f(1.7, 9.2);
+    amp = amp * 0.5;
+  }
+  return total / 0.9375;
+}
+
+fn rot2(p: vec2f, a: f32) -> vec2f {
+  let c = cos(a);
+  let s = sin(a);
+  return vec2f(c * p.x - s * p.y, s * p.x + c * p.y);
+}
+
+fn toLin(c: vec3f) -> vec3f {
+  let lo = c / 12.92;
+  let hi = pow((c + vec3f(0.055)) / 1.055, vec3f(2.4));
+  return select(hi, lo, c <= vec3f(0.04045));
+}
+
+fn toSrgb(c0: vec3f) -> vec3f {
+  let c = max(c0, vec3f(0.0));
+  let lo = c * 12.92;
+  let hi = 1.055 * pow(c, vec3f(1.0 / 2.4)) - vec3f(0.055);
+  return select(hi, lo, c <= vec3f(0.0031308));
+}
+
+fn toOklab(c: vec3f) -> vec3f {
+  let l = 0.4122214708 * c.r + 0.5363325363 * c.g + 0.0514459929 * c.b;
+  let m = 0.2119034982 * c.r + 0.6806995451 * c.g + 0.1073969566 * c.b;
+  let s = 0.0883024619 * c.r + 0.2817188376 * c.g + 0.6299787005 * c.b;
+  let l2 = pow(max(l, 0.0), 1.0 / 3.0);
+  let m2 = pow(max(m, 0.0), 1.0 / 3.0);
+  let s2 = pow(max(s, 0.0), 1.0 / 3.0);
+  return vec3f(
+    0.2104542553 * l2 + 0.7936177850 * m2 - 0.0040720468 * s2,
+    1.9779984951 * l2 - 2.4285922050 * m2 + 0.4505937099 * s2,
+    0.0259040371 * l2 + 0.7827717662 * m2 - 0.8086757660 * s2
+  );
+}
+
+fn fromOklab(c: vec3f) -> vec3f {
+  let l2 = c.x + 0.3963377774 * c.y + 0.2158037573 * c.z;
+  let m2 = c.x - 0.1055613458 * c.y - 0.0638541728 * c.z;
+  let s2 = c.x - 0.0894841775 * c.y - 1.2914855480 * c.z;
+  let l = l2 * l2 * l2;
+  let m = m2 * m2 * m2;
+  let s = s2 * s2 * s2;
+  return vec3f(
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  );
+}
+
+fn rampLab(v0: f32) -> vec3f {
+  let v = clamp(v0, 0.0, 1.0);
+  let s1 = clamp(u.v6.x, 0.05, 0.9);
+  let s2 = clamp(u.v6.y, s1 + 0.02, 0.98);
+  let L0 = toOklab(toLin(u.c0.rgb));
+  let L1 = toOklab(toLin(u.c1.rgb));
+  let L2 = toOklab(toLin(u.c2.rgb));
+  let L3 = toOklab(toLin(u.c3.rgb));
+  let a = mix(L0, L1, clamp(v / s1, 0.0, 1.0));
+  let b = mix(L1, L2, clamp((v - s1) / (s2 - s1), 0.0, 1.0));
+  let c = mix(L2, L3, clamp((v - s2) / (1.0 - s2), 0.0, 1.0));
+  return select(select(c, b, v < s2), a, v < s1);
+}
+
+fn ramp(v: f32) -> vec3f {
+  let lab = (rampLab(v - 0.05) + rampLab(v - 0.025) + rampLab(v) + rampLab(v + 0.025) + rampLab(v + 0.05)) / 5.0;
+  return toSrgb(fromOklab(lab));
+}
+
+fn field(p0: vec2f) -> f32 {
+  let t = u.v2.z;
+  let seed = u.v3.w;
+  let aspect = u.v2.w;
+  let pos = vec2f((u.v3.x - 0.5) * aspect, u.v3.y - 0.5);
+  let sp = max(u.v0.z, 0.05);
+  let q = vec2f(fbm(p0 * 1.1 + vec2f(seed * 3.1, t * 0.05)), fbm(p0 * 1.1 + vec2f(5.2 + seed, 1.3 - t * 0.04))) - vec2f(0.5);
+  let p = p0 + q * u.v0.w * 0.5;
+  let lay = u32(u.v0.x + 0.5);
+  let d = (p - pos) / sp;
+  var g: f32 = 0.0;
+  if (lay == 0u) {
+    g = exp(-dot(d, d));
+  } else if (lay == 1u) {
+    g = exp(-(d.x * d.x * 0.18 + d.y * d.y * 1.6));
+  } else if (lay == 2u) {
+    let dir = normalize(vec2f(1.0, -0.8));
+    let a = d - dir * 0.55;
+    let b = d + dir * 0.55;
+    g = exp(-dot(a, a) * 1.2) + 0.7 * exp(-dot(b, b) * 1.6);
+  } else if (lay == 3u) {
+    g = exp(-dot(d, d) * 0.6);
+  } else if (lay == 4u) {
+    let a = d - vec2f(-0.22, -0.45);
+    let b = d - vec2f(0.22, 0.45);
+    g = exp(-dot(a, a) * 1.5) + 0.85 * exp(-dot(b, b) * 1.5);
+  } else {
+    let n = fbm(p * 1.4 / sp + vec2f(seed, t * 0.03));
+    g = smoothstep(0.3, 0.85, n) * (0.4 + 0.6 * exp(-dot(d, d) * 0.5)) * 1.6;
+  }
+  let v = 1.0 - exp(-g * u.v3.z);
+  return pow(clamp(v, 0.0, 1.0), u.v6.z);
+}
+
+fn lum(c: vec3f) -> f32 {
+  return dot(c, vec3f(0.2126, 0.7152, 0.0722));
+}
+
+fn aaLine(x: f32, width: f32) -> f32 {
+  let fw = max(fwidth(x), 0.0001);
+  let d = abs(fract(x + 0.5) - 0.5);
+  return 1.0 - smoothstep(fw * width * 0.5, fw * (width * 0.5 + 1.0), d);
+}
+
+fn terrace(p: vec2f, steps: f32) -> f32 {
+  return floor(field(p) * steps + 0.35) / steps;
+}
+
+fn fab(p: vec2f, t: f32) -> f32 {
+  let q = p + vec2f(sin(p.y * 1.1 + t) * 0.7, cos(p.x * 1.3 - t * 0.4) * 0.6);
+  return sin(q.x * 2.1 + sin(q.y * 1.7)) * 0.45 + sin(q.y * 3.1 + q.x * 0.7) * 0.22 + sin(q.x * 4.6 - q.y * 1.9) * 0.08;
+}
+
+fn lens(local: f32, gateCol: vec3f) -> vec2f {
+  let edge = pow(abs(local) * 2.0, 7.0);
+  let rd = (local + 0.365) * 36.0;
+  let ridge = exp(-rd * rd);
+  let gate = 0.15 + 0.85 * smoothstep(0.04, 0.55, lum(gateCol));
+  return vec2f(edge, ridge * gate);
+}
+
+fn optic(uv: vec2f) -> vec3f {
+  let aspect = u.v2.w;
+  let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+  let mode = u32(u.v0.y + 0.5);
+  let ang = u.v2.x;
+  let dens = max(u.v1.x, 1.0);
+  let refr = u.v1.y;
+  let light = u.v1.z;
+  let edgeAmt = u.v1.w;
+  let t = u.v2.z;
+  let rr = rot2(p0, ang);
+  var col = vec3f(0.0);
+
+  if (mode == 0u) {
+    col = ramp(field(p0));
+  } else if (mode == 1u || mode == 2u || mode == 5u) {
+    var x = rr.x * dens;
+    if (mode == 5u) {
+      x = x + u.v4.z * rr.y * rr.y * dens * 0.5;
+    }
+    let local = fract(x) - 0.5;
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rot2(vec2f(ray.x, 0.0), -ang) * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  } else if (mode == 3u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let corner = max(abs(local) - vec2f(0.33), vec2f(0.0));
+    let dist = length(corner) - 0.16;
+    let interior = 1.0 - smoothstep(-0.015, 0.015, dist);
+    let slope = local * pow(abs(local) * 2.0, vec2f(2.8)) * 3.2;
+    let n = normalize(vec3f(slope, 1.0));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), n, 0.65);
+    col = ramp(field(p0 + rot2(ray.xy, -ang) * refr));
+    let bv = dist * 55.0;
+    let bevel = exp(-bv * bv);
+    let dir = clamp(-n.x - n.y + 0.25, 0.0, 1.0);
+    col = col * (0.8 + 0.2 * interior);
+    col = mix(col, u.hl.rgb, clamp(bevel * dir * light * 0.55, 0.0, 1.0));
+    col = col * (1.0 - bevel * (1.0 - dir) * 0.5 * edgeAmt);
+  } else if (mode == 4u) {
+    let tile = rr * dens;
+    let local = fract(tile) - vec2f(0.5);
+    let sft = vec2f(0.04);
+    let c0 = max(abs(local) - vec2f(0.3), vec2f(0.0));
+    let c1 = max(abs(local - sft) - vec2f(0.3), vec2f(0.0));
+    let c2 = max(abs(local + sft) - vec2f(0.3), vec2f(0.0));
+    let in0 = 1.0 - smoothstep(-0.012, 0.012, length(c0) - 0.12);
+    let inL = 1.0 - smoothstep(-0.012, 0.012, length(c1) - 0.12);
+    let inS = 1.0 - smoothstep(-0.012, 0.012, length(c2) - 0.12);
+    col = ramp(field(p0));
+    col = col * (0.88 + 0.12 * in0);
+    col = mix(col, u.hl.rgb, clamp(in0 * (1.0 - inL) * light * 0.45, 0.0, 1.0));
+    col = col * (1.0 - in0 * (1.0 - inS) * 0.45 * edgeAmt);
+  } else if (mode == 6u) {
+    let p = p0 * (1.0 + u.v0.z) + vec2f(u.v3.w * 0.7, u.v3.w * 0.4);
+    let h = fab(p, t);
+    let e = 0.006;
+    let dx = (fab(p + vec2f(e, 0.0), t) - h) / e;
+    let dy = (fab(p + vec2f(0.0, e), t) - h) / e;
+    let n = normalize(vec3f(-dx * 0.85, -dy * 0.85, 1.0));
+    let ray = reflect(vec3f(0.0, 0.0, -1.0), n);
+    let fold = smoothstep(-0.6, 0.65, h);
+    col = ramp(0.1 + 0.6 * fold + 0.25 * field(p0));
+    let s1 = (ray.x + ray.y * 0.24 - 0.24) * 7.0;
+    let s2 = (ray.y + 0.58) * 9.0;
+    let refl = (exp(-s1 * s1) + exp(-s2 * s2) * u.v6.w) * smoothstep(-0.65, 0.7, ray.z) * light;
+    col = mix(col, u.hl.rgb, clamp(refl, 0.0, 0.9));
+  } else if (mode == 7u) {
+    let v = field(p0);
+    let hh = v + (fbm(p0 * 1.8 + vec2f(u.v3.w)) - 0.5) * 0.3 * u.v0.w;
+    let line = aaLine(hh * dens, 1.1 + edgeAmt);
+    col = mix(ramp(v), u.hl.rgb, line * clamp(light, 0.0, 1.0));
+  } else if (mode == 8u) {
+    let f = dens * 6.0;
+    let a1 = sin(rr.x * f + u.v0.w * 2.0 * sin(rr.y * 1.7 + t));
+    let p2 = rot2(rr, 0.05);
+    let a2 = sin(p2.x * f * 1.015 + u.v0.w * 2.0 * sin(p2.y * 1.9 - t));
+    let mo = 0.5 + 0.5 * a1 * a2;
+    let v = field(p0);
+    col = ramp(mix(v, mo * (0.35 + 0.65 * v), clamp(light * 0.5, 0.0, 0.9)));
+  } else if (mode == 9u) {
+    let steps = max(floor(dens), 2.0);
+    let v0 = terrace(p0, steps);
+    let off = vec2f(0.012, 0.012) * (0.6 + refr);
+    var sh: f32 = 0.0;
+    sh = sh + select(0.0, 0.45, terrace(p0 - off * 0.35, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.33, terrace(p0 - off * 0.7, steps) > v0 + 0.001);
+    sh = sh + select(0.0, 0.22, terrace(p0 - off, steps) > v0 + 0.001);
+    let hl = select(0.0, 1.0, terrace(p0 + off * 0.18, steps) < v0 - 0.001);
+    col = ramp(v0) * (1.0 - 0.32 * sh * edgeAmt) + u.hl.rgb * 0.05 * hl * light;
+  } else {
+    let rc = vec2f(sin(ang), cos(ang)) * 1.4;
+    let rel = p0 - rc;
+    let s = length(rel) * dens;
+    let local = fract(s) - 0.5;
+    let rdir = normalize(rel);
+    let nl = normalize(vec3f(local * 2.0, 0.0, sqrt(max(0.02, 1.0 - local * local * 3.7))));
+    let ray = refract(vec3f(0.0, 0.0, -1.0), nl, 0.68);
+    col = ramp(field(p0 + rdir * ray.x * refr));
+    let l = lens(local, col);
+    col = col * (1.0 - l.x * 0.78 * edgeAmt);
+    col = mix(col, u.hl.rgb, clamp(l.y * light * 0.8, 0.0, 1.0));
+  }
+  return col;
+}
+
+fn shade(uv: vec2f) -> vec3f {
+  var col = optic(uv);
+  if (u.v5.x > 0.001) {
+    let aspect = u.v2.w;
+    let p0 = (uv - vec2f(0.5)) * vec2f(aspect, 1.0);
+    let base = ramp(field(p0));
+    let dir = vec2f(cos(u.v5.y), sin(u.v5.y));
+    let s = dot(uv - vec2f(0.5), dir);
+    let m = smoothstep(u.v5.w - u.v5.z, u.v5.w + u.v5.z, s);
+    col = mix(base, col, mix(1.0, m, u.v5.x));
+  }
+  return col;
+}
+
+@fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
+  let w = max(u.v4.x, 1.0);
+  let h = max(u.v4.y, 1.0);
+  let px = vec2f(0.25 / w, 0.25 / h);
+  var col = shade(uv + vec2f(-px.x, -px.y));
+  col = col + shade(uv + vec2f(px.x, -px.y));
+  col = col + shade(uv + vec2f(-px.x, px.y));
+  col = col + shade(uv + vec2f(px.x, px.y));
+  col = col * 0.25;
+  let t = u.v2.z;
+  let pp = uv * vec2f(w, h);
+  let g = (hash2(pp + vec2f(floor(t * 12.0) * 7.0, 1.0)) - 0.5) * u.v2.y * 0.09;
+  col = col * (1.0 + g * 2.0) + vec3f(g * 0.4);
+  col = col + vec3f((hash2(pp + vec2f(17.0, 3.0)) - 0.5) / 255.0);
+  return vec4f(clamp(col, vec3f(0.0), vec3f(1.0)), 1.0);
+}
+`;
+    frame.state.module = device.createShaderModule({ code: wgsl });
+    frame.state.pipeline = null;
+    frame.state.pipelineFormat = null;
+    frame.state.quad = device.createBuffer({
+        size: 6 * 4 * 4,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true,
+    });
+    new Float32Array(frame.state.quad.getMappedRange()).set([
+        -1, -1, 0, 1,
+        1, -1, 1, 1,
+        -1, 1, 0, 0,
+        -1, 1, 0, 0,
+        1, -1, 1, 1,
+        1, 1, 1, 0,
+    ]);
+    frame.state.quad.unmap();
+    frame.state.uniforms = device.createBuffer({
+        size: 192,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+}
+function render(device, frame) {
+    var params = frame.params || {};
+    function ch(color, channel, fallback) {
+        var c = color || {};
+        var value = Number(c[channel]);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function num(v, fallback) {
+        var value = Number(v);
+        return Number.isFinite(value) ? value : fallback;
+    }
+    function col(c, f) {
+        return [ch(c, 'r', f[0]), ch(c, 'g', f[1]), ch(c, 'b', f[2]), 1];
+    }
+    var pos = params.position || {};
+    var w = frame.output.width;
+    var h = frame.output.height;
+    var t = Number(frame.time) * 0.001 * num(params.speed, 0.1);
+    var data = [].concat(col(params.ground, [0.078, 0.020, 0.039]), col(params.mid, [0.345, 0.071, 0.165]), col(params.glow, [0.537, 0.161, 0.255]), col(params.core, [0.851, 0.812, 0.761]), col(params.highlight, [0.949, 0.937, 0.902]), [num(params.layout, 0), num(params.glass, 0), num(params.spread, 0.6), num(params.warp, 0.5)], [num(params.density, 28), num(params.refraction, 0.35), num(params.light, 0.7), num(params.edge, 0.7)], [num(params.angle, 0) * Math.PI / 180, num(params.grain, 0.25), t, w / Math.max(h, 1)], [num(pos.x, 50) / 100, num(pos.y, 55) / 100, num(params.intensity, 2.2), num(params.seed, 1)], [w, h, num(params.bow, 1), 0], [num(params.reveal, 0), num(params.revealAngle, 135) * Math.PI / 180, num(params.feather, 0.25), num(params.revealOffset, 0)], [num(params.stop1, 0.35), num(params.stop2, 0.72), num(params.contrast, 1), num(params.sheen2, 0.2)]);
+    device.queue.writeBuffer(frame.state.uniforms, 0, new Float32Array(data));
+    var outputFormat = frame.output.format;
+    if (frame.state.pipeline == null || frame.state.pipelineFormat !== outputFormat) {
+        frame.state.pipeline = device.createRenderPipeline({
+            layout: 'auto',
+            vertex: {
+                module: frame.state.module,
+                entryPoint: 'vs_main',
+                buffers: [{
+                        arrayStride: 16,
+                        attributes: [
+                            { shaderLocation: 0, format: 'float32x2', offset: 0 },
+                            { shaderLocation: 1, format: 'float32x2', offset: 8 },
+                        ],
+                    }],
+            },
+            fragment: {
+                module: frame.state.module,
+                entryPoint: 'fs_main',
+                targets: [{ format: outputFormat }],
+            },
+            primitive: { topology: 'triangle-list' },
+        });
+        frame.state.pipelineFormat = outputFormat;
+    }
+    var encoder = device.createCommandEncoder();
+    var pass = encoder.beginRenderPass({
+        colorAttachments: [{
+                view: frame.output.createView(),
+                loadOp: 'clear',
+                clearValue: { r: 0, g: 0, b: 0, a: 0 },
+                storeOp: 'store',
+            }],
+    });
+    pass.setPipeline(frame.state.pipeline);
+    var bindGroup = device.createBindGroup({
+        layout: frame.state.pipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: frame.state.uniforms } }],
+    });
+    pass.setBindGroup(0, bindGroup);
+    pass.setVertexBuffer(0, frame.state.quad);
+    pass.draw(6);
+    pass.end();
+    device.queue.submit([encoder.finish()]);
+}
+defineProperties(Effect, {
+    layout: {
+        type: 'number',
+        label: 'Light',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'Radial glow' },
+            { value: 1, label: 'Horizon' },
+            { value: 2, label: 'Diagonal sweep' },
+            { value: 3, label: 'Corner bloom' },
+            { value: 4, label: 'Twin lights' },
+            { value: 5, label: 'Clouds' },
+        ],
+    },
+    glass: {
+        type: 'number',
+        label: 'Surface',
+        defaultValue: 0,
+        control: 'select',
+        options: [
+            { value: 0, label: 'None' },
+            { value: 1, label: 'Fine flutes' },
+            { value: 2, label: 'Wide flutes' },
+            { value: 3, label: 'Glass tiles' },
+            { value: 4, label: 'Emboss grid' },
+            { value: 5, label: 'Bowed flutes' },
+            { value: 6, label: 'Liquid satin' },
+            { value: 7, label: 'Contour lines' },
+            { value: 8, label: 'Moire' },
+            { value: 9, label: 'Paper layers' },
+            { value: 10, label: 'Ring reeds' },
+        ],
+    },
+    ground: { type: 'color', label: 'Ground', defaultValue: { r: 0.078, g: 0.020, b: 0.039, a: 1 } },
+    mid: { type: 'color', label: 'Mid', defaultValue: { r: 0.345, g: 0.071, b: 0.165, a: 1 } },
+    glow: { type: 'color', label: 'Glow', defaultValue: { r: 0.537, g: 0.161, b: 0.255, a: 1 } },
+    core: { type: 'color', label: 'Core', defaultValue: { r: 0.851, g: 0.812, b: 0.761, a: 1 } },
+    highlight: { type: 'color', label: 'Highlight', defaultValue: { r: 0.949, g: 0.937, b: 0.902, a: 1 } },
+    position: { type: 'point', label: 'Light position', defaultValue: { x: 50, y: 55 }, mode: 'canvas_and_ui', unit: '%' },
+    spread: { type: 'number', label: 'Spread', defaultValue: 0.6, min: 0.1, max: 2.5, step: 0.01, control: 'slider' },
+    warp: { type: 'number', label: 'Warp', defaultValue: 0.5, min: 0, max: 3, step: 0.01, control: 'slider' },
+    intensity: { type: 'number', label: 'Intensity', defaultValue: 2.2, min: 0.2, max: 6, step: 0.01, control: 'slider' },
+    contrast: { type: 'number', label: 'Contrast', defaultValue: 1, min: 0.3, max: 3, step: 0.01, control: 'slider' },
+    stop1: { type: 'number', label: 'Mid stop', defaultValue: 0.35, min: 0.05, max: 0.8, step: 0.01, control: 'slider' },
+    stop2: { type: 'number', label: 'Glow stop', defaultValue: 0.72, min: 0.2, max: 0.95, step: 0.01, control: 'slider' },
+    seed: { type: 'number', label: 'Variation', defaultValue: 1, min: 0, max: 10, step: 0.01, control: 'slider' },
+    density: { type: 'number', label: 'Density', defaultValue: 28, min: 1, max: 90, step: 0.1, control: 'slider' },
+    angle: { type: 'number', label: 'Angle', defaultValue: 0, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    refraction: { type: 'number', label: 'Refraction', defaultValue: 0.35, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    light: { type: 'number', label: 'Highlights', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    edge: { type: 'number', label: 'Edge shadow', defaultValue: 0.7, min: 0, max: 1.5, step: 0.01, control: 'slider' },
+    bow: { type: 'number', label: 'Bow', defaultValue: 1, min: -3, max: 3, step: 0.01, control: 'slider' },
+    reveal: { type: 'number', label: 'Feather reveal', defaultValue: 0, min: 0, max: 1, step: 0.01, control: 'slider' },
+    revealAngle: { type: 'number', label: 'Reveal angle', defaultValue: 135, min: -180, max: 180, step: 1, control: 'slider', unit: '°' },
+    feather: { type: 'number', label: 'Feather', defaultValue: 0.25, min: 0.01, max: 0.8, step: 0.01, control: 'slider' },
+    revealOffset: { type: 'number', label: 'Reveal offset', defaultValue: 0, min: -0.8, max: 0.8, step: 0.01, control: 'slider' },
+    sheen2: { type: 'number', label: 'Second sheen', defaultValue: 0.2, min: 0, max: 1, step: 0.01, control: 'slider' },
+    grain: { type: 'number', label: 'Grain', defaultValue: 0.25, min: 0, max: 2, step: 0.01, control: 'slider' },
+    speed: { type: 'number', label: 'Motion speed', defaultValue: 0.1, min: 0, max: 1, step: 0.01, control: 'slider' },
+});
+
+const manifest = {
+  "isAnimated": true,
+  "name": "OXS light studio",
+  "usesMouse": false,
+  "version": 2
+}
+
+return { setup, render };
+})();
+
+/* Shared engine for the three directions: live OXS light studio background, flow state, answer rendering.
+   Backend contract (unchanged): POST http://127.0.0.1:8000/chat { message } -> { response: markdown }.
+   Add ?live=1 to call the real backend; otherwise the page runs a timed demo. ?state=answer etc. opens a state. */
+
+const PALETTE = {
+  deep: [0.122, 0.125, 0.161], mid: [0.204, 0.212, 0.271], blue: [0.384, 0.753, 0.965],
+  lime: [0.698, 0.965, 0.004], white: [0.988, 1, 1], blueDim: [0.278, 0.455, 0.58],
+};
+const rgb = a => ({ r: a[0], g: a[1], b: a[2] });
+
+/* Base shader settings in the new palette. Each direction passes overrides per state. */
+const BASE_FX = {
+  ground: rgb(PALETTE.deep), mid: rgb(PALETTE.mid), glow: rgb(PALETTE.blue), core: rgb(PALETTE.lime), highlight: rgb(PALETTE.white),
+  layout: 2, glass: 1, density: 46, refraction: 0.6, light: 1.2, edge: 0.6, grain: 0.06, bow: 0, angle: 0, seed: 3,
+  contrast: 1.35, sheen2: 0.4, spread: 0.42, warp: 1.5, intensity: 2.7, stop1: 0.46, stop2: 0.82,
+  reveal: 0.85, revealAngle: 150, feather: 0.3, revealOffset: 0.1, speed: 0.6, position: { x: 74, y: 40 },
+};
+const COOL = { glow: rgb(PALETTE.blueDim), core: rgb(PALETTE.blue), intensity: 2.0, light: 0.85, speed: 0.25, contrast: 1.2 };
+
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const ease = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const mixVal = (a, b, t) => {
+  if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * t;
+  if (a && typeof a === 'object') { const o = {}; for (const k in b) o[k] = mixVal(a[k], b[k], t); return o; }
+  return t < 1 ? a : b;
+};
+
+/* createLight(canvas, params): runs the shader live. light.to(params, ms) eases every value; phase is
+   accumulated so changing speed never jumps. Falls back to a CSS gradient when WebGPU is missing. */
+async function createLight(canvas, params) {
+  let cur = structuredClone({ ...BASE_FX, ...params }), from = cur, target = cur, t0 = 0, dur = 0;
+  let pointer = null, follow = 0;
+  const api = {
+    to(p, ms = 1200) { from = structuredClone(cur); target = structuredClone({ ...target, ...p }); t0 = performance.now(); dur = reduceMotion ? 1 : ms; },
+    follow(amount) { follow = amount; },
+    ok: false,
+  };
+  addEventListener('pointermove', e => { pointer = { x: (e.clientX / innerWidth) * 100, y: (e.clientY / innerHeight) * 100 }; });
+  if (!navigator.gpu) { canvas.classList.add('fx-fallback'); return api; }
+  try {
+    const adapter = await navigator.gpu.requestAdapter(); const device = await adapter.requestDevice();
+    const ctx = canvas.getContext('webgpu'); const format = navigator.gpu.getPreferredCanvasFormat();
+    ctx.configure({ device, format, alphaMode: 'opaque' });
+    const frame = { state: {}, params: {}, time: 0 };
+    LS.setup(device, frame);
+    let phase = 0, last = performance.now();
+    const loop = now => {
+      const dt = Math.min(64, now - last); last = now;
+      if (dur) { const k = Math.min(1, (now - t0) / dur); cur = mixVal(from, target, ease(k)); if (k >= 1) dur = 0; }
+      const shown = structuredClone(cur);
+      shown.density = Math.max(14, Math.round(canvas.clientWidth / 31)); // flutes stay about 31px wide at every width
+      if (follow && pointer && !reduceMotion) { shown.position = { x: cur.position.x + (pointer.x - cur.position.x) * follow, y: cur.position.y + (pointer.y - cur.position.y) * follow }; }
+      phase += dt * (reduceMotion ? 0 : cur.speed);
+      const dpr = Math.min(devicePixelRatio || 1, 1.5);
+      const w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      frame.params = { ...shown, speed: 1 }; frame.time = phase;
+      frame.output = { width: w, height: h, format, createView: () => ctx.getCurrentTexture().createView() };
+      LS.render(device, frame);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+    api.ok = true; document.documentElement.classList.add('fx-live');
+  } catch (e) { canvas.classList.add('fx-fallback'); }
+  return api;
+}
+
+/* Sample answer, shaped like the Writer agent's Markdown. Placeholder content for the design. */
+const SAMPLE_Q = "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.";
+const SUGGESTIONS = [SAMPLE_Q, "What is changing in AI chip supply?", "How are universities using AI agents?"];
+const SAMPLE_MD = `## Short answer
+Microsoft sells AI through the products companies already pay for, with Copilot inside Microsoft 365 and [Azure OpenAI](https://azure.microsoft.com/products/ai-services/openai-service) for custom builds. Google leans on its own Gemini models and [Vertex AI](https://cloud.google.com/vertex-ai), and pushes hardest with teams already on Google Cloud and Workspace.
+
+## Where they differ
+- Microsoft bundles AI into seats companies already license, so adoption follows existing contracts.
+- Google competes on model quality and price per use, backed by its own chips for training and serving.
+- Both are adding agents that act inside other apps, which is where new spending is moving.
+
+## What a mid-sized software company should watch
+- Marketplace listings on Azure and Google Cloud, which decide how easily buyers can pay for your product.
+- Price changes for model use, which move the cost of every AI feature you ship.
+- Agent standards for connecting apps, which decide whether their agents can use your product.
+
+## Sources
+- [Microsoft 365 Copilot overview](https://www.microsoft.com/microsoft-365/copilot)
+- [Azure OpenAI Service](https://azure.microsoft.com/products/ai-services/openai-service)
+- [Vertex AI and Gemini](https://cloud.google.com/vertex-ai)
+- [Gemini for Workspace](https://workspace.google.com/solutions/ai/)`;
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const inline = s => esc(s).replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+/* Renders the subset of Markdown the Writer uses: ## headings, - lists, paragraphs, links, bold. */
+function renderMarkdown(md, { skipSources = false } = {}) {
+  const out = []; let list = null; const heads = []; let skipping = false;
+  for (const raw of md.split('\n')) {
+    const line = raw.trim();
+    // The page lists sources in its own panel, so the Writer's Sources section is not repeated in the text.
+    if (skipSources && /^#{1,3}\s+sources\s*$/i.test(line)) { skipping = true; continue; }
+    if (skipping) { if (/^#{1,3}\s+/.test(line)) skipping = false; else continue; }
+    if (!line) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } continue; }
+    const h = line.match(/^#{1,3}\s+(.*)$/);
+    if (h) { if (list) { out.push('<ul>' + list.join('') + '</ul>'); list = null; } const id = 'h-' + heads.length; heads.push({ id, text: h[1] }); out.push(`<h2 id="${id}">${inline(h[1])}</h2>`); continue; }
+    const li = line.match(/^[-*]\s+(.*)$/);
+    if (li) { (list ||= []).push('<li>' + inline(li[1]) + '</li>'); continue; }
+    out.push('<p>' + inline(line) + '</p>');
+  }
+  if (list) out.push('<ul>' + list.join('') + '</ul>');
+  return { html: out.join(''), heads };
+}
+/* Pulls every link out of the answer so the page can list sources without a backend change. */
+function sourcesFrom(md) {
+  const seen = new Map();
+  for (const m of md.matchAll(/\[([^\]]+)\]\((https?:[^)]+)\)/g)) if (!seen.has(m[2])) seen.set(m[2], { title: m[1], url: m[2], host: new URL(m[2]).hostname.replace(/^www\./, '') });
+  return [...seen.values()];
+}
+
+/* Flow: ask -> working -> answer | error. Mirrors App.tsx (message, loading, error, response). */
+function createFlow(onChange) {
+  const q = new URLSearchParams(location.search);
+  const live = q.get('live') === '1', fail = q.get('fail');
+  const s = { state: 'ask', question: '', answer: '', error: null, startedAt: 0 };
+  const set = patch => { Object.assign(s, patch); onChange({ ...s }); };
+  async function send(text) {
+    const question = (text ?? s.question).trim(); if (!question || s.state === 'working') return;
+    set({ state: 'working', question, error: null, startedAt: performance.now() });
+    try {
+      let md;
+      if (live) {
+        const r = await fetch('http://127.0.0.1:8000/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: question }) });
+        if (!r.ok) throw Object.assign(new Error('server'), { kind: 'server' });
+        md = (await r.json()).response || '';
+      } else {
+        await new Promise(r => setTimeout(r, 6500));
+        if (fail === 'net') throw new TypeError('net');
+        if (fail === 'server') throw Object.assign(new Error('server'), { kind: 'server' });
+        md = SAMPLE_MD;
+      }
+      set({ state: 'answer', answer: md });
+    } catch (e) { set({ state: 'error', error: e instanceof TypeError ? 'net' : 'server' }); }
+  }
+  const api = {
+    get: () => ({ ...s }),
+    type: text => set({ question: text, state: s.state === 'error' ? 'ask' : s.state === 'answer' ? s.state : 'ask' }),
+    send, reset: () => set({ state: 'ask', question: '', answer: '', error: null }),
+    edit: () => set({ state: 'ask', error: null }),
+    copy: async () => { try { await navigator.clipboard.writeText(s.answer); } catch (e) {} set({ copied: Date.now() }); },
+  };
+  // Open a named state for review and screenshots: ?state=ask|typed|working|answer|error-net|error-server
+  const st = q.get('state');
+  if (st === 'typed') s.question = SAMPLE_Q;
+  if (st === 'working') Object.assign(s, { state: 'working', question: SAMPLE_Q, startedAt: performance.now() - 14000 });
+  if (st === 'answer' || st === 'copied') Object.assign(s, { state: 'answer', question: SAMPLE_Q, answer: SAMPLE_MD, copied: st === 'copied' ? Date.now() + 1e9 : 0 });
+  if (st === 'error-net' || st === 'error-server') Object.assign(s, { state: 'error', question: SAMPLE_Q, error: st.slice(6) });
+  queueMicrotask(() => onChange({ ...s }));
+  return api;
+}
+/* Picks a state's light settings, with the phone override when the screen is narrow. */
+const isPhone = () => innerWidth < 768;
+const fxFor = (states, name) => ({ ...states[name], ...(isPhone() && states[name + 'Phone'] ? states[name + 'Phone'] : {}) });
+const fmtTime = ms => { const t = Math.floor(ms / 1000); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+const ERRORS = {
+  net: { title: "We couldn't reach the research server.", body: 'Check that the backend is running, then try again. Your question is still here.' },
+  server: { title: "The agents couldn't finish this one.", body: 'Something went wrong while they worked. Try again, or reword your question.' },
+};
+const AGENTS = [['Supervisor', 'Reads your question first'], ['Researcher', 'Searches the web with Tavily'], ['Analyst', 'Weighs what the sources say'], ['Writer', 'Writes the answer with its sources']];
+
+const LOGOS = [["React", "0 0 24 24", "<path d=\"M14.23 12.004a2.236 2.236 0 0 1-2.235 2.236 2.236 2.236 0 0 1-2.236-2.236 2.236 2.236 0 0 1 2.235-2.236 2.236 2.236 0 0 1 2.236 2.236zm2.648-10.69c-1.346 0-3.107.96-4.888 2.622-1.78-1.653-3.542-2.602-4.887-2.602-.41 0-.783.093-1.106.278-1.375.793-1.683 3.264-.973 6.365C1.98 8.917 0 10.42 0 12.004c0 1.59 1.99 3.097 5.043 4.03-.704 3.113-.39 5.588.988 6.38.32.187.69.275 1.102.275 1.345 0 3.107-.96 4.888-2.624 1.78 1.654 3.542 2.603 4.887 2.603.41 0 .783-.09 1.106-.275 1.374-.792 1.683-3.263.973-6.365C22.02 15.096 24 13.59 24 12.004c0-1.59-1.99-3.097-5.043-4.032.704-3.11.39-5.587-.988-6.38-.318-.184-.688-.277-1.092-.278zm-.005 1.09v.006c.225 0 .406.044.558.127.666.382.955 1.835.73 3.704-.054.46-.142.945-.25 1.44-.96-.236-2.006-.417-3.107-.534-.66-.905-1.345-1.727-2.035-2.447 1.592-1.48 3.087-2.292 4.105-2.295zm-9.77.02c1.012 0 2.514.808 4.11 2.28-.686.72-1.37 1.537-2.02 2.442-1.107.117-2.154.298-3.113.538-.112-.49-.195-.964-.254-1.42-.23-1.868.054-3.32.714-3.707.19-.09.4-.127.563-.132zm4.882 3.05c.455.468.91.992 1.36 1.564-.44-.02-.89-.034-1.345-.034-.46 0-.915.01-1.36.034.44-.572.895-1.096 1.345-1.565zM12 8.1c.74 0 1.477.034 2.202.093.406.582.802 1.203 1.183 1.86.372.64.71 1.29 1.018 1.946-.308.655-.646 1.31-1.013 1.95-.38.66-.773 1.288-1.18 1.87-.728.063-1.466.098-2.21.098-.74 0-1.477-.035-2.202-.093-.406-.582-.802-1.204-1.183-1.86-.372-.64-.71-1.29-1.018-1.946.303-.657.646-1.313 1.013-1.954.38-.66.773-1.286 1.18-1.868.728-.064 1.466-.098 2.21-.098zm-3.635.254c-.24.377-.48.763-.704 1.16-.225.39-.435.782-.635 1.174-.265-.656-.49-1.31-.676-1.947.64-.15 1.315-.283 2.015-.386zm7.26 0c.695.103 1.365.23 2.006.387-.18.632-.405 1.282-.66 1.933-.2-.39-.41-.783-.64-1.174-.225-.392-.465-.774-.705-1.146zm3.063.675c.484.15.944.317 1.375.498 1.732.74 2.852 1.708 2.852 2.476-.005.768-1.125 1.74-2.857 2.475-.42.18-.88.342-1.355.493-.28-.958-.646-1.956-1.1-2.98.45-1.017.81-2.01 1.085-2.964zm-13.395.004c.278.96.645 1.957 1.1 2.98-.45 1.017-.812 2.01-1.086 2.964-.484-.15-.944-.318-1.37-.5-1.732-.737-2.852-1.706-2.852-2.474 0-.768 1.12-1.742 2.852-2.476.42-.18.88-.342 1.356-.494zm11.678 4.28c.265.657.49 1.312.676 1.948-.64.157-1.316.29-2.016.39.24-.375.48-.762.705-1.158.225-.39.435-.788.636-1.18zm-9.945.02c.2.392.41.783.64 1.175.23.39.465.772.705 1.143-.695-.102-1.365-.23-2.006-.386.18-.63.406-1.282.66-1.933zM17.92 16.32c.112.493.2.968.254 1.423.23 1.868-.054 3.32-.714 3.708-.147.09-.338.128-.563.128-1.012 0-2.514-.807-4.11-2.28.686-.72 1.37-1.536 2.02-2.44 1.107-.118 2.154-.3 3.113-.54zm-11.83.01c.96.234 2.006.415 3.107.532.66.905 1.345 1.727 2.035 2.446-1.595 1.483-3.092 2.295-4.11 2.295-.22-.005-.406-.05-.553-.132-.666-.38-.955-1.834-.73-3.703.054-.46.142-.944.25-1.438zm4.56.64c.44.02.89.034 1.345.034.46 0 .915-.01 1.36-.034-.44.572-.895 1.095-1.345 1.565-.455-.47-.91-.993-1.36-1.565z\"/>"], ["TypeScript", "0 0 24 24", "<path d=\"M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v2.458a3.95 3.95 0 0 0-.643-.361 5.093 5.093 0 0 0-.717-.26 5.453 5.453 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 0 1-1.012 1.085 4.38 4.38 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-2.63a5.033 5.033 0 0 0 3.237 1.2c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 27.72 27.72 0 0 0-1.007-.436c-.918-.383-1.602-.852-2.053-1.405-.45-.553-.676-1.222-.676-2.005 0-.614.123-1.141.369-1.582.246-.441.58-.804 1.004-1.089a4.494 4.494 0 0 1 1.47-.629 7.536 7.536 0 0 1 1.77-.201zm-15.113.188h9.563v2.166H9.506v9.646H6.789v-9.646H3.375z\"/>"], ["Vite", "0 0 24 24", "<path d=\"m8.286 10.578.512-8.657a.306.306 0 0 1 .247-.282L17.377.006a.306.306 0 0 1 .353.385l-1.558 5.403a.306.306 0 0 0 .352.385l2.388-.46a.306.306 0 0 1 .332.438l-6.79 13.55-.123.19a.294.294 0 0 1-.252.14c-.177 0-.35-.152-.305-.369l1.095-5.301a.306.306 0 0 0-.388-.355l-1.433.435a.306.306 0 0 1-.389-.354l.69-3.375a.306.306 0 0 0-.37-.36l-2.32.536a.306.306 0 0 1-.374-.316zm14.976-7.926L17.284 3.74l-.544 1.887 2.077-.4a.8.8 0 0 1 .84.369.8.8 0 0 1 .034.783L12.9 19.93l-.013.025-.015.023-.122.19a.801.801 0 0 1-.672.37.826.826 0 0 1-.634-.302.8.8 0 0 1-.16-.67l1.029-4.981-1.12.34a.81.81 0 0 1-.86-.262.802.802 0 0 1-.165-.67l.63-3.08-2.027.468a.808.808 0 0 1-.768-.233.81.81 0 0 1-.217-.6l.389-6.57-7.44-1.33a.612.612 0 0 0-.64.906L11.58 23.691a.612.612 0 0 0 1.066-.004l11.26-20.135a.612.612 0 0 0-.644-.9z\"/>"], ["FastAPI", "0 0 24 24", "<path d=\"M12 .0387C5.3729.0384.0003 5.3931 0 11.9988c-.001 6.6066 5.372 11.9628 12 11.9625 6.628.0003 12.001-5.3559 12-11.9625-.0003-6.6057-5.3729-11.9604-12-11.96m-.829 5.4153h7.55l-7.5805 5.3284h5.1828L5.279 18.5436q2.9466-6.5444 5.892-13.0896\"/>"], ["Python", "0 0 24 24", "<path d=\"M14.25.18l.9.2.73.26.59.3.45.32.34.34.25.34.16.33.1.3.04.26.02.2-.01.13V8.5l-.05.63-.13.55-.21.46-.26.38-.3.31-.33.25-.35.19-.35.14-.33.1-.3.07-.26.04-.21.02H8.77l-.69.05-.59.14-.5.22-.41.27-.33.32-.27.35-.2.36-.15.37-.1.35-.07.32-.04.27-.02.21v3.06H3.17l-.21-.03-.28-.07-.32-.12-.35-.18-.36-.26-.36-.36-.35-.46-.32-.59-.28-.73-.21-.88-.14-1.05-.05-1.23.06-1.22.16-1.04.24-.87.32-.71.36-.57.4-.44.42-.33.42-.24.4-.16.36-.1.32-.05.24-.01h.16l.06.01h8.16v-.83H6.18l-.01-2.75-.02-.37.05-.34.11-.31.17-.28.25-.26.31-.23.38-.2.44-.18.51-.15.58-.12.64-.1.71-.06.77-.04.84-.02 1.27.05zm-6.3 1.98l-.23.33-.08.41.08.41.23.34.33.22.41.09.41-.09.33-.22.23-.34.08-.41-.08-.41-.23-.33-.33-.22-.41-.09-.41.09zm13.09 3.95l.28.06.32.12.35.18.36.27.36.35.35.47.32.59.28.73.21.88.14 1.04.05 1.23-.06 1.23-.16 1.04-.24.86-.32.71-.36.57-.4.45-.42.33-.42.24-.4.16-.36.09-.32.05-.24.02-.16-.01h-8.22v.82h5.84l.01 2.76.02.36-.05.34-.11.31-.17.29-.25.25-.31.24-.38.2-.44.17-.51.15-.58.13-.64.09-.71.07-.77.04-.84.01-1.27-.04-1.07-.14-.9-.2-.73-.25-.59-.3-.45-.33-.34-.34-.25-.34-.16-.33-.1-.3-.04-.25-.02-.2.01-.13v-5.34l.05-.64.13-.54.21-.46.26-.38.3-.32.33-.24.35-.2.35-.14.33-.1.3-.06.26-.04.21-.02.13-.01h5.84l.69-.05.59-.14.5-.21.41-.28.33-.32.27-.35.2-.36.15-.36.1-.35.07-.32.04-.28.02-.21V6.07h2.09l.14.01zm-6.47 14.25l-.23.33-.08.41.08.41.23.33.33.23.41.08.41-.08.33-.23.23-.33.08-.41-.08-.41-.23-.33-.33-.23-.41-.08-.41.08z\"/>"], ["LangChain", "0 0 24 24", "<path d=\"M6.0988 5.9175C2.7359 5.9175 0 8.6462 0 12s2.736 6.0825 6.0988 6.0825h11.8024C21.2641 18.0825 24 15.3538 24 12s-2.736-6.0825-6.0988-6.0825ZM5.9774 7.851c.493.0124 1.02.2496 1.273.6228.3673.4592.4778 1.0668.8944 1.4932.5604.6118 1.199 1.1505 1.7161 1.802.4892.5954.8386 1.2937 1.1436 1.9975.1244.2335.1257.5202.31.7197.0908.1204.5346.4483.4383.5645.0555.1204.4702.286.3263.4027-.1944.04-.4129.0476-.5616-.1074-.0549.126-.183.0596-.2819.0432a4 4 0 0 0-.025.0736c-.3288.0219-.5754-.3126-.732-.565-.3111-.168-.6642-.2702-.982-.446-.0182.2895.0452.6485-.231.8353-.014.5565.8436.0656.9222.4804-.061.0067-.1286-.0095-.1774.0373-.2239.2172-.4805-.1645-.7385-.007-.3464.174-.3808.3161-.8096.352-.0237-.0359-.0143-.0592.0059-.0811.1207-.1399.1295-.3046.3356-.3643-.2122-.0334-.3899.0833-.5686.1757-.2323.095-.2304-.2141-.5878.0164-.0396-.0322-.0208-.0615.0018-.0864.0908-.1107.2102-.127.345-.1208-.663-.3686-.9751.4507-1.2813.0432-.092.0243-.1265.1068-.1845.1652-.05-.0548-.0123-.1212-.0099-.1857-.0598-.028-.1356-.041-.1179-.1366-.1171-.0395-.1988.0295-.286.0952-.0787-.0608.0532-.1492.0776-.2125.0702-.1216.23-.025.3111-.1126.2306-.1308.552.0814.8155.0455.203.0255.4544-.1825.3526-.39-.2171-.2767-.179-.6386-.1839-.9695-.0268-.1929-.491-.4382-.6252-.6462-.1659-.1873-.295-.4047-.4243-.6182-.4666-.9008-.3198-2.0584-.9077-2.8947-.266.1466-.6125.0774-.8418-.119-.1238.1125-.1292.2598-.139.4161-.297-.2962-.2593-.8559-.022-1.1855.0969-.1302.2127-.2373.342-.3316.0292-.0213.0391-.0419.0385-.0747.1174-.5267.5764-.7391 1.0694-.7267m12.4071.46c.5575 0 1.0806.2159 1.474.6082s.61.9145.61 1.4704c0 .556-.2167 1.078-.61 1.4698v.0006l-.902.8995a2.08 2.08 0 0 1-.8597.5166l-.0164.0047-.0058.0164a2.05 2.05 0 0 1-.474.7308l-.9018.8995c-.3934.3924-.917.6083-1.4745.6083s-1.0806-.216-1.474-.6083c-.813-.8107-.813-2.1294 0-2.9402l.9019-.8995a2.056 2.056 0 0 1 .858-.5143l.017-.0053.0058-.0158a2.07 2.07 0 0 1 .4752-.7337l.9018-.8995c.3934-.3924.9171-.6083 1.4745-.6083zm0 .8965a1.18 1.18 0 0 0-.8388.3462l-.9018.8995a1.181 1.181 0 0 0-.3427.9252l.0053.0572c.0323.2652.149.5044.3374.6917.13.1296.2733.2114.4471.2686a.9.9 0 0 1 .014.1582.884.884 0 0 1-.2609.6304l-.0554.0554c-.3013-.1028-.5525-.253-.7794-.4792a2.06 2.06 0 0 1-.5761-1.0968l-.0099-.0578-.0461.0368a1.1 1.1 0 0 0-.0876.0794l-.9024.8995c-.4623.461-.4623 1.212 0 1.673.2311.2305.535.346.8394.3461.3043 0 .6077-.1156.8388-.3462l.9019-.8995c.4623-.461.4623-1.2113 0-1.673a1.17 1.17 0 0 0-.4367-.2749 1 1 0 0 1-.014-.1611c0-.2591.1023-.505.2901-.6923.3019.1028.57.2694.7962.495.3007.2999.4994.679.5756 1.0968l.0105.0578.0455-.0373a1.1 1.1 0 0 0 .0887-.0794l.902-.8996c.4622-.461.4628-1.2124 0-1.6735a1.18 1.18 0 0 0-.8395-.3462Zm-9.973 5.1567-.0006.0006c-.0793.3078-.1048.8318-.506.847-.033.1776.1228.2445.2655.1874.141-.0645.2081.0508.2557.1657.2177.0317.5394-.0725.5516-.3298-.325-.1867-.4253-.5418-.5662-.8709\"/>"], ["LangGraph", "0 0 24 24", "<path d=\"M6.099 5.88H17.9C21.264 5.88 24 8.625 24 12s-2.736 6.12-6.099 6.12H6.1C2.736 18.12 0 15.375 0 12s2.736-6.12 6.099-6.12Zm5.419 9.487c.148.156.367.148.561.108h.002c.09-.073-.038-.166-.16-.254-.074-.054-.145-.105-.166-.15.068-.083-.132-.27-.289-.417a1.539 1.539 0 0 1-.15-.151c-.11-.12-.155-.273-.2-.427a1.575 1.575 0 0 0-.11-.297c-.304-.708-.653-1.41-1.143-2.01-.315-.398-.674-.755-1.033-1.112-.232-.23-.463-.46-.683-.701-.226-.234-.362-.521-.499-.81-.114-.24-.228-.482-.396-.693-.507-.75-2.107-.955-2.342.105 0 .033-.01.054-.039.075-.13.095-.245.203-.342.334-.238.332-.274.895.022 1.193l.001-.02c.01-.15.02-.29.139-.399.228.198.576.268.841.12.32.46.422 1.015.525 1.572.085.464.17.93.382 1.341l.014.022c.124.208.25.419.41.6.059.09.178.187.297.284.157.128.314.256.329.366v.146c-.001.29-.002.59.184.83.103.208-.15.418-.352.392a.989.989 0 0 1-.354-.043c-.165-.04-.329-.08-.462-.003-.038.04-.091.042-.145.043-.064.002-.129.004-.167.07a.29.29 0 0 1-.045.066c-.042.051-.087.107-.033.149l.015-.011c.082-.063.16-.123.27-.085-.014.082.039.103.092.125l.027.012a.357.357 0 0 1-.008.057c-.009.046-.017.09.018.13a.605.605 0 0 0 .046-.056c.037-.046.073-.094.139-.11.144.192.289.112.471.012.206-.114.459-.253.81-.056-.135-.007-.255.01-.345.121-.023.025-.042.054-.002.087.207-.135.294-.086.375-.04.06.032.115.063.212.024l.07-.037c.155-.084.314-.17.499-.14-.139.04-.188.127-.242.223-.026.047-.054.097-.094.143-.021.021-.03.046-.007.082.29-.024.4-.098.548-.197.07-.047.15-.1.261-.157.124-.076.248-.028.368.02.13.05.255.1.371-.013.037-.035.083-.035.129-.036.016 0 .033 0 .05-.002-.037-.194-.24-.191-.448-.189-.24.003-.483.005-.475-.295.222-.152.224-.415.226-.665 0-.06 0-.119.005-.176.163.092.336.163.508.234.162.066.323.133.474.215.157.254.404.59.732.568.008-.026.016-.048.026-.074.019.003.039.008.059.014.086.021.178.045.223-.057zm6.429-2.886a1.014 1.014 0 0 0 1.729-.715 1.01 1.01 0 0 0-1.013-1.01c-.126 0-.25.023-.364.068l-.58-.848-.405.278.583.851a1.009 1.009 0 0 0 .05 1.376zm-1.818-2.744a1.014 1.014 0 0 0 1.42-.615 1.008 1.008 0 0 0-.845-1.293 1.015 1.015 0 0 0-1.095.712 1.008 1.008 0 0 0 .52 1.196zm0 5.867a1.015 1.015 0 0 0 1.42-.615 1.008 1.008 0 0 0-.845-1.293 1.015 1.015 0 0 0-1.095.712 1.008 1.008 0 0 0 .52 1.196zm.932-3.586v-.503h-1.55a1.003 1.003 0 0 0-.218-.412l.583-.864-.424-.28-.583.863a1.014 1.014 0 0 0-.333-.06c-.268 0-.525.106-.714.294a1.002 1.002 0 0 0 1.047 1.655l.583.864.42-.281-.579-.864c.104-.119.178-.26.217-.412z\"/>"], ["DeepSeek", "0 0 24 24", "<path d=\"M23.748 4.482c-.254-.124-.364.113-.512.234-.051.039-.094.09-.137.136-.372.397-.806.657-1.373.626-.829-.046-1.537.214-2.163.848-.133-.782-.575-1.248-1.247-1.548-.352-.156-.708-.311-.955-.65-.172-.241-.219-.51-.305-.774-.055-.16-.11-.323-.293-.35-.2-.031-.278.136-.356.276-.313.572-.434 1.202-.422 1.84.027 1.436.633 2.58 1.838 3.393.137.093.172.187.129.323-.082.28-.18.552-.266.833-.055.179-.137.217-.329.14a5.526 5.526 0 01-1.736-1.18c-.857-.828-1.631-1.742-2.597-2.458a11.365 11.365 0 00-.689-.471c-.985-.957.13-1.743.388-1.836.27-.098.093-.432-.779-.428-.872.004-1.67.295-2.687.684a3.055 3.055 0 01-.465.137 9.597 9.597 0 00-2.883-.102c-1.885.21-3.39 1.102-4.497 2.623C.082 8.606-.231 10.684.152 12.85c.403 2.284 1.569 4.175 3.36 5.653 1.858 1.533 3.997 2.284 6.438 2.14 1.482-.085 3.133-.284 4.994-1.86.47.234.962.327 1.78.397.63.059 1.236-.03 1.705-.128.735-.156.684-.837.419-.961-2.155-1.004-1.682-.595-2.113-.926 1.096-1.296 2.746-2.642 3.392-7.003.05-.347.007-.565 0-.845-.004-.17.035-.237.23-.256a4.173 4.173 0 001.545-.475c1.396-.763 1.96-2.015 2.093-3.517.02-.23-.004-.467-.247-.588zM11.581 18c-2.089-1.642-3.102-2.183-3.52-2.16-.392.024-.321.471-.235.763.09.288.207.486.371.739.114.167.192.416-.113.603-.673.416-1.842-.14-1.897-.167-1.361-.802-2.5-1.86-3.301-3.307-.774-1.393-1.224-2.887-1.298-4.482-.02-.386.093-.522.477-.592a4.696 4.696 0 011.529-.039c2.132.312 3.946 1.265 5.468 2.774.868.86 1.525 1.887 2.202 2.891.72 1.066 1.494 2.082 2.48 2.914.348.292.625.514.891.677-.802.09-2.14.11-3.054-.614zm1-6.44a.306.306 0 01.415-.287.302.302 0 01.2.288.306.306 0 01-.31.307.303.303 0 01-.304-.308zm3.11 1.596c-.2.081-.399.151-.59.16a1.245 1.245 0 01-.798-.254c-.274-.23-.47-.358-.552-.758a1.73 1.73 0 01.016-.588c.07-.327-.008-.537-.239-.727-.187-.156-.426-.199-.688-.199a.559.559 0 01-.254-.078c-.11-.054-.2-.19-.114-.358.028-.054.16-.186.192-.21.356-.202.767-.136 1.146.016.352.144.618.408 1.001.782.391.451.462.576.685.914.176.265.336.537.445.848.067.195-.019.354-.25.452z\"></path>"], ["Tavily", "0 0 55 55", "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M38.8088 0C44.4762 0 47.3101 9.1895e-05 49.4748 1.10306C51.3788 2.07326 52.927 3.62135 53.8971 5.52544C55.0001 7.69013 55 10.524 55 16.1914V38.8088C55 44.4761 55.0001 47.3099 53.8971 49.4746C52.927 51.3786 51.3788 52.9267 49.4748 53.8969C47.3101 54.9999 44.4762 55 38.8088 55H16.1914C10.5239 55 7.69014 54.9999 5.52544 53.8969C3.62133 52.9267 2.07325 51.3787 1.10306 49.4746C0.000109958 47.3099 0 44.4762 0 38.8088V16.1912C0 10.5238 0.000107614 7.69012 1.10306 5.52544C2.07325 3.62133 3.62133 2.07326 5.52544 1.10306C7.69014 8.88436e-05 10.5239 0 16.1914 0H38.8088ZM23.3863 30.405C23.0885 30.405 22.7934 30.4638 22.5183 30.5782C22.2433 30.6926 21.9933 30.8603 21.7827 31.0716L17.4534 35.4188L16.3029 34.2638C15.4573 33.415 14.0099 33.8346 13.7471 35.0064L12.1073 42.3023C12.0498 42.5532 12.0568 42.8148 12.128 43.0621C12.199 43.3085 12.3313 43.5327 12.5123 43.7136L12.5108 43.7159C12.6915 43.8987 12.9155 44.0321 13.1619 44.1037C13.4083 44.1752 13.6688 44.1824 13.9188 44.1246L21.1862 42.4776C22.3527 42.2137 22.7715 40.7614 21.9259 39.9124L20.7754 38.7574L25.1056 34.411C25.5306 33.9842 25.7695 33.4049 25.7695 32.8013C25.7695 32.1977 25.5306 31.6185 25.1056 31.1916L25.0476 31.1334L25.0497 31.1319L24.9896 31.0716C24.7791 30.8603 24.529 30.6926 24.254 30.5782C23.979 30.4638 23.684 30.4051 23.3863 30.405ZM39.0054 27.6663C37.9941 27.0245 36.6768 27.7546 36.6766 28.9556V30.5884H27.3981C27.7081 31.1832 27.8847 31.8596 27.8847 32.5774C27.8846 33.6152 27.5181 34.5672 26.908 35.3099L36.6758 35.3096L36.6752 36.9424C36.6753 38.1434 37.9941 38.8736 39.0054 38.2319L45.3045 34.2387C45.7757 33.9384 46.0114 33.443 46.0115 32.948C46.0109 32.4536 45.7752 31.9592 45.303 31.6601L39.0054 27.6663ZM23.6104 10.2206C23.3539 10.2194 23.101 10.2839 22.8763 10.4081C22.6514 10.5325 22.4614 10.7132 22.3253 10.9318L18.3472 17.2549H18.3458C17.7067 18.2701 18.4346 19.5933 19.6307 19.5936H21.2578V28.9869C21.9327 28.5406 22.7403 28.2801 23.609 28.2801C24.4781 28.2801 25.2864 28.5407 25.9615 28.9875V19.5936H27.5884C28.7849 19.5936 29.5112 18.2702 28.8728 17.2541L24.8939 10.9318C24.5951 10.4584 24.1029 10.2212 23.6104 10.2206Z\" fill=\"currentColor\"/>"]];
+
+const $ = id => document.getElementById(id);
+const all = sel => [...document.querySelectorAll(sel)];
+const phone = () => innerWidth < 768;
+const HEAT = (() => {
+  const c = $('heat'); const gl = c.getContext('webgl2', { premultipliedAlpha:false, antialias:false });
+  if (!gl) { c.style.background = 'radial-gradient(40% 50% at 80% 30%, #B2F601, #62C0F6 45%, #343645 75%, #1F2029)'; return { to(){}, set(){}, look(){} }; }
+  const vs = `#version 300 es
+  in vec2 p; void main(){ gl_Position = vec4(p,0.,1.); }`;
+  const fs = `#version 300 es
+  precision highp float; out vec4 o;
+  uniform vec2 R; uniform float T, E, S, K, D, G, Q, F, M, DN, RF; uniform vec2 H, H2; uniform vec3 C;
+  float h21(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+  float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+    return mix(mix(h21(i),h21(i+vec2(1,0)),f.x), mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v; }
+  vec3 ramp(float x){
+    vec3 c0=vec3(.122,.125,.161), c1=vec3(.204,.212,.271), c2=vec3(.122,.306,.451), c3=vec3(.384,.753,.965), c4=vec3(.698,.965,.004), c5=vec3(.902,1.,.651), c6=vec3(.988,1.,1.);
+    x=clamp(x,0.,1.);
+    if(x<.20) return mix(c0,c1,x/.20);
+    if(x<.38) return mix(c1,c2,(x-.20)/.18);
+    if(x<.56) return mix(c2,c3,(x-.38)/.18);
+    if(x<.74) return mix(c3,c4,(x-.56)/.18);
+    if(x<.90) return mix(c4,c5,(x-.74)/.16);
+    return mix(c5,c6,(x-.90)/.10);
+  }
+  float src(vec2 u, vec2 c, float r, float ar){ vec2 d=(u-c)*vec2(ar,1.); return exp(-dot(d,d)/(r*r)); }
+  float heatAt(vec2 uv){
+    float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.2+vec2(0.,t*.16)), fbm(p*1.2+vec2(5.2,1.3)-t*.13));
+    vec2 u=uv+(q-.5)*vec2(.20/ar,.20);
+    vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    float h=E*(1.05*src(u,H,.27*K,ar)+.62*src(u,H2,.17*K,ar)+.30*src(u,h3,.11*K,ar));
+    float det=fbm(p*3.4+q*2.2+vec2(t*.07,-t*.05));
+    h+=(det-.5)*.34*smoothstep(.04,.55,h);
+    h+=(fbm(p*.7+t*.03)-.5)*.12+.05;
+    vec2 cz=(uv-C.xy)/vec2(.40,.22); h-=C.z*exp(-dot(cz,cz));
+    h=clamp(h,0.,1.)*mix(1.,.6,Q);
+    float x=h*8.; float st=(floor(x)+smoothstep(0.,.32,fract(x)))/8.;
+    return mix(h,st,D*(1.-Q));
+  }
+
+  /* ---- Geothermal looks (round 3b), built on the glass from his "effect background · test" (OXS light studio 2, fine flutes) ---- */
+  float sources(vec2 u, float ar, float t){ vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    return 1.05*src(u,H,.27*K,ar)+.62*src(u,H2,.17*K,ar)+.30*src(u,h3,.11*K,ar); }
+  float coolSoft(float h, vec2 uv){ vec2 cz=(uv-C.xy)/vec2(.40,.22); h-=C.z*exp(-dot(cz,cz)); return clamp(h,0.,1.)*mix(1.,.6,Q); }
+  float bands(float h, float n){ float x=h*n; float w=clamp(fwidth(x)*1.5,.03,.5);
+    float st=(floor(x)+smoothstep(1.-w,1.,fract(x)))/n; return mix(h,st,D*(1.-Q)); }
+  /* 1 Thermal: a lumpy heat body read like a thermal camera, in crisp temperature bands with a white-hot core */
+  float geoThermal(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.1+vec2(0.,t*.12)), fbm(p*1.1+vec2(5.2,1.3)-t*.10));
+    vec2 r=vec2(fbm(p*1.3+q*1.4+vec2(1.7,9.2)+t*.05), fbm(p*1.3+q*1.4+vec2(8.3,2.8)-t*.04));
+    vec2 u=uv+(r-.5)*vec2(.36/ar,.36);
+    float h=E*sources(u,ar,t); h*=.84+.32*fbm(p*1.2+r*1.3); h+=(fbm(p*.8+t*.02)-.5)*.10+.03;
+    return bands(coolSoft(h,uv),9.); }
+  /* 2 Vents: hot fissures glowing lime and white through the warm zones, like cracks in volcanic ground */
+  float geoVents(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 q=vec2(fbm(p*1.1+vec2(0.,t*.10)), fbm(p*1.1+vec2(5.2,1.3)-t*.08));
+    vec2 u=uv+(q-.5)*vec2(.18/ar,.18);
+    float body=E*sources(u,ar,t);
+    float n1=fbm(p*1.6+q*1.5+vec2(t*.02,-t*.035)), n2=fbm(p*3.4+q*2.4+vec2(3.1,-t*.05));
+    float c1=pow(1.-abs(2.*n1-1.),9.), c2=pow(1.-abs(2.*n2-1.),12.);
+    vec2 cz=(uv-C.xy)/vec2(.46,.28); float warm=smoothstep(.04,.7,body)*(1.-min(1.,1.3*C.z)*exp(-dot(cz,cz)));
+    float h=body*.62+(c1*.8+c2*.45)*warm+(fbm(p*.8)-.5)*.08;
+    return bands(coolSoft(h,uv),7.); }
+  /* 3 Plumes: heat rising off the sources in wavering columns */
+  float plume(vec2 u, vec2 c, float r, float ar, float t){ vec2 d=(u-c)*vec2(ar,1.); float up=max(d.y,0.);
+    d.x+=(fbm(vec2(u.x*2.4,u.y*2.-t*.5)+c*7.)-.5)*.7*up+sin(u.y*7.-t*1.1+c.x*9.)*.035*up/(r+.05); d.x/=1.+up*.7; d.y*=d.y>0.?.5:1.5; return exp(-dot(d,d)/(r*r))*exp(-up*1.1); }
+  float geoPlumes(vec2 uv){ float ar=R.x/R.y; vec2 p=vec2(uv.x*ar,uv.y)*2.; float t=T*S;
+    vec2 ps=vec2(p.x*1.4,p.y*.6-t*.45); vec2 q=vec2(fbm(ps), fbm(ps+vec2(4.1,2.7)));
+    vec2 u=uv+(q-.5)*vec2(.16/ar,.06); vec2 h3=vec2(.5+.34*sin(t*.23+1.), .5+.30*cos(t*.19));
+    float h=E*(1.05*plume(u,H,.24*K,ar,t)+.62*plume(u,H2,.16*K,ar,t)+.25*src(u,h3,.10*K,ar));
+    h*=.7+.6*fbm(ps*1.8+q*2.); h+=(fbm(p*.8+t*.02)-.5)*.08+.03;
+    return bands(coolSoft(h,uv),8.); }
+  /* 4 Isotherm, fluted (round 3c): the big banded field from his Home (Isotherm) page, measured in screen pixels so it keeps
+     the same proportion on desktop and phone. Heat rises from the ground at H, the top stays calm, the peak stops at lime
+     (no white core), and C is the quiet zone behind type. */
+  /* Smooth noise and an OKLab ramp, so the field blends the way his "effect background · test" does */
+  float fbm3(vec2 p){ float v=0., a=.5; for(int i=0;i<3;i++){ v+=a*n(p); p=p*2.03+vec2(1.7,9.2); a*=.5; } return v/.875; }
+  vec3 lin(vec3 c){ return pow(c,vec3(2.2)); }
+  vec3 lab(vec3 c){ c=lin(c); vec3 l=vec3(.4122214708*c.r+.5363325363*c.g+.0514459929*c.b, .2119034982*c.r+.6806995451*c.g+.1073969566*c.b, .0883024619*c.r+.2817188376*c.g+.6299787005*c.b);
+    l=pow(max(l,0.),vec3(1./3.)); return vec3(.2104542553*l.x+.7936177850*l.y-.0040720468*l.z, 1.9779984951*l.x-2.4285922050*l.y+.4505937099*l.z, .0259040371*l.x+.7827717662*l.y-.8086757660*l.z); }
+  vec3 unlab(vec3 c){ vec3 l=vec3(c.x+.3963377774*c.y+.2158037573*c.z, c.x-.1055613458*c.y-.0638541728*c.z, c.x-.0894841775*c.y-1.2914855480*c.z); l=l*l*l;
+    vec3 r=vec3(4.0767416621*l.x-3.3077115913*l.y+.2309699292*l.z, -1.2684380046*l.x+2.6097574011*l.y-.3413193965*l.z, -.0041960863*l.x-.7034186147*l.y+1.7076147010*l.z); return pow(max(r,0.),vec3(1./2.2)); }
+  /* Colour ramp blended in OKLab and averaged over a wide window (as his "effect background · test" does), so the
+     light blue melts into the deep blue and the lime melts into the green with no visible edge */
+  vec3 rampLab(float x){
+    vec3 c0=vec3(.122,.125,.161), c1=vec3(.204,.212,.271), c2=vec3(.122,.306,.451), c3=vec3(.384,.753,.965), c4=vec3(.698,.965,.004), c5=vec3(.902,1.,.651);
+    x=clamp(x,0.,1.); vec3 a,b; float k;
+    if(x<.20){a=c0;b=c1;k=x/.20;} else if(x<.42){a=c1;b=c2;k=(x-.20)/.22;} else if(x<.64){a=c2;b=c3;k=(x-.42)/.22;} else if(x<.83){a=c3;b=c4;k=(x-.64)/.19;} else {a=c4;b=c5;k=(x-.83)/.17;}
+    k=k*k*(3.-2.*k); return mix(lab(a),lab(b),k); }
+  vec3 rampL(float x){
+    vec3 s=rampLab(x-.08)+rampLab(x-.04)+rampLab(x)+rampLab(x+.04)+rampLab(x+.08);
+    return unlab(s/5.); }
+  /* 4 Fluted Isotherm (round 3d): two big heat areas, one rising from the bottom (H) and one coming in from the top (H2),
+     warped smoothly and read in soft bands, measured in screen pixels so desktop and phone keep the same proportion.
+     The peak stops at lime, C is the quiet zone behind type. */
+  float lobe(vec2 w, vec2 c, float r, float L){ vec2 d=(w-c*R)/(L*r); return exp(-dot(d,d)); }
+  float geoIso(vec2 uv){ float L=.26*(R.x+R.y)*.5; vec2 px=uv*R; vec2 p=px/L; float t=T*S;
+    vec2 q=vec2(fbm3(p*.45+vec2(0.,t*.07)), fbm3(p*.45+vec2(5.2,1.3)-t*.06));
+    vec2 w=px+(q-.5)*L*2.2;
+    float g=E*(1.25*lobe(w,H,2.5,L)+1.05*lobe(w,H2,2.1,L));
+    float h=.16+g*.9+(fbm3(p*.7+q*1.3+vec2(t*.03,0.))-.5)*.16;
+    vec2 cz=(uv-C.xy)/vec2(.46,.26); h-=C.z*exp(-dot(cz,cz));
+    h=clamp(h,0.,mix(.86,.5,Q));
+    float x=h*7.; float st=(floor(x)+smoothstep(.1,.9,fract(x)))/7.;
+    return mix(h,st,.12); }
+  float heat(vec2 uv){ if(M>3.5) return geoIso(uv); if(M<.5) return heatAt(uv); if(M<1.5) return geoThermal(uv); if(M<2.5) return geoVents(uv); return geoPlumes(uv); }
+  /* His glass: fine flutes that refract the field, a dark edge per flute and a thin white ridge on the lit side */
+  float ridgeAt(float local){ float rd=(local+.365)*36.; return exp(-rd*rd); }
+  vec3 glass(vec2 uv){ float ar=R.x/R.y; vec2 p0=(uv-.5)*vec2(ar,1.);
+    float x=p0.x*DN; float local=fract(x)-.5;
+    vec3 nl=normalize(vec3(local*2.,0.,sqrt(max(.02,1.-local*local*3.7))));
+    vec3 ray=refract(vec3(0.,0.,-1.),nl,.68);
+    vec2 p=p0+vec2(ray.x*RF,0.);
+    float hv=heat(p/vec2(ar,1.)+.5); vec3 col=M>3.5?rampL(hv):ramp(hv);
+    float dx=DN/R.y*.25, rid=0.;
+    for(int i=0;i<4;i++){ rid+=ridgeAt(fract(x+(float(i)-1.5)*dx)-.5); } rid*=.25;
+    float edge=pow(abs(local)*2.,7.);
+    float gate=.15+.85*smoothstep(.04,.55,dot(col,vec3(.2126,.7152,.0722)));
+    col*=1.-edge*.78*.55;
+    return mix(col,vec3(.988,1.,1.),clamp(rid*gate*.76,0.,1.)); }
+  void main(){
+    vec2 uv=gl_FragCoord.xy/R;
+    if(G>1.5){ vec3 col=glass(uv); float g=(h21(gl_FragCoord.xy+vec2(floor(T*12.)*7.,1.))-.5)*.016; o=vec4(col*(1.+g*2.)+g*.4,1.); return; }
+    if(G>.5){
+      float fl=fract(gl_FragCoord.x/F);
+      float h=heatAt(uv+vec2((fl-.5)*F/R.x*1.6,0.));
+      vec3 col=ramp(h);
+      col*=.86+.14*smoothstep(0.,.5,fl)-.10*smoothstep(.82,1.,fl);
+      col+=.05*smoothstep(.9,1.,fl);
+      o=vec4(col,1.);
+    } else o=vec4(ramp(heatAt(uv)),1.);
+  }`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const cur = { E:.95, S:.35, K:1, Q:0, hx:.8, hy:.7, h2x:.14, h2y:.22, cx:.5, cy:.55, cz:.55 }, tgt = { ...cur };
+  const look = { D:.65, G:0 }; let simT = 3, last = performance.now(), scale = .6;
+  const fit = () => { const r = Math.min(devicePixelRatio, 1.5); c.width = Math.max(1, c.clientWidth * r * scale); c.height = Math.max(1, c.clientHeight * r * scale); gl.viewport(0, 0, c.width, c.height); };
+  new ResizeObserver(fit).observe(c); fit();
+  const frame = now => {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    for (const k in cur) cur[k] += (tgt[k] - cur[k]) * Math.min(1, dt * 1.4);
+    if (!reduceMotion) simT += dt;
+    gl.uniform2f(U('R'), c.width, c.height); gl.uniform1f(U('T'), simT);
+    for (const k of ['E','S','K','Q']) gl.uniform1f(U(k), cur[k]);
+    gl.uniform1f(U('D'), look.D); gl.uniform1f(U('G'), look.G); gl.uniform1f(U('M'), look.M || 0); gl.uniform1f(U('DN'), 44); gl.uniform1f(U('RF'), look.RF ?? .55); gl.uniform1f(U('F'), Math.max(6, 26 * Math.min(devicePixelRatio, 1.5) * scale));
+    gl.uniform2f(U('H'), cur.hx, cur.hy); gl.uniform2f(U('H2'), cur.h2x, cur.h2y); gl.uniform3f(U('C'), cur.cx, cur.cy, cur.cz);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+  return { to(p){ Object.assign(tgt, p); }, set(p){ Object.assign(tgt, p); Object.assign(cur, p); }, look(p){ Object.assign(look, p); if ('scale' in p) { scale = p.scale; fit(); } } };
+})();
+
+
+/* Placeholder content (logged in FACTS): saved conversation titles, the follow-up question and answer, source excerpts */
+const CONVOS = [SAMPLE_Q, 'Which cloud AI platforms do banks use to catch fraud?', 'What is changing in AI chip supply?', 'How are universities using AI agents?', 'Summarize recent research on retrieval-augmented generation.'];
+const FOLLOW_Q = 'Which of these should a 200-person software company act on first?';
+const FOLLOW_MD = `## Short answer
+Start with marketplace listings. Being buyable through [Azure Marketplace](https://azuremarketplace.microsoft.com) and [Google Cloud Marketplace](https://cloud.google.com/marketplace) lets customers pay out of budgets they have already committed to those clouds.
+
+## Why this first
+- It shortens buying for customers who already spend on Azure or Google Cloud.
+- It needs no change to your product, only a listing and billing setup.
+
+## What can wait
+- Model price changes matter once AI features drive real usage.
+- Agent standards are still settling, so watch them before you build.
+
+## Sources
+- [Azure Marketplace](https://azuremarketplace.microsoft.com)
+- [Google Cloud Marketplace](https://cloud.google.com/marketplace)`;
+const EXCERPTS = {
+  'azure.microsoft.com': 'Gives businesses OpenAI models through Azure, with the security and compliance controls of Microsoft’s cloud.',
+  'cloud.google.com': 'Google Cloud’s platform for building with Gemini and other models, from testing prompts to running agents.',
+  'www.microsoft.com': 'Copilot works inside Word, Excel, PowerPoint, Outlook and Teams, using the files a company already keeps in Microsoft 365.',
+  'workspace.google.com': 'Brings Gemini into Gmail, Docs, Sheets and Meet for teams already on Google Workspace.',
+  'azuremarketplace.microsoft.com': 'Customers can buy listed software with their existing Azure agreement and count it toward their committed spend.',
+};
+const hostOf = u => new URL(u).hostname;
+function turnHTML(q, md, { open = false, working = false } = {}) {
+  if (working) return `<article class="turn"><h2 class="qh">${esc(q)}</h2><span class="working" role="status"><span class="dot" aria-hidden="true"></span>Your AI agents are working...</span></article>`;
+  const srcs = sourcesFrom(md);
+  let html = renderMarkdown(md, { skipSources:true }).html;
+  srcs.forEach((x, i) => { html = html.split(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a><a class="cite" href="#" aria-label="Source ${i+1}">${i+1}</a>`); });
+  html = html.replace(/(<a href="[^"]+" target="_blank" rel="noopener">[^<]+<\/a><a class="cite"[^>]*>\d+<\/a>[,.;:]?)/g, '<span class="nw">$1</span>');
+  const parts = html.split(/<h2 id="h-\d+">/).filter(Boolean).map(p => { const [h, ...rest] = p.split('</h2>'); return { h, body: rest.join('</h2>') }; });
+  const groups = parts.map((p, i) => `<section class="grp${i === 0 ? ' lead wide' : ''}${i > 0 && i === parts.length - 1 && (parts.length - 1) % 2 === 1 ? ' wide' : ''}"><h3 class="glabel">${p.h}</h3><div class="gcard doc on-white">${p.body}</div></section>`).join('');
+  const evs = srcs.map((x, i) => { const h = hostOf(x.url); return `<a class="ev" href="${x.url}" target="_blank" rel="noopener"><span class="fav"><img src="https://www.google.com/s2/favicons?domain=${h.replace(/^www\./,'')}&sz=64" alt=""></span><span class="tx"><strong>${esc(x.title)}</strong><span class="host">${h.replace(/^www\./,'')}</span><p>${esc(EXCERPTS[h] || '')}</p></span><b>${i+1}</b></a>`; }).join('');
+  return `<article class="turn"><h2 class="qh">${esc(q)}</h2><div class="groups">${groups}</div>
+    <div class="after"><details class="ledger"${open ? ' open' : ''}><summary><span class="lk"><i class="ph-fill ph-link" aria-hidden="true"></i></span><span class="show">View sources (${srcs.length})</span><span class="hide">Hide sources (${srcs.length})</span><i class="car ph-fill ph-caret-down" aria-hidden="true"></i></summary>
+      <div class="body"><p class="note">Sources retrieved by the Researcher Agent. These are not individually verified citations.</p>${evs}</div></details>
+      <button class="pill frost sm" data-act="copy"><i class="ph-fill ph-copy" aria-hidden="true"></i>Copy answer</button></div></article>`;
+}
+
+/* State, from the URL so every screen can be opened directly for review */
+const P = new URLSearchParams(location.search);
+const S = { view: P.get('view') || 'thread', sb: P.get('sb') || 'list', open: P.get('src') === '1', follow: P.get('follow') || 'done', active: 0 };
+function render() {
+  document.body.dataset.view = S.view;
+  document.body.classList.toggle('sb-closed', S.sb === 'closed');
+  document.body.classList.toggle('drawer', P.get('drawer') === '1' || S.drawer === true);
+  document.body.classList.toggle('busy', S.view === 'thread' && S.follow === 'working');
+  const list = S.sb === 'empty' ? [] : CONVOS;
+  $('convos').innerHTML = list.length ? list.map((t, i) => `<div class="convo${(S.view !== 'new' && i === S.active) ? ' on' : ''}" data-i="${i}" role="button" tabindex="0"><span>${esc(t)}</span><button class="x" data-act="close" aria-label="Close conversation"><i class="ph-bold ph-x" aria-hidden="true"></i></button></div>`).join('')
+    : `<div class="empty"><b>No saved conversations yet.</b><span>Your questions and answers will show up here.</span></div>`;
+  if (S.view === 'thread') {
+    $('thread').innerHTML = turnHTML(SAMPLE_Q, SAMPLE_MD, { open: S.open }) + (S.follow === 'none' ? '' : turnHTML(FOLLOW_Q, FOLLOW_MD, { working: S.follow === 'working' }));
+  }
+  for (const el of all('[data-sugs]')) el.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="chip">${esc(s)}</button>`).join('');
+  $('fsend').disabled = true;
+  requestAnimationFrame(() => HEAT.to(heatFor()));
+}
+function heatFor() {
+  const pos = phone() ? { hx:.12, hy:-.03, h2x:.94, h2y:.99 } : { hx:.14, hy:-.06, h2x:.88, h2y:1.0 };
+  if (S.view === 'new') { const h = document.querySelector('.newview h1').getBoundingClientRect(); return { E:.62, S:.35, Q:0, ...pos, cx:(h.left + h.width/2)/innerWidth, cy:1 - (h.top + h.height/2)/innerHeight, cz:.62 }; }
+  if (S.view === 'thread') return { E: S.follow === 'working' ? .56 : .5, S: S.follow === 'working' ? 1 : .25, Q:1, ...pos, cx:.5, cy:.6, cz:.3 };
+  if (S.view === 'loading') return { E:.42, S:.4, Q:1, ...pos, cx:.5, cy:.5, cz:.35 };
+  return { E:.3, S:.08, Q:1, ...pos, cx:.5, cy:.5, cz:0 };
+}
+HEAT.look({ D:1, G:2, M:4, RF:.04, scale:1 });
+HEAT.set(heatFor.call(null));
+render();
+addEventListener('resize', () => HEAT.to(heatFor()));
+const scrollTo_ = P.get('scroll');
+if (scrollTo_) addEventListener('load', () => setTimeout(() => {
+  const t = scrollTo_ === 'bottom' ? document.documentElement.scrollHeight : scrollTo_ === 'src' ? document.querySelector('.ledger').getBoundingClientRect().top + scrollY - 120 : 0;
+  scrollTo({ top:t, behavior:'instant' });
+}, 60));
+
+document.addEventListener('click', e => {
+  const row = e.target.closest('.convo'); const b = e.target.closest('[data-act]');
+  if (b && b.dataset.act === 'close') { e.stopPropagation(); S.view = 'new'; render(); return; }
+  if (row) { S.active = +row.dataset.i; S.view = 'loading'; S.drawer = false; render(); setTimeout(() => { S.view = 'thread'; S.follow = 'done'; render(); }, 1200); return; }
+  if (!b) return; e.preventDefault();
+  const act = b.dataset.act;
+  if (act === 'sb') { if (phone()) { S.drawer = !document.body.classList.contains('drawer'); P.delete('drawer'); } else S.sb = S.sb === 'closed' ? 'list' : 'closed'; render(); }
+  if (act === 'new') { S.view = 'new'; S.drawer = false; render(); }
+  if (act === 'retry-open') { S.view = 'loading'; render(); setTimeout(() => { S.view = 'thread'; render(); }, 1200); }
+});
+</script>
+</body>
+</html>

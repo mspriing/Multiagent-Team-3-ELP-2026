@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Assistant Directions</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#1F2029;--mid:#343645;--white:#FCFFFF;--lime:#B2F601;--ink-2:rgb(252 255 255 / .7);--line:rgb(252 255 255 / .1)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--deep);color:var(--white);font-family:"Satoshi",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{padding:clamp(1.25rem,1rem + 2vw,3rem);max-width:120rem;margin:0 auto}
+h1{font-size:clamp(1.8rem,1.3rem + 1.6vw,2.8rem);font-weight:500;letter-spacing:-.03em;margin:0 0 .6rem}
+.intro{color:var(--ink-2);max-width:70ch;line-height:1.55;margin:0 0 2.5rem}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(1rem,.6rem + 1.2vw,2rem)}
+.dir h2{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:0 0 .4rem}
+.dir p{color:var(--ink-2);line-height:1.5;margin:0 0 1rem;font-size:.95rem}
+.dir a.open{display:inline-block;background:var(--lime);color:var(--deep);font-weight:700;text-decoration:none;border-radius:999px;padding:.7rem 1.2rem;margin-bottom:1.2rem}
+video,img{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line);background:#000}
+h3{font-size:1.15rem;font-weight:500;margin:3rem 0 1rem;padding-top:1.5rem;border-top:1px solid var(--line)}
+.phones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Three directions for the research assistant</h1>
+  <p class="intro">Each one runs the same flow the final-project backend supports today: ask, the four agents work, the answer comes back, or an error. Every button works in the prototypes, and the light behind each screen is your OXS light studio shader running live. Pick the direction you want, or tell me which parts to combine.</p>
+
+  <div class="grid">
+    <div class="dir"><h2>A. Stage</h2><p>One dark stage. The light follows your cursor, your question lifts into a giant headline while the agent names light up in a sweep, and a white reading sheet rises for the answer.</p><a class="open" href="../a-stage.html" target="_blank">Open the prototype</a><video src="a-stage.mp4" autoplay muted loop playsinline></video></div>
+    <div class="dir"><h2>B. Window</h2><p>A split screen. The right half is a fluted glass window with the agents' names drifting behind it and bending through the flutes. It widens while they work and narrows to hold the sources.</p><a class="open" href="../b-window.html" target="_blank">Open the prototype</a><video src="b-window.mp4" autoplay muted loop playsinline></video></div>
+    <div class="dir"><h2>C. Brief</h2><p>A moving header over a reading page. One dock at the bottom changes shape: question box, then a working pill with the timer, then the answer's actions, then the error.</p><a class="open" href="../c-brief.html" target="_blank">Open the prototype</a><video src="c-brief.mp4" autoplay muted loop playsinline></video></div>
+  </div>
+
+  <h3>Ask</h3>
+  <div class="grid"><img src="a-stage-ask-1440.jpg" alt="Direction A, ask screen"><img src="b-window-ask-1440.jpg" alt="Direction B, ask screen"><img src="c-brief-ask-1440.jpg" alt="Direction C, ask screen"></div>
+  <h3>Agents working</h3>
+  <div class="grid"><img src="a-stage-working-1440.jpg" alt="Direction A, working screen"><img src="b-window-working-1440.jpg" alt="Direction B, working screen"><img src="c-brief-working-1440.jpg" alt="Direction C, working screen"></div>
+  <h3>Answer</h3>
+  <div class="grid"><img src="a-stage-answer-1440.jpg" alt="Direction A, answer screen"><img src="b-window-answer-1440.jpg" alt="Direction B, answer screen"><img src="c-brief-answer-1440.jpg" alt="Direction C, answer screen"></div>
+  <h3>Copied</h3>
+  <div class="grid"><img src="a-stage-copied-1440.jpg" alt="Direction A, answer copied"><img src="b-window-copied-1440.jpg" alt="Direction B, answer copied"><img src="c-brief-copied-1440.jpg" alt="Direction C, answer copied"></div>
+  <h3>Can't reach the server</h3>
+  <div class="grid"><img src="a-stage-error-net-1440.jpg" alt="Direction A, error screen"><img src="b-window-error-net-1440.jpg" alt="Direction B, error screen"><img src="c-brief-error-net-1440.jpg" alt="Direction C, error screen"></div>
+  <h3>Phone: ask, working, answer, error</h3>
+  <div class="grid">
+    <div class="phones"><img src="a-stage-ask-390.jpg" alt="A phone ask"><img src="a-stage-working-390.jpg" alt="A phone working"><img src="a-stage-answer-390.jpg" alt="A phone answer"><img src="a-stage-error-net-390.jpg" alt="A phone error"></div>
+    <div class="phones"><img src="b-window-ask-390.jpg" alt="B phone ask"><img src="b-window-working-390.jpg" alt="B phone working"><img src="b-window-answer-390.jpg" alt="B phone answer"><img src="b-window-error-net-390.jpg" alt="B phone error"></div>
+    <div class="phones"><img src="c-brief-ask-390.jpg" alt="C phone ask"><img src="c-brief-working-390.jpg" alt="C phone working"><img src="c-brief-answer-390.jpg" alt="C phone answer"><img src="c-brief-error-net-390.jpg" alt="C phone error"></div>
+  </div>
+</div>
+</body>
+</html>

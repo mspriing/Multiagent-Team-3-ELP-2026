@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>B Rebuild Options</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#1F2029;--mid:#343645;--white:#FCFFFF;--lime:#B2F601}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--deep);color:var(--white);font-family:"Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{padding:clamp(1rem,.6rem + 2vw,2.5rem);max-width:124rem;margin:0 auto}
+h1{font-size:clamp(1.8rem,1.3rem + 1.6vw,2.8rem);font-weight:600;letter-spacing:-.035em;margin:0 0 .6rem;text-align:center}
+.intro{color:rgb(252 255 255 / .75);max-width:62ch;line-height:1.55;margin:0 auto 2.5rem;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(.8rem,.5rem + 1vw,1.5rem)}
+.head{background:var(--white);color:var(--deep);border-radius:20px;padding:1.4rem 1.5rem;display:grid;gap:.5rem;align-content:start}
+.head h2{margin:0;font-size:1.5rem;letter-spacing:-.03em;font-weight:600}
+.head p{margin:0;line-height:1.5;color:rgb(31 32 41 / .78);font-size:.95rem}
+.head a{justify-self:start;background:var(--deep);color:var(--white);font-weight:600;text-decoration:none;border-radius:12px;padding:.7rem 1.1rem;margin-top:.4rem}
+.row{background:var(--mid);border-radius:24px;padding:clamp(.8rem,.5rem + 1vw,1.4rem);margin-top:1.2rem}
+.row h3{margin:0 0 .9rem;font-size:1.15rem;font-weight:600;letter-spacing:-.02em;text-align:center}
+img{width:100%;height:auto;display:block;border-radius:12px}
+.phones{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Three ways to rebuild B</h1>
+  <p class="intro">All three keep B's idea, a window of light that changes size as the agents work. They have no outline art and no thin lines. Every card and button is filled in a colour that stands out from what it sits on, and the content is centred in its space. Each option also has its own button style. Pick one, or tell me which parts to mix.</p>
+  <div class="grid">
+    <div class="head"><h2>B1 Halves</h2><p>A white half for asking and reading, with the window of light beside it. The four agents sit in the window as white cards. The window widens while they work and becomes the sources column for the answer.</p><a href="../b1-halves.html" target="_blank">Open B1</a></div>
+    <div class="head"><h2>B2 Band</h2><p>The window is a moving band across the top, the way the OXS hub opens its pages. The question card overlaps its bottom edge. The band fills the screen while the agents work, and the answer and sources sit below it in white cards.</p><a href="../b2-band.html" target="_blank">Open B2</a></div>
+    <div class="head"><h2>B3 Rail</h2><p>A rounded window holds the question, and the four agents fill a rail beside it. While they work the window widens. For the answer, a white sheet rises over the window and the rail turns into the sources.</p><a href="../b3-rail.html" target="_blank">Open B3</a></div>
+  </div>
+  <div class="row"><h3>Ask</h3><div class="grid"><img src="b1-halves-ask-1440.jpg" alt="B1 ask screen"><img src="b2-band-ask-1440.jpg" alt="B2 ask screen"><img src="b3-rail-ask-1440.jpg" alt="B3 ask screen"></div></div>
+  <div class="row"><h3>Agents working</h3><div class="grid"><img src="b1-halves-working-1440.jpg" alt="B1 working screen"><img src="b2-band-working-1440.jpg" alt="B2 working screen"><img src="b3-rail-working-1440.jpg" alt="B3 working screen"></div></div>
+  <div class="row"><h3>Answer</h3><div class="grid"><img src="b1-halves-answer-1440.jpg" alt="B1 answer screen"><img src="b2-band-answer-1440.jpg" alt="B2 answer screen"><img src="b3-rail-answer-1440.jpg" alt="B3 answer screen"></div></div>
+  <div class="row"><h3>Can't reach the server</h3><div class="grid"><img src="b1-halves-error-net-1440.jpg" alt="B1 error screen"><img src="b2-band-error-net-1440.jpg" alt="B2 error screen"><img src="b3-rail-error-net-1440.jpg" alt="B3 error screen"></div></div>
+  <div class="row"><h3>Phone</h3><div class="grid">
+    <div class="phones"><img src="b1-halves-ask-390.jpg" alt="B1 phone ask"><img src="b1-halves-working-390.jpg" alt="B1 phone working"><img src="b1-halves-answer-390.jpg" alt="B1 phone answer"><img src="b1-halves-error-net-390.jpg" alt="B1 phone error"></div>
+    <div class="phones"><img src="b2-band-ask-390.jpg" alt="B2 phone ask"><img src="b2-band-working-390.jpg" alt="B2 phone working"><img src="b2-band-answer-390.jpg" alt="B2 phone answer"><img src="b2-band-error-net-390.jpg" alt="B2 phone error"></div>
+    <div class="phones"><img src="b3-rail-ask-390.jpg" alt="B3 phone ask"><img src="b3-rail-working-390.jpg" alt="B3 phone working"><img src="b3-rail-answer-390.jpg" alt="B3 phone answer"><img src="b3-rail-error-net-390.jpg" alt="B3 phone error"></div>
+  </div></div>
+</div>
+</body>
+</html>

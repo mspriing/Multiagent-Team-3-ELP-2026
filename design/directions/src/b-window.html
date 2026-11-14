@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Direction B Window</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --deep:#1F2029; --mid:#343645; --white:#FCFFFF; --blue:#62C0F6; --lime:#B2F601;
+  --ink-2:rgb(252 255 255 / .72); --ink-3:rgb(252 255 255 / .5); --line:rgb(252 255 255 / .1);
+  --display:"Geist", -apple-system, "SF Pro Display", system-ui, sans-serif; --body:"Geist", -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --t-hero:clamp(2.5rem, 1.4rem + 3.6vw, 5rem); --t-h2:clamp(1.9rem,1.3rem + 1.9vw,3.1rem);
+  --t-lead:clamp(1.02rem,.95rem + .3vw,1.2rem); --t-body:1.0625rem; --t-small:.9375rem;
+  --pad:clamp(1.25rem,.7rem + 2.4vw,3.5rem); --r:14px; --ease:cubic-bezier(.16,1,.3,1);
+  --left:46%;
+}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%;background:var(--deep);color:var(--white);font-family:var(--body);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
+.app{display:grid;grid-template-columns:var(--left) 1fr;height:100dvh;transition:grid-template-columns 1.1s var(--ease)}
+body[data-state=working]{--left:32%} body[data-state=answer]{--left:72%} body[data-state=error]{--left:46%}
+
+/* Left panel */
+.panel{position:relative;background:var(--deep);overflow:auto;display:grid;grid-template-rows:auto 1fr;border-right:1px solid var(--line)}
+.top{display:flex;justify-content:space-between;align-items:center;padding:var(--pad) var(--pad) 0}
+.brand{font-family:var(--display);font-weight:600;font-size:1.2rem;letter-spacing:-.01em}
+.view{display:none;padding:var(--pad);align-content:center}
+.view.on{display:grid;animation:in .7s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+h1,h2{text-wrap:balance;font-family:var(--display);font-weight:500;letter-spacing:-.04em;margin:0}
+.ask h1{font-size:var(--t-hero);line-height:1}
+.lead{font-size:var(--t-lead);color:var(--ink-2);line-height:1.5;max-width:40ch;margin:1.2rem 0 2rem}
+.box{display:grid;gap:.9rem;padding:1rem;border-radius:var(--r);background:var(--mid);border:1px solid var(--line)}
+.box:focus-within{border-color:rgb(252 255 255 / .4)}
+.box textarea{resize:none;background:none;border:0;outline:0;font:inherit;font-size:var(--t-lead);color:var(--white);min-height:4.6em;line-height:1.45;padding:.2rem .3rem}
+.box textarea::placeholder{color:var(--ink-3)}
+.box .row{display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.hint{font-size:.8125rem;color:var(--ink-3)}
+.primary{background:var(--lime);color:var(--deep);border:0;border-radius:var(--r);padding:.8rem 1.4rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.primary:active{transform:translateY(1px)}
+.primary[disabled]{background:rgb(252 255 255 / .1);color:var(--ink-3);cursor:not-allowed}
+.ghost{background:transparent;border:1px solid rgb(252 255 255 / .25);border-radius:var(--r);padding:.8rem 1.3rem;font-weight:500;cursor:pointer;transition:border-color .15s}
+.ghost:hover{border-color:var(--white)}
+.sugs{margin-top:1.6rem;display:grid}
+.sugs button{display:flex;justify-content:space-between;gap:1rem;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:.95rem .1rem;cursor:pointer;color:var(--ink-2);font-size:var(--t-small);transition:color .15s,padding .15s}
+.sugs button:last-child{border-bottom:1px solid var(--line)}
+.sugs button:hover{color:var(--white);padding-left:.5rem}
+.sugs button span:last-child{color:var(--lime)}
+
+.work .q{font-size:clamp(1.15rem,1rem + .5vw,1.45rem);line-height:1.4;color:var(--white);max-width:30ch}
+.work .clock{font-family:var(--display);font-weight:400;font-size:clamp(4rem,2rem + 6vw,8.5rem);line-height:.9;letter-spacing:-.03em;margin:2.5rem 0 .4rem;font-variant-numeric:tabular-nums}
+.work .lbl{color:var(--ink-3);font-size:var(--t-small)}
+.crew{margin-top:2.5rem;display:grid;gap:.85rem}
+.crew div{display:grid;gap:.1rem}
+.crew b{font-weight:600}
+.crew span{color:var(--ink-3);font-size:var(--t-small)}
+
+.ans{align-content:start}
+.ans h2{font-size:var(--t-h2);line-height:1.08;max-width:24ch}
+.acts{display:flex;gap:.6rem;flex-wrap:wrap;margin:1.6rem 0 2.6rem}
+.doc{max-width:66ch}
+.doc h2{font-size:clamp(1.35rem,1.1rem + .8vw,1.8rem);margin:2.4rem 0 .8rem;line-height:1.2}
+.doc h2:first-child{margin-top:0}
+.doc p,.doc li{font-size:var(--t-body);line-height:1.7;color:rgb(252 255 255 / .86)}
+.doc ul{padding-left:1.2rem;display:grid;gap:.45rem}
+.doc li::marker{color:var(--lime)}
+.doc a{color:var(--white);text-decoration:underline;text-decoration-color:var(--blue);text-decoration-thickness:2px;text-underline-offset:4px}
+
+.err h1{font-size:var(--t-h2);line-height:1.05;max-width:16ch}
+.err .row{display:flex;gap:.6rem;flex-wrap:wrap}
+
+/* Right: the fluted window */
+.window{position:relative;overflow:hidden;background:var(--deep)}
+.fx{position:absolute;inset:0;width:100%;height:100%;display:block}
+.fx.fx-fallback{background:radial-gradient(70% 60% at 50% 45%, rgb(98 192 246 / .6), transparent 70%),var(--deep)}
+.behind{position:absolute;inset:0;overflow:hidden;filter:url(#flutes);pointer-events:none}
+.stream{position:absolute;left:8%;right:0;top:0;display:grid;gap:2vh}
+.stream span{font-family:var(--display);font-weight:600;font-size:clamp(3.2rem,1rem + 6.4vw,8.5rem);line-height:1;letter-spacing:-.045em;color:rgb(252 255 255 / .82);white-space:nowrap}
+.stream span:nth-child(4n+2){color:var(--lime)}
+.srcs{position:absolute;inset:auto 0 0 0;padding:var(--pad);display:none;gap:.6rem}
+body[data-state=answer] .srcs{display:grid}
+body[data-state=answer] .behind{opacity:.35}
+.srcs h3{margin:0 0 .2rem;font-size:var(--t-small);font-weight:600}
+.srcs a{display:grid;gap:.15rem;padding:.9rem 1rem;border-radius:var(--r);background:rgb(31 32 41 / .9);border:1px solid var(--line);color:var(--white);text-decoration:none;transition:border-color .15s}
+.srcs a:hover{border-color:rgb(252 255 255 / .45)}
+.srcs a span{font-size:.8125rem;color:var(--ink-3)}
+.srcs a b{font-weight:500;font-size:var(--t-small)}
+.toast{position:fixed;left:1.5rem;bottom:1.5rem;background:var(--lime);color:var(--deep);border-radius:var(--r);padding:.85rem 1.2rem;font-weight:600;visibility:hidden;transform:translateY(160%);transition:transform .45s var(--ease)}
+.toast.on{visibility:visible;transform:none}
+
+@media (max-width:767px){
+  .app{grid-template-columns:1fr;grid-template-rows:var(--band) 1fr;transition:grid-template-rows 1.1s var(--ease)}
+  body{--band:34dvh} body[data-state=working]{--band:52dvh} body[data-state=answer]{--band:0dvh} body[data-state=error]{--band:24dvh}
+  .window{grid-row:1} .panel{grid-row:2;border-right:0;border-top:1px solid var(--line)}
+  .view{align-content:start}
+  .work .clock{margin-top:1.2rem}
+  .crew{display:none}
+  body[data-state=answer] .srcs{display:none}
+  .phone-srcs{display:grid!important}
+}
+.phone-srcs{display:none;gap:.6rem;margin-top:2rem}
+.phone-srcs a{display:grid;gap:.15rem;padding:.9rem 1rem;border-radius:var(--r);background:var(--mid);color:var(--white);text-decoration:none}
+.phone-srcs a span{font-size:.8125rem;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="flutes" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="fluteMap" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    <feGaussianBlur stdDeviation="0.5"/>
+  </filter>
+</svg>
+<div class="app">
+  <div class="panel">
+    <header class="top"><div class="brand">Multi-Agent AI</div><button class="ghost" id="newTop" hidden>New question</button></header>
+    <div>
+      <section class="view ask" id="vAsk">
+        <h1>Ask once.<br>Four agents answer.</h1>
+        <p class="lead">A Supervisor, a Researcher, an Analyst and a Writer take your question in turn, and you get one response with its sources.</p>
+        <form class="box" id="form">
+          <label for="q" style="position:absolute;left:-9999px">Your research question</label>
+          <textarea id="q" rows="3" placeholder="Ask a research question"></textarea>
+          <div class="row"><span class="hint">Press Enter to send</span><button class="primary" id="send" disabled>Send</button></div>
+        </form>
+        <div class="sugs" id="sugs"></div>
+      </section>
+      <section class="view work" id="vWork" aria-live="polite">
+        <p class="q" id="workQ"></p>
+        <div class="clock" id="clock">0:00</div>
+        <div class="lbl">Researching</div>
+        <div class="crew" id="crew"></div>
+      </section>
+      <section class="view ans" id="vAns">
+        <h2 id="ansQ"></h2>
+        <div class="acts"><button class="primary" id="copy">Copy answer</button><button class="ghost" id="newAns">New question</button></div>
+        <article class="doc" id="doc"></article>
+        <div class="phone-srcs" id="phoneSrcs"></div>
+      </section>
+      <section class="view err" id="vErr" role="alert">
+        <h1 id="errTitle"></h1>
+        <p class="lead" id="errBody"></p>
+        <div class="row"><button class="primary" id="retry">Try again</button><button class="ghost" id="edit">Edit question</button></div>
+      </section>
+    </div>
+  </div>
+  <div class="window" aria-hidden="true">
+    <canvas class="fx" id="fx"></canvas>
+    <div class="behind"><div class="stream" id="stream"></div></div>
+    <nav class="srcs" aria-label="Sources"><h3>Sources</h3><div id="srcs" style="display:grid;gap:.6rem"></div></nav>
+  </div>
+</div>
+<div class="toast" id="toast" role="status">Copied to your clipboard</div>
+<script>
+/*__SHARED__*/
+const $ = id => document.getElementById(id);
+const FX_STATES = {
+  ask:    { layout:5, position:{x:55,y:45}, spread:.42, warp:1.8, intensity:2.4, speed:.5, stop1:.5, stop2:.84 },
+  working:{ layout:5, position:{x:55,y:50}, spread:.62, warp:2.4, intensity:3.0, speed:1.9, stop1:.42, stop2:.76 },
+  answer: { layout:5, position:{x:50,y:30}, spread:.4, warp:1.8, intensity:2.4, speed:.45 },
+  error:  { layout:5, position:{x:55,y:45}, spread:.36, warp:1.2, ...COOL, speed:.05, intensity:1.7 },
+};
+// Map for the fluted refraction: each 31px flute ramps red 0 to 255, so the words behind bend inside every flute.
+function buildFluteMap() {
+  const w = Math.max(2, document.querySelector('.window').clientWidth), h = 8, c = document.createElement('canvas'); c.width = w; c.height = h;
+  const g = c.getContext('2d'), img = g.createImageData(w, h);
+  for (let x = 0; x < w; x++) { const u = (x % 31) / 31, r = Math.round(255 * (1 - u)); for (let y = 0; y < h; y++) { const i = (y * w + x) * 4; img.data[i] = r; img.data[i + 1] = 128; img.data[i + 2] = 128; img.data[i + 3] = 255; } }
+  g.putImageData(img, 0, 0);
+  const fe = $('fluteMap'); fe.setAttribute('href', c.toDataURL()); fe.setAttribute('width', '100%'); fe.setAttribute('height', '100%');
+}
+const names = []; for (let i = 0; i < 3; i++) for (const a of AGENTS) names.push(`<span>${a[0]}</span>`);
+$('stream').innerHTML = names.join('');
+const drift = $('stream').animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-33.333%)' }], { duration: 42000, iterations: Infinity });
+$('crew').innerHTML = AGENTS.map(a => `<div><b>${a[0]}</b><span>${a[1]}</span></div>`).join('');
+$('sugs').innerHTML = SUGGESTIONS.map(s => `<button type="button"><span>${esc(s)}</span><span aria-hidden="true">Use</span></button>`).join('');
+let light, last = null, tick = null;
+const flow = createFlow(render);
+createLight($('fx'), fxFor(FX_STATES, 'ask')).then(l => { light = l; if (last) render(last, true); });
+buildFluteMap(); addEventListener('resize', buildFluteMap); setTimeout(buildFluteMap, 1200);
+
+function render(s, force) {
+  const prev = last ? last.state : null; last = s; document.body.dataset.state = s.state;
+  for (const [id, st] of [['vAsk','ask'],['vWork','working'],['vAns','answer'],['vErr','error']]) $(id).classList.toggle('on', s.state === st);
+  $('newTop').hidden = s.state !== 'error';
+  if ($('q').value !== s.question) $('q').value = s.question;
+  $('send').disabled = !s.question.trim();
+  if (prev !== s.state || force) {
+    if (light) light.to(fxFor(FX_STATES, s.state), 1400);
+    drift.updatePlaybackRate(s.state === 'working' ? 3.2 : s.state === 'error' ? 0.0001 : 1);
+    setTimeout(buildFluteMap, 1150);
+  }
+  if (s.state === 'working') { $('workQ').textContent = s.question; clearInterval(tick); const up = () => $('clock').textContent = fmtTime(performance.now() - s.startedAt); up(); tick = setInterval(up, 250); } else clearInterval(tick);
+  if (s.state === 'answer') {
+    $('ansQ').textContent = s.question; $('doc').innerHTML = renderMarkdown(s.answer, { skipSources: true }).html;
+    const links = sourcesFrom(s.answer).map(x => `<a href="${x.url}" target="_blank" rel="noopener"><span>${x.host}</span><b>${esc(x.title)}</b></a>`).join('');
+    $('srcs').innerHTML = links; $('phoneSrcs').innerHTML = links;
+  }
+  if (s.state === 'error') { $('errTitle').textContent = ERRORS[s.error].title; $('errBody').textContent = ERRORS[s.error].body; }
+  const on = s.copied && Date.now() - s.copied < 2200; $('toast').classList.toggle('on', !!on);
+  if (on && s.copied <= Date.now()) setTimeout(() => render(flow.get()), 2300);
+}
+$('q').addEventListener('input', e => flow.type(e.target.value));
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); flow.send(); } });
+$('form').addEventListener('submit', e => { e.preventDefault(); flow.send(); });
+$('sugs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { flow.type(b.firstElementChild.textContent); $('q').focus(); } });
+for (const id of ['newTop', 'newAns']) $(id).addEventListener('click', () => { flow.reset(); setTimeout(() => $('q').focus(), 300); });
+$('copy').addEventListener('click', () => flow.copy());
+$('retry').addEventListener('click', () => flow.send());
+$('edit').addEventListener('click', () => { flow.edit(); setTimeout(() => $('q').focus(), 300); });
+</script>
+</body>
+</html>

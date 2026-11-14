@@ -1,0 +1,20 @@
+<!doctype html><html><body style="margin:0;background:#000"><canvas id="c"></canvas>
+<script type="module">
+import { setup, render } from './lightstudio.js';
+const q = new URLSearchParams(location.search);
+const params = JSON.parse(decodeURIComponent(q.get('p')));
+const W = +q.get('w'), H = +q.get('h'), T = +(q.get('t')||0);
+const c = document.getElementById('c'); c.width = W; c.height = H;
+try {
+  const ad = await navigator.gpu.requestAdapter(); const device = await ad.requestDevice();
+  const ctx = c.getContext('webgpu'); const format = navigator.gpu.getPreferredCanvasFormat();
+  ctx.configure({ device, format, alphaMode: 'premultiplied' });
+  const frame = { state: {}, params, time: T };
+  setup(device, frame);
+  const tex = ctx.getCurrentTexture();
+  frame.output = { width: W, height: H, format, createView: () => tex.createView() };
+  render(device, frame);
+  await device.queue.onSubmittedWorkDone();
+  document.title = 'done';
+} catch (e) { document.title = 'err ' + e; }
+</script></body></html>

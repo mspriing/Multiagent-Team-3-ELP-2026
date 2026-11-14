@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent AI, Conversations</title>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css" rel="stylesheet">
+<link href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css" rel="stylesheet">
+<style>
+/*__BCSS__*/
+/*__HOMECSS__*/
+/* Conversation screens (2026-11-09). The team's final-project branch added saved conversations, follow-up questions
+   and a per-answer evidence ledger. These screens keep the approved look: the same nav, the fluted heat under
+   everything, white cards for reading, lime for the one primary action. Words start from the repo. */
+body[data-view]{min-height:100dvh}
+body[data-view] .links{visibility:hidden}
+.navl{display:flex;align-items:center;gap:.6rem}
+.iconbtn{width:2.5rem;height:2.5rem;border-radius:12px;display:grid;place-items:center;color:var(--white);font-size:1.35rem;background:transparent;border:0;padding:0;box-shadow:none;transition:background .15s}
+@media (hover:hover){.iconbtn:hover{background:rgb(252 255 255 / .1)}}
+
+/* Shell: the sidebar sits under the nav on the left, the conversation fills the rest */
+.shell{display:grid;grid-template-columns:18rem minmax(0,1fr);min-height:calc(100dvh - 4rem - 4px)}
+body.sb-closed .shell{grid-template-columns:minmax(0,1fr)} body.sb-closed .side{display:none}
+.side{position:sticky;top:calc(4rem + 4px);height:calc(100dvh - 4rem - 4px);background:var(--deep);padding:1.25rem clamp(1rem,1.7vw,2rem) 1.5rem;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:1.1rem;overflow:hidden}
+.side .newchat{width:100%}
+.side h2{font-size:.8125rem;font-weight:600;color:var(--w-72);letter-spacing:-.005em;padding-left:.75rem}
+.convos{display:grid;gap:.3rem;align-content:start;overflow:auto;margin-top:-.5rem}
+.convo{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:.4rem;border-radius:14px;padding:.7rem .75rem;color:rgb(252 255 255 / .86);font-size:.9375rem;line-height:1.35;text-align:left;transition:background .15s}
+@media (hover:hover){.convo:not(.on):hover{background:rgb(252 255 255 / .08)}}
+.convo.on{background:var(--white);color:var(--deep)}
+.convo .x{display:none;width:1.75rem;height:1.75rem;border-radius:999px;place-items:center;background:var(--mid-8);color:var(--mid);font-size:.85rem;margin:-.15rem -.25rem 0 0}
+.convo.on .x{display:grid}
+.empty{display:grid;gap:.35rem;padding:.25rem .75rem}
+.empty b{font-weight:500;color:var(--white);font-size:.9375rem}
+.empty span{font-size:.875rem;line-height:1.45;color:var(--w-72)}
+
+/* Main: the thread scrolls, the question box stays docked at the bottom */
+.main{position:relative;display:grid;grid-template-rows:minmax(0,1fr) auto;min-width:0}
+.thread{width:min(100% - 2*var(--pad), 62rem);margin:0 auto;padding:clamp(2.5rem,2rem + 2vw,4rem) 0 3rem;display:grid;gap:clamp(3.5rem,3rem + 2vw,5rem);align-content:start}
+.turn{display:grid;gap:1.6rem}
+.turn .qh{font-size:clamp(1.45rem,1.15rem + 1vw,2rem);line-height:1.18;letter-spacing:-.03em;max-width:34ch}
+.turn .groups{width:100%}
+@media (min-width:1024px){
+  .turn .groups{grid-template-columns:1fr 1fr;column-gap:clamp(1rem,.8rem + .8vw,1.6rem)}
+  .turn .grp{grid-template-rows:auto 1fr} .turn .grp.wide{grid-column:1 / -1}
+}
+.turn .groups{display:grid;gap:clamp(1.2rem,1rem + .8vw,1.8rem)}
+/* Under each answer: the evidence ledger and Copy answer */
+.after{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem;align-items:start}
+.ledger{background:var(--white);color:var(--deep);border-radius:22px;overflow:hidden}
+.ledger summary{list-style:none;display:flex;align-items:center;gap:.65rem;padding:1rem 1.2rem;cursor:pointer;font-weight:600}
+.ledger summary::-webkit-details-marker{display:none}
+.ledger summary .lk{width:2rem;height:2rem;border-radius:10px;background:var(--deep);color:var(--white);display:grid;place-items:center;font-size:1rem}
+.ledger summary .car{margin-left:auto;font-size:1.1rem;color:var(--mid)}
+.ledger summary .hide{display:none} .ledger[open] summary .hide{display:inline} .ledger[open] summary .show{display:none}
+.ledger[open] summary .car{transform:rotate(180deg)}
+.ledger .body{padding:0 1.2rem 1.2rem;display:grid;gap:.6rem}
+.ledger .note{font-size:.875rem;line-height:1.45;color:var(--mid-70);padding:0 .1rem .2rem}
+.ev{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:.85rem;align-items:start;background:var(--mid-8);border-radius:14px;padding:.85rem .9rem;color:var(--deep);text-decoration:none}
+.ev .fav{width:2.4rem;height:2.4rem;border-radius:11px;background:var(--white);display:grid;place-items:center}
+.ev .fav img{width:1.4rem;height:1.4rem;border-radius:4px}
+.ev .tx{display:grid;gap:.2rem}
+.ev strong{font-size:.9375rem;font-weight:600;line-height:1.3}
+.ev .host{font-size:.8125rem;color:var(--mid-70)}
+.ev p{font-size:.875rem;line-height:1.5;color:rgb(31 32 41 / .86);margin-top:.3rem}
+.ev b{min-width:1.5rem;height:1.5rem;border-radius:999px;background:var(--deep);color:var(--white);font-size:.75rem;display:grid;place-items:center}
+.after .pill{margin-top:.75rem}
+/* A follow-up in progress */
+.working{justify-self:start;display:inline-flex;align-items:center;gap:.6rem;background:var(--white);color:var(--deep);border-radius:999px;padding:.85rem 1.3rem;font-weight:500;font-size:.9375rem}
+.working .dot,.loadpill .dot{width:.6rem;height:.6rem;border-radius:999px;background:var(--lime);animation:pulse 1.4s var(--ease) infinite}
+/* Opening a saved conversation */
+.center{display:grid;place-items:center;padding:var(--pad);min-height:60vh}
+.loadpill{display:inline-flex;align-items:center;gap:.6rem;background:rgb(252 255 255 / .14);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);color:var(--white);border-radius:999px;padding:.85rem 1.3rem;font-weight:500}
+/* New chat: the home hero, inside the shell */
+.newview{display:grid;place-content:center;justify-items:center;gap:clamp(1.4rem,1rem + 1.4vw,2.2rem);padding:clamp(2rem,4vw,3.5rem) var(--pad);text-align:center;min-height:calc(100dvh - 4rem - 4px)}
+.newview h1{font-size:clamp(2.3rem,1.4rem + 2.8vw,4rem);line-height:1.04;max-width:16ch}
+.newview .lead{font-size:var(--t-lead);line-height:1.5;max-width:44ch;margin:1rem auto 0}
+.newview .qwrap{width:min(100%,44rem)}
+/* Docked question box */
+.dock{position:sticky;bottom:0;padding:0 var(--pad) 1.25rem;pointer-events:none}
+.dock .qcard{pointer-events:auto;width:min(100%,52rem);margin:0 auto;gap:.6rem;padding:.85rem .9rem .85rem}
+.dock textarea{min-height:1.5em;font-size:1.0625rem}
+body[data-view=new] .dock,body[data-view=missing] .dock{display:none}
+body.busy .dock .send,body.busy .dock .send:disabled{background:rgb(52 54 69 / .16);color:var(--deep);cursor:progress}
+body.busy .dock .send .idle{display:none} body.busy .dock .send .busy{display:inline}
+body.busy .dock .send .fillbar{transform:scaleX(.62)}
+body.busy .dock textarea,body[data-view=loading] .dock textarea{opacity:.45}
+.v{display:none} body[data-view=new] .v-new,body[data-view=thread] .v-thread,body[data-view=loading] .v-loading,body[data-view=missing] .v-missing{display:grid}
+
+/* Phone: the sidebar becomes a drawer over the page */
+.scrim{display:none}
+@media (max-width:767px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:min(86vw,20rem);height:100dvh;z-index:40;transform:translateX(-105%);transition:transform .35s var(--ease);grid-template-rows:auto auto auto minmax(0,1fr);padding-top:1rem}
+  body.drawer .side{transform:none}
+  body.sb-closed .side{display:grid}
+  .scrim{display:block;position:fixed;inset:0;z-index:35;background:rgb(16 17 24 / .62);opacity:0;pointer-events:none;transition:opacity .3s}
+  body.drawer .scrim{opacity:1;pointer-events:auto}
+  .dhead{display:flex;align-items:center;justify-content:space-between}
+  .after{grid-template-columns:1fr}
+  .after .pill{justify-self:start}
+  .dock{padding:0 .75rem .75rem}
+}
+@media (min-width:768px){ .dhead{display:none} }
+</style>
+</head>
+<body data-view="thread" class="ans-a">
+<canvas class="heat" id="heat" aria-hidden="true"></canvas>
+<div class="page">
+<header class="nav">
+  <div class="in">
+    <div class="navl"><button class="iconbtn" data-act="sb" aria-label="Show or hide conversations"><i class="ph-fill ph-list" aria-hidden="true"></i></button><a class="brand" href="#" data-act="new"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a></div>
+    <nav class="links" aria-label="Sections"></nav>
+    <a class="pill white sm cta" href="#" data-act="new">Ask a question</a>
+  </div>
+  <div class="bar" aria-hidden="true"><span></span></div>
+</header>
+
+<div class="shell">
+<div class="scrim" data-act="sb"></div>
+  <aside class="side" aria-label="Conversations">
+    <div class="dhead"><a class="brand" href="#" data-act="new"><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i>Multi-Agent AI</a><button class="iconbtn" data-act="sb" aria-label="Close conversations"><i class="ph-bold ph-x" aria-hidden="true"></i></button></div>
+    <button class="pill white newchat" data-act="new"><i class="ph-fill ph-plus-circle" aria-hidden="true"></i>New chat</button>
+    <h2>Previous conversations</h2>
+    <div class="convos" id="convos"></div>
+  </aside>
+
+  <main class="main">
+    <div>
+      <section class="v v-new newview">
+        <div><h1>Research powered by multiple AI agents</h1><p class="lead">A Supervisor routes your question, then a Researcher, an Analyst and a Writer each do one part of the work.</p></div>
+        <div class="qwrap"><form class="qcard" onsubmit="return false"><textarea rows="2" placeholder="Ask a research question..."></textarea><div class="chips" data-sugs></div><div class="qrow"><span class="hint">Press Enter to send</span><button class="pill send" disabled><span class="fillbar" aria-hidden="true"></span><span class="idle">Send</span><span class="busy">Researching...</span></button></div></form></div>
+      </section>
+      <section class="v v-thread thread" id="thread" aria-live="polite"></section>
+      <section class="v v-loading center"><span class="loadpill" role="status"><span class="dot" aria-hidden="true"></span>Loading conversation...</span></section>
+      <section class="v v-missing errwrap" style="min-height:calc(100dvh - 4rem - 4px)">
+        <div class="alert" role="alert">
+          <div class="badge"><i class="ph-fill ph-warning" aria-hidden="true"></i></div>
+          <h2>Couldn't load this conversation</h2>
+          <p>It may have been removed, or the server didn't answer. Try again, or start a new chat.</p>
+          <div class="stack"><button class="pill deep" data-act="retry-open"><i class="ph-fill ph-arrow-clockwise" aria-hidden="true"></i>Try again</button><button class="pill tint" data-act="new">New chat</button></div>
+        </div>
+      </section>
+    </div>
+    <div class="dock"><form class="qcard" onsubmit="return false"><label class="sr" for="fq">Your question</label><textarea id="fq" rows="1" placeholder="Ask a research question..."></textarea><div class="qrow"><span class="hint">Press Enter to send</span><button class="pill send" id="fsend" disabled><span class="fillbar" aria-hidden="true"></span><span class="idle">Send</span><span class="busy">Researching...</span></button></div></form></div>
+  </main>
+</div>
+</div>
+
+<script>
+/*__SHARED__*/
+const $ = id => document.getElementById(id);
+const all = sel => [...document.querySelectorAll(sel)];
+const phone = () => innerWidth < 768;
+/*__HEAT__*/
+
+/* Placeholder content (logged in FACTS): saved conversation titles, the follow-up question and answer, source excerpts */
+const CONVOS = [SAMPLE_Q, 'Which cloud AI platforms do banks use to catch fraud?', 'What is changing in AI chip supply?', 'How are universities using AI agents?', 'Summarize recent research on retrieval-augmented generation.'];
+const FOLLOW_Q = 'Which of these should a 200-person software company act on first?';
+const FOLLOW_MD = `## Short answer
+Start with marketplace listings. Being buyable through [Azure Marketplace](https://azuremarketplace.microsoft.com) and [Google Cloud Marketplace](https://cloud.google.com/marketplace) lets customers pay out of budgets they have already committed to those clouds.
+
+## Why this first
+- It shortens buying for customers who already spend on Azure or Google Cloud.
+- It needs no change to your product, only a listing and billing setup.
+
+## What can wait
+- Model price changes matter once AI features drive real usage.
+- Agent standards are still settling, so watch them before you build.
+
+## Sources
+- [Azure Marketplace](https://azuremarketplace.microsoft.com)
+- [Google Cloud Marketplace](https://cloud.google.com/marketplace)`;
+const EXCERPTS = {
+  'azure.microsoft.com': 'Gives businesses OpenAI models through Azure, with the security and compliance controls of Microsoft’s cloud.',
+  'cloud.google.com': 'Google Cloud’s platform for building with Gemini and other models, from testing prompts to running agents.',
+  'www.microsoft.com': 'Copilot works inside Word, Excel, PowerPoint, Outlook and Teams, using the files a company already keeps in Microsoft 365.',
+  'workspace.google.com': 'Brings Gemini into Gmail, Docs, Sheets and Meet for teams already on Google Workspace.',
+  'azuremarketplace.microsoft.com': 'Customers can buy listed software with their existing Azure agreement and count it toward their committed spend.',
+};
+const hostOf = u => new URL(u).hostname;
+function turnHTML(q, md, { open = false, working = false } = {}) {
+  if (working) return `<article class="turn"><h2 class="qh">${esc(q)}</h2><span class="working" role="status"><span class="dot" aria-hidden="true"></span>Your AI agents are working...</span></article>`;
+  const srcs = sourcesFrom(md);
+  let html = renderMarkdown(md, { skipSources:true }).html;
+  srcs.forEach((x, i) => { html = html.split(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join(`href="${x.url}" target="_blank" rel="noopener">${esc(x.title)}</a><a class="cite" href="#" aria-label="Source ${i+1}">${i+1}</a>`); });
+  html = html.replace(/(<a href="[^"]+" target="_blank" rel="noopener">[^<]+<\/a><a class="cite"[^>]*>\d+<\/a>[,.;:]?)/g, '<span class="nw">$1</span>');
+  const parts = html.split(/<h2 id="h-\d+">/).filter(Boolean).map(p => { const [h, ...rest] = p.split('</h2>'); return { h, body: rest.join('</h2>') }; });
+  const groups = parts.map((p, i) => `<section class="grp${i === 0 ? ' lead wide' : ''}${i > 0 && i === parts.length - 1 && (parts.length - 1) % 2 === 1 ? ' wide' : ''}"><h3 class="glabel">${p.h}</h3><div class="gcard doc on-white">${p.body}</div></section>`).join('');
+  const evs = srcs.map((x, i) => { const h = hostOf(x.url); return `<a class="ev" href="${x.url}" target="_blank" rel="noopener"><span class="fav"><img src="https://www.google.com/s2/favicons?domain=${h.replace(/^www\./,'')}&sz=64" alt=""></span><span class="tx"><strong>${esc(x.title)}</strong><span class="host">${h.replace(/^www\./,'')}</span><p>${esc(EXCERPTS[h] || '')}</p></span><b>${i+1}</b></a>`; }).join('');
+  return `<article class="turn"><h2 class="qh">${esc(q)}</h2><div class="groups">${groups}</div>
+    <div class="after"><details class="ledger"${open ? ' open' : ''}><summary><span class="lk"><i class="ph-fill ph-link" aria-hidden="true"></i></span><span class="show">View sources (${srcs.length})</span><span class="hide">Hide sources (${srcs.length})</span><i class="car ph-fill ph-caret-down" aria-hidden="true"></i></summary>
+      <div class="body"><p class="note">Sources retrieved by the Researcher Agent. These are not individually verified citations.</p>${evs}</div></details>
+      <button class="pill frost sm" data-act="copy"><i class="ph-fill ph-copy" aria-hidden="true"></i>Copy answer</button></div></article>`;
+}
+
+/* State, from the URL so every screen can be opened directly for review */
+const P = new URLSearchParams(location.search);
+const S = { view: P.get('view') || 'thread', sb: P.get('sb') || 'list', open: P.get('src') === '1', follow: P.get('follow') || 'done', active: 0 };
+function render() {
+  document.body.dataset.view = S.view;
+  document.body.classList.toggle('sb-closed', S.sb === 'closed');
+  document.body.classList.toggle('drawer', P.get('drawer') === '1' || S.drawer === true);
+  document.body.classList.toggle('busy', S.view === 'thread' && S.follow === 'working');
+  const list = S.sb === 'empty' ? [] : CONVOS;
+  $('convos').innerHTML = list.length ? list.map((t, i) => `<div class="convo${(S.view !== 'new' && i === S.active) ? ' on' : ''}" data-i="${i}" role="button" tabindex="0"><span>${esc(t)}</span><button class="x" data-act="close" aria-label="Close conversation"><i class="ph-bold ph-x" aria-hidden="true"></i></button></div>`).join('')
+    : `<div class="empty"><b>No saved conversations yet.</b><span>Your questions and answers will show up here.</span></div>`;
+  if (S.view === 'thread') {
+    $('thread').innerHTML = turnHTML(SAMPLE_Q, SAMPLE_MD, { open: S.open }) + (S.follow === 'none' ? '' : turnHTML(FOLLOW_Q, FOLLOW_MD, { working: S.follow === 'working' }));
+  }
+  for (const el of all('[data-sugs]')) el.innerHTML = SUGGESTIONS.map(s => `<button type="button" class="chip">${esc(s)}</button>`).join('');
+  $('fsend').disabled = true;
+  requestAnimationFrame(() => HEAT.to(heatFor()));
+}
+function heatFor() {
+  const pos = phone() ? { hx:.12, hy:-.03, h2x:.94, h2y:.99 } : { hx:.14, hy:-.06, h2x:.88, h2y:1.0 };
+  if (S.view === 'new') { const h = document.querySelector('.newview h1').getBoundingClientRect(); return { E:.62, S:.35, Q:0, ...pos, cx:(h.left + h.width/2)/innerWidth, cy:1 - (h.top + h.height/2)/innerHeight, cz:.62 }; }
+  if (S.view === 'thread') return { E: S.follow === 'working' ? .56 : .5, S: S.follow === 'working' ? 1 : .25, Q:1, ...pos, cx:.5, cy:.6, cz:.3 };
+  if (S.view === 'loading') return { E:.42, S:.4, Q:1, ...pos, cx:.5, cy:.5, cz:.35 };
+  return { E:.3, S:.08, Q:1, ...pos, cx:.5, cy:.5, cz:0 };
+}
+HEAT.look({ D:1, G:2, M:4, RF:.04, scale:1 });
+HEAT.set(heatFor.call(null));
+render();
+addEventListener('resize', () => HEAT.to(heatFor()));
+const scrollTo_ = P.get('scroll');
+if (scrollTo_) addEventListener('load', () => setTimeout(() => {
+  const t = scrollTo_ === 'bottom' ? document.documentElement.scrollHeight : scrollTo_ === 'src' ? document.querySelector('.ledger').getBoundingClientRect().top + scrollY - 120 : 0;
+  scrollTo({ top:t, behavior:'instant' });
+}, 60));
+
+document.addEventListener('click', e => {
+  const row = e.target.closest('.convo'); const b = e.target.closest('[data-act]');
+  if (b && b.dataset.act === 'close') { e.stopPropagation(); S.view = 'new'; render(); return; }
+  if (row) { S.active = +row.dataset.i; S.view = 'loading'; S.drawer = false; render(); setTimeout(() => { S.view = 'thread'; S.follow = 'done'; render(); }, 1200); return; }
+  if (!b) return; e.preventDefault();
+  const act = b.dataset.act;
+  if (act === 'sb') { if (phone()) { S.drawer = !document.body.classList.contains('drawer'); P.delete('drawer'); } else S.sb = S.sb === 'closed' ? 'list' : 'closed'; render(); }
+  if (act === 'new') { S.view = 'new'; S.drawer = false; render(); }
+  if (act === 'retry-open') { S.view = 'loading'; render(); setTimeout(() => { S.view = 'thread'; render(); }, 1200); }
+});
+</script>
+</body>
+</html>
