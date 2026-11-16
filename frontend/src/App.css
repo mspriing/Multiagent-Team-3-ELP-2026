@@ -82,8 +82,8 @@
 
 /* Docked question box under a conversation */
 /* A dark frosted shelf sits behind the box, so answers fade out and blur as they scroll under it */
-.dock { position: sticky; bottom: 0; padding: 2.75rem var(--pad) 1.25rem; margin-top: -2.75rem; pointer-events: none; z-index: 10; isolation: isolate; }
-.dock::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(31 32 41 / 0), rgb(31 32 41 / .82) 2.75rem, rgb(31 32 41 / .92)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 2.75rem); mask-image: linear-gradient(180deg, transparent, #000 2.75rem); }
+.dock { position: sticky; bottom: 0; padding: 4.5rem var(--pad) 1.25rem; margin-top: -4.5rem; pointer-events: none; z-index: 10; isolation: isolate; }
+.dock::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgb(31 32 41 / .55), rgb(31 32 41 / .9) 1.75rem, rgb(31 32 41 / .94)); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 1.5rem); mask-image: linear-gradient(180deg, transparent, #000 1.5rem); }
 .dock .qcard { pointer-events: auto; width: min(100%, 62rem); margin: 0 auto; gap: .6rem; padding: .85rem .9rem; }
 /* When the answers stack in one narrower column, the box lines up with that column */
 .main:has(.groups.stacked) .dock .qcard { max-width: 52rem; margin-left: max(0px, (100% - 62rem) / 2); }
@@ -235,7 +235,7 @@
   .dhead { display: flex; align-items: center; justify-content: space-between; }
   .after { grid-template-columns: 1fr; }
   .after .pill { justify-self: start; margin-top: 0; }
-  .dock { padding: 2rem .75rem .75rem; margin-top: -2rem; }
+  .dock { padding: 3.25rem .75rem .75rem; margin-top: -3.25rem; }
   .toast, .app[data-view="thread"] .toast { top: calc(var(--nav-h) + .75rem); bottom: auto; transform: translateY(-220%); }
   .toast.on, .app[data-view="thread"] .toast.on { transform: none; }
   .newview h1 { max-width: 12ch; }
