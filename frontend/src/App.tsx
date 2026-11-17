@@ -31,6 +31,12 @@ type SendError = { kind: "net" | "server"; question: string };
 // The backend address: set VITE_API_URL when hosting (for example on Vercel); locally it is port 8000
 const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
 
+// A random ID for each question, so Stop can name the one to cancel
+const newRequestId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
 const SUGGESTIONS = [
   "Compare Microsoft and Google's enterprise AI strategies and identify opportunities a mid-sized software company should monitor.",
   "What is changing in AI chip supply?",
@@ -117,6 +123,9 @@ function App() {
   const dockInput = useRef<HTMLTextAreaElement>(null);
   const barFill = useRef<HTMLSpanElement>(null);
   const scrollNext = useRef<"top" | "bottom" | "last" | null>(null);
+
+  // The question being worked on, so Stop can cancel it
+  const running = useRef<{ controller: AbortController; requestId: string } | null>(null);
 
   const turns = useMemo(() => toTurns(messages), [messages]);
   const view: "new" | "thread" | "loading" | "missing" =
@@ -210,6 +219,10 @@ function App() {
     setPendingQuestion(submittedMessage);
     scrollNext.current = messages.length ? "bottom" : null;
 
+    const controller = new AbortController();
+    const requestId = newRequestId();
+    running.current = { controller, requestId };
+
     try {
       // Send the message and active conversation ID
       const result = await fetch(`${API_URL}/chat`, {
@@ -220,7 +233,9 @@ function App() {
         body: JSON.stringify({
           message: submittedMessage,
           conversation_id: conversationId,
+          request_id: requestId,
         }),
+        signal: controller.signal,
       });
 
       if (!result.ok) {
@@ -269,14 +284,35 @@ function App() {
       // Refresh saved conversations in the sidebar
       await fetchConversations();
     } catch (err) {
-      console.error("Error sending message:", err);
-      // A TypeError from fetch means the server could not be reached
-      setSendError({ kind: err instanceof TypeError ? "net" : "server", question: submittedMessage });
-      scrollNext.current = messages.length ? "bottom" : "top";
+      if (controller.signal.aborted) {
+        // Stopped: put the question back in the box so it can be edited or sent again
+        setMessage(submittedMessage);
+        requestAnimationFrame(() => (messages.length ? dockInput : heroInput).current?.focus());
+      } else {
+        console.error("Error sending message:", err);
+        // A TypeError from fetch means the server could not be reached
+        setSendError({ kind: err instanceof TypeError ? "net" : "server", question: submittedMessage });
+        scrollNext.current = messages.length ? "bottom" : "top";
+      }
     } finally {
+      if (running.current?.controller === controller) running.current = null;
       setLoading(false);
       setPendingQuestion("");
     }
+  };
+
+  // Stop the question the agents are working on. The backend stops after the
+  // agent it is on and saves nothing for it.
+  const stopResearch = () => {
+    const current = running.current;
+    if (!current) return;
+    current.controller.abort();
+    fetch(`${API_URL}/cancel`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ request_id: current.requestId }),
+      keepalive: true,
+    }).catch((err) => console.error("Error stopping the question:", err));
   };
 
   const retryOpen = () => {
@@ -489,7 +525,7 @@ function App() {
                     </div>
                     <div className="qwrap">
                       <Composer value={message} onChange={setMessage} onSend={() => sendMessage()}
-                        busy={loading} disabled={busy} suggestions={SUGGESTIONS} inputRef={heroInput} />
+                        busy={loading} onStop={stopResearch} disabled={busy} suggestions={SUGGESTIONS} inputRef={heroInput} />
                     </div>
                   </section>
                   <HomeSections onAsk={ask} />
@@ -546,7 +582,7 @@ function App() {
             {(view === "thread" || view === "loading") && (
               <div className="dock">
                 <Composer value={message} onChange={setMessage} onSend={() => sendMessage()}
-                  busy={loading} disabled={busy} docked inputRef={dockInput} />
+                  busy={loading} onStop={stopResearch} disabled={busy} docked inputRef={dockInput} />
               </div>
             )}
           </main>

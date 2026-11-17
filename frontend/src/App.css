@@ -78,7 +78,12 @@
 .send { position: relative; overflow: hidden; isolation: isolate; min-width: 9.5rem; background: var(--lime); color: var(--deep); transition: background .35s var(--ease), color .35s; }
 .send:disabled { background: var(--mid-14); color: rgb(52 54 69 / .55); }
 .send .fillbar { position: absolute; inset: 0; z-index: -1; background: var(--lime); transform-origin: left; transform: scaleX(var(--p, 0)); border-radius: inherit; }
-.send.busy, .send.busy:disabled { background: rgb(52 54 69 / .16); color: var(--deep); cursor: progress; }
+.send.busy, .send.busy:disabled { background: rgb(52 54 69 / .16); color: var(--deep); cursor: pointer; }
+/* While it works, the button reads "Researching..." and turns into Stop on hover (always on touch screens) */
+.send .lbl-stop { display: none; align-items: center; gap: .5rem; }
+.send .stopsq { width: .7em; height: .7em; border-radius: 2px; background: currentColor; }
+@media (hover: hover) { .send.busy:hover .lbl-run, .send.busy:focus-visible .lbl-run { display: none; } .send.busy:hover .lbl-stop, .send.busy:focus-visible .lbl-stop { display: inline-flex; } }
+@media (hover: none) { .send.busy .lbl-run { display: none; } .send.busy .lbl-stop { display: inline-flex; } }
 
 /* Docked question box under a conversation */
 /* A dark frosted shelf sits behind the box, so answers fade out and blur as they scroll under it */

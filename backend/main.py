@@ -2,7 +2,7 @@
 from graph.workflow import graph
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
 import logging
@@ -16,7 +16,9 @@ from database import (
     get_messages,
     get_conversations,
     get_conversation,
-    get_evidence
+    get_evidence,
+    cancel_request,
+    is_cancelled
 )
 
 load_dotenv()
@@ -29,6 +31,17 @@ logger = logging.getLogger(__name__)
 class ChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
+    # Lets the user stop this question while the agents work
+    request_id: str | None = Field(default=None, max_length=100)
+
+
+class CancelRequest(BaseModel):
+    request_id: str = Field(min_length=1, max_length=100)
+
+
+def stopped(request_id):
+    # True when the user pressed Stop for this question
+    return bool(request_id) and is_cancelled(request_id)
 
 
 app = FastAPI()
@@ -87,8 +100,10 @@ def chat(request: ChatRequest):
 
         history = get_messages(conversation_id)
 
-        # 4. Run the multi-agent workflow
-        result = graph.invoke({
+        # 4. Run the multi-agent workflow one agent at a time,
+        # stopping early if the user pressed Stop
+        result = {}
+        for state in graph.stream({
             "message": message,
             "history": history,
             "research": "",
@@ -96,7 +111,11 @@ def chat(request: ChatRequest):
             "final_answer": "",
             "next_agent": "",
             "evidence": []
-        })
+        }, stream_mode="values"):
+            result = state
+            if stopped(request.request_id):
+                logger.info("Stopped by the user: %s", request.request_id)
+                raise HTTPException(status_code=409, detail="Stopped.")
 
         # Debug: Check how many evidence sources were retrieved
         evidence = result.get("evidence", [])
@@ -120,6 +139,10 @@ def chat(request: ChatRequest):
             )
 
         # 6. Save conversation and messages
+        # Nothing is saved for a question the user stopped.
+        if stopped(request.request_id):
+            raise HTTPException(status_code=409, detail="Stopped.")
+
         # Only create the conversation after successful generation.
         if not request.conversation_id:
             create_conversation(
@@ -167,6 +190,13 @@ def chat(request: ChatRequest):
             status_code=500,
             detail="An internal error occurred. Please try again."
         )
+
+
+@app.post("/cancel")
+def cancel(request: CancelRequest):
+    # Stop a question the agents are still working on
+    cancel_request(request.request_id)
+    return {"stopped": True}
 
 
 @app.get("/conversations")

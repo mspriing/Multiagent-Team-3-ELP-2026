@@ -111,6 +111,14 @@ def init_db():
             ON evidence(message_id)
         """)
 
+        # Questions the user stopped while the agents were working
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS cancelled_requests (
+                request_id TEXT PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
 
 def create_conversation(conversation_id, title):
     # Create a new conversation
@@ -236,6 +244,33 @@ def get_conversation(conversation_id):
         ).fetchone()
 
     return _row(row) if row else None
+
+
+def cancel_request(request_id):
+    # Mark a question as stopped by the user
+    with get_connection() as connection:
+        connection.execute(
+            _sql("""
+            INSERT INTO cancelled_requests (request_id)
+            VALUES (?)
+            ON CONFLICT (request_id) DO NOTHING
+            """),
+            (request_id,)
+        )
+
+
+def is_cancelled(request_id):
+    # Check whether the user stopped this question
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("""
+            SELECT 1 FROM cancelled_requests
+            WHERE request_id = ?
+            """),
+            (request_id,)
+        ).fetchone()
+
+    return row is not None
 
 
 if __name__ == "__main__":

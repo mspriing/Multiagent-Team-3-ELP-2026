@@ -4,6 +4,7 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;
+  onStop?: () => void; // stops the agents while they work
   busy: boolean; // the agents are working on this box's question
   disabled: boolean; // nothing can be sent right now (working, or opening a conversation)
   docked?: boolean;
@@ -13,11 +14,13 @@ type Props = {
 
 // The question box. Enter sends, Shift+Enter starts a new line. While the agents work, the Send button
 // frosts over and lime fills it from the left. The backend reports no progress, so the fill eases toward
-// 92% over time and is cleared when the answer (or an error) comes back.
-export function Composer({ value, onChange, onSend, busy, disabled, docked, suggestions, inputRef }: Props) {
+// 92% over time and is cleared when the answer (or an error) comes back. Clicking it while it works stops
+// the question (it reads "Stop" on hover, and always on touch screens).
+export function Composer({ value, onChange, onSend, onStop, busy, disabled, docked, suggestions, inputRef }: Props) {
   const localRef = useRef<HTMLTextAreaElement>(null);
   const ta = inputRef ?? localRef;
   const sendRef = useRef<HTMLButtonElement>(null);
+  const busySince = useRef(0);
 
   // Grow with the text
   useLayoutEffect(() => {
@@ -32,6 +35,7 @@ export function Composer({ value, onChange, onSend, busy, disabled, docked, sugg
     if (!btn) return;
     if (!busy) { btn.style.setProperty("--p", "0"); return; }
     const start = performance.now();
+    busySince.current = start;
     let raf = 0;
     const tick = () => {
       const p = 0.92 * (1 - Math.exp(-(performance.now() - start) / 5200));
@@ -74,10 +78,21 @@ export function Composer({ value, onChange, onSend, busy, disabled, docked, sugg
         {busy
           ? <span className="status" role="status"><span className="dot" aria-hidden="true" />Your AI agents are working...</span>
           : <span className="hint">Press Enter to send</span>}
-        <button ref={sendRef} type="submit" className={`pill send${busy ? " busy" : ""}`} disabled={!canSend}>
-          <span className="fillbar" aria-hidden="true" />
-          {busy ? "Researching..." : "Send"}
-        </button>
+        {busy ? (
+          // key keeps Stop and Send as separate buttons, so the click that stops can't also send
+          <button key="stop" ref={sendRef} type="button" className="pill send busy" disabled={!onStop}
+            onClick={e => { e.preventDefault(); if (performance.now() - busySince.current > 600) onStop?.(); }}
+            aria-label="Stop researching">
+            <span className="fillbar" aria-hidden="true" />
+            <span className="lbl-run" aria-hidden="true">Researching...</span>
+            <span className="lbl-stop" aria-hidden="true"><span className="stopsq" />Stop</span>
+          </button>
+        ) : (
+          <button key="send" ref={sendRef} type="submit" className="pill send" disabled={!canSend}>
+            <span className="fillbar" aria-hidden="true" />
+            Send
+          </button>
+        )}
       </div>
     </form>
   );
