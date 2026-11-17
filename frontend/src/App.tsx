@@ -6,6 +6,7 @@ import { Composer } from "./Composer";
 import { createHeat, type Heat, type HeatParams } from "./heat";
 import { HomeSections } from "./HomeSections";
 import { Icon } from "./Icon";
+import { SignIn } from "./SignIn";
 
 // Structure of a saved conversation
 type Conversation = {
@@ -25,11 +26,33 @@ type ChatMessage = {
 // One question and its answer, as the page shows them
 type Turn = { key: string; question: string; answer?: ChatMessage };
 
-// Why a request failed: "net" when the server can't be reached, "server" when it answered with an error
-type SendError = { kind: "net" | "server"; question: string };
+// Why a request failed: "net" when the server can't be reached, "server" when it answered with an error,
+// "limit" when today's questions are used up
+type SendError = { kind: "net" | "server" | "limit"; question: string; detail?: string };
+
+// Who is signed in, and how many of today's questions they have used
+type Session = { email: string; used_today: number; daily_limit: number };
 
 // The backend address: set VITE_API_URL when hosting (for example on Vercel); locally it is port 8000
 const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+
+// The sign-in token, kept in this browser so people stay signed in
+const TOKEN_KEY = "elp-session";
+const readToken = () => { try { return localStorage.getItem(TOKEN_KEY) ?? ""; } catch { return ""; } };
+let sessionToken = readToken();
+const saveToken = (token: string) => {
+  sessionToken = token;
+  try { if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY); } catch { /* private window */ }
+};
+
+// Every request to the backend carries the sign-in token. A 401 means the sign-in ended.
+async function apiFetch(path: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers);
+  if (sessionToken) headers.set("Authorization", `Bearer ${sessionToken}`);
+  const result = await fetch(`${API_URL}${path}`, { ...init, headers });
+  if (result.status === 401 && sessionToken) window.dispatchEvent(new Event("elp-signed-out"));
+  return result;
+}
 
 // A random ID for each question, so Stop can name the one to cancel
 const newRequestId = () =>
@@ -45,7 +68,7 @@ const SUGGESTIONS = [
 
 // Retrieve all saved conversations, newest first
 async function loadConversations(): Promise<Conversation[]> {
-  const result = await fetch(`${API_URL}/conversations`);
+  const result = await apiFetch("/conversations");
 
   if (!result.ok) {
     throw new Error("Failed to load conversations");
@@ -99,6 +122,12 @@ function App() {
   // Messages in the selected conversation
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
+  // Sign-in: who is signed in, whether the saved sign-in has been checked, and a note after it ends
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(!sessionToken);
+  const [signInNote, setSignInNote] = useState("");
+  const signInEmail = useRef<HTMLInputElement>(null);
+
   // Whether the agents are working, and the question they are working on
   const [loading, setLoading] = useState(false);
   const [pendingQuestion, setPendingQuestion] = useState("");
@@ -142,14 +171,68 @@ function App() {
     }
   }, []);
 
-  // Load saved conversations when React starts
+  // When React starts, check the saved sign-in, then load that person's conversations
   useEffect(() => {
+    if (!sessionToken) return;
     let alive = true;
-    loadConversations()
-      .then((data) => { if (alive) { setConversations(data); setListFailed(false); } })
-      .catch((err) => { console.error("Error loading conversations:", err); if (alive) setListFailed(true); });
+    apiFetch("/auth/me")
+      .then(async (result) => {
+        if (!alive) return;
+        // A 401 is handled by the "signed out" listener; any other failure keeps the saved sign-in
+        if (!result.ok) return;
+        setSession(await result.json());
+        const data = await loadConversations();
+        if (alive) { setConversations(data); setListFailed(false); }
+      })
+      .catch((err) => { console.error("Error checking sign-in:", err); if (alive) setListFailed(true); })
+      .finally(() => { if (alive) setAuthReady(true); });
     return () => { alive = false; };
   }, []);
+
+  // Clear everything from the screen when someone signs out or their sign-in ends
+  const clearSignedIn = useCallback(() => {
+    saveToken("");
+    setSession(null);
+    setConversations([]);
+    setConversationId(null);
+    setMessages([]);
+    setSendError(null);
+    setFailedOpenId(null);
+    setDrawerOpen(false);
+    setAuthReady(true);
+  }, []);
+
+  useEffect(() => {
+    const ended = () => {
+      clearSignedIn();
+      setSignInNote("Your sign-in ended. Sign in again to keep going.");
+    };
+    addEventListener("elp-signed-out", ended);
+    return () => removeEventListener("elp-signed-out", ended);
+  }, [clearSignedIn]);
+
+  const signedIn = (data: Session & { token: string }) => {
+    saveToken(data.token);
+    setSession({ email: data.email, used_today: data.used_today, daily_limit: data.daily_limit });
+    setSignInNote("");
+    fetchConversations();
+    requestAnimationFrame(() => heroInput.current?.focus());
+  };
+
+  const signOut = () => {
+    apiFetch("/auth/sign-out", { method: "POST" }).catch(() => {});
+    clearSignedIn();
+    setMessage("");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  // How many of today's questions are used, after each question
+  const refreshUsage = async () => {
+    try {
+      const result = await apiFetch("/auth/me");
+      if (result.ok) setSession(await result.json());
+    } catch { /* keep the last count */ }
+  };
 
   // STEP 2: Open an existing conversation
   const openConversation = async (id: string) => {
@@ -162,7 +245,7 @@ function App() {
     scrollNext.current = "top";
 
     try {
-      const result = await fetch(`${API_URL}/conversations/${encodeURIComponent(id)}`);
+      const result = await apiFetch(`/conversations/${encodeURIComponent(id)}`);
 
       if (!result.ok) {
         throw new Error("Failed to load conversation");
@@ -225,7 +308,7 @@ function App() {
 
     try {
       // Send the message and active conversation ID
-      const result = await fetch(`${API_URL}/chat`, {
+      const result = await apiFetch("/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -237,6 +320,21 @@ function App() {
         }),
         signal: controller.signal,
       });
+
+      // Signed out: the sign-in screen takes over, and the question stays in the box
+      if (result.status === 401) {
+        setMessage(submittedMessage);
+        return;
+      }
+
+      // Today's questions are used up
+      if (result.status === 429) {
+        let detail = "You've used today's questions. They reset at midnight.";
+        try { const body = await result.json(); if (typeof body.detail === "string") detail = body.detail; } catch { /* keep the default */ }
+        setSendError({ kind: "limit", question: submittedMessage, detail });
+        scrollNext.current = messages.length ? "bottom" : "top";
+        return;
+      }
 
       if (!result.ok) {
         throw new Error("Backend request failed");
@@ -298,6 +396,7 @@ function App() {
       if (running.current?.controller === controller) running.current = null;
       setLoading(false);
       setPendingQuestion("");
+      if (sessionToken) refreshUsage();
     }
   };
 
@@ -307,7 +406,7 @@ function App() {
     const current = running.current;
     if (!current) return;
     current.controller.abort();
-    fetch(`${API_URL}/cancel`, {
+    apiFetch("/cancel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ request_id: current.requestId }),
@@ -339,6 +438,11 @@ function App() {
 
   // "Ask a question": focus the box that is on screen
   const ask = () => {
+    if (!session) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.setTimeout(() => signInEmail.current?.focus({ preventScroll: true }), 350);
+      return;
+    }
     if (view === "thread") { dockInput.current?.focus(); return; }
     if (view !== "new") newChat();
     if (sendError && messages.length === 0) setSendError(null);
@@ -417,7 +521,16 @@ function App() {
   }, [drawerOpen]);
 
   const busy = loading || opening;
-  const errorCard = sendError && (
+  const errorCard = sendError && (sendError.kind === "limit" ? (
+    <div className={`alert${messages.length ? " inline" : ""}`} role="alert">
+      <div className="badge"><Icon name="warning" /></div>
+      <h2>You're out of questions for today</h2>
+      <p>{sendError.detail}</p>
+      <div className="stack">
+        <button type="button" className="pill tint" onClick={editQuestion}>OK</button>
+      </div>
+    </div>
+  ) : (
     <div className={`alert${messages.length ? " inline" : ""}`} role="alert">
       <div className="badge">{sendError.kind === "net" ? <b>Offline</b> : <Icon name="warning" />}</div>
       <h2>{sendError.kind === "net" ? "Can't reach the research server" : "The agents couldn't finish"}</h2>
@@ -430,7 +543,9 @@ function App() {
         <button type="button" className="pill tint" onClick={editQuestion}>Edit question</button>
       </div>
     </div>
-  );
+  ));
+
+  const questionsLeft = session ? Math.max(0, session.daily_limit - session.used_today) : 0;
 
   const appClass = ["app", !sidebarOpen && "sb-closed", drawerOpen && "drawer"].filter(Boolean).join(" ");
 
@@ -471,6 +586,7 @@ function App() {
               </button>
             </div>
 
+            {session ? (<>
             <button type="button" className="pill white newchat" onClick={newChat} disabled={busy}>
               <Icon name="plus-circle" />New chat
             </button>
@@ -509,6 +625,18 @@ function App() {
                 );
               })}
             </div>
+
+            <div className="acct">
+              <span className="who" title={session.email}>{session.email}</span>
+              <span className="left">{questionsLeft} of {session.daily_limit} questions left today</span>
+              <button type="button" className="pill frost sm" onClick={signOut} disabled={loading}>Sign out</button>
+            </div>
+            </>) : (
+              <div className="empty signedout">
+                <b>Sign in to see your conversations.</b>
+                <span>Use your Penn State email. Your questions and answers are saved to your own history.</span>
+              </div>
+            )}
           </aside>
 
           {/* MAIN AREA */}
@@ -524,8 +652,14 @@ function App() {
                       <p className="lead">A Supervisor routes your question, then a Researcher, an Analyst and a Writer each do one part of the work.</p>
                     </div>
                     <div className="qwrap">
-                      <Composer value={message} onChange={setMessage} onSend={() => sendMessage()}
-                        busy={loading} onStop={stopResearch} disabled={busy} suggestions={SUGGESTIONS} inputRef={heroInput} />
+                      {!authReady ? (
+                        <span className="loadpill" role="status"><span className="dot" aria-hidden="true" />Checking your sign-in...</span>
+                      ) : session ? (
+                        <Composer value={message} onChange={setMessage} onSend={() => sendMessage()}
+                          busy={loading} onStop={stopResearch} disabled={busy} suggestions={SUGGESTIONS} inputRef={heroInput} />
+                      ) : (
+                        <SignIn apiUrl={API_URL} onSignedIn={signedIn} note={signInNote} emailRef={signInEmail} />
+                      )}
                     </div>
                   </section>
                   <HomeSections onAsk={ask} />

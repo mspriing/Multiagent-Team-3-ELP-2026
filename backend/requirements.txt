@@ -6,3 +6,4 @@ openai>=1.50,<3
 tavily-python>=0.5,<1
 python-dotenv>=1.0,<2
 psycopg[binary]>=3.2,<4
+tzdata>=2024.1

@@ -1,7 +1,7 @@
 
 from graph.workflow import graph
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 from uuid import uuid4
@@ -18,7 +18,18 @@ from database import (
     get_conversation,
     get_evidence,
     cancel_request,
-    is_cancelled
+    is_cancelled,
+    add_usage
+)
+from auth import (
+    check_limits,
+    email_only_sign_in,
+    sign_in_settings,
+    request_code,
+    require_user,
+    sign_out,
+    usage_for,
+    verify_code
 )
 
 load_dotenv()
@@ -37,6 +48,15 @@ class ChatRequest(BaseModel):
 
 class CancelRequest(BaseModel):
     request_id: str = Field(min_length=1, max_length=100)
+
+
+class CodeRequest(BaseModel):
+    email: str = Field(max_length=200)
+
+
+class VerifyRequest(BaseModel):
+    email: str = Field(max_length=200)
+    code: str = Field(max_length=20)
 
 
 def stopped(request_id):
@@ -71,8 +91,49 @@ def root():
     return {"message": "Hello from the multi-agent backend!"}
 
 
+# ---------- Sign-in with a Penn State email ----------
+
+@app.get("/auth/settings")
+def auth_settings():
+    # Whether sign-in asks for an emailed code, and which email domain is allowed
+    return sign_in_settings()
+
+
+@app.post("/auth/email")
+def auth_email(request: CodeRequest):
+    # Sign in with the email address alone (only while sign-in codes are off)
+    token, email = email_only_sign_in(request.email)
+    return {"token": token, "email": email, **usage_for(email)}
+
+
+@app.post("/auth/request-code")
+def auth_request_code(request: CodeRequest):
+    # Email a 6-digit code to a @psu.edu address
+    email = request_code(request.email)
+    return {"sent": True, "email": email}
+
+
+@app.post("/auth/verify")
+def auth_verify(request: VerifyRequest):
+    # Trade a correct code for a session token
+    token, email = verify_code(request.email, request.code)
+    return {"token": token, "email": email, **usage_for(email)}
+
+
+@app.get("/auth/me")
+def auth_me(email: str = Depends(require_user)):
+    # Who is signed in, and how many questions they have used today
+    return {"email": email, **usage_for(email)}
+
+
+@app.post("/auth/sign-out")
+def auth_sign_out(authorization: str | None = Header(default=None)):
+    sign_out(authorization)
+    return {"signed_out": True}
+
+
 @app.post("/chat")
-def chat(request: ChatRequest):
+def chat(request: ChatRequest, email: str = Depends(require_user)):
 
     # 1. Validate the user's question
     message = request.message.strip()
@@ -89,14 +150,19 @@ def chat(request: ChatRequest):
     try:
         # 3. Retrieve existing conversation history
         if request.conversation_id:
-            # Reject IDs that do not belong to a saved conversation
+            # Reject IDs that do not belong to one of this person's saved conversations
             # (get_messages alone cannot distinguish an empty chat
             # from a nonexistent conversation).
-            if get_conversation(conversation_id) is None:
+            conversation = get_conversation(conversation_id)
+            if conversation is None or conversation.get("user_email") != email:
                 raise HTTPException(
                     status_code=404,
                     detail="Conversation not found."
                 )
+
+        # Stop here if today's question limits are used up, otherwise count this question
+        day = check_limits(email)
+        add_usage(email, day)
 
         history = get_messages(conversation_id)
 
@@ -147,7 +213,8 @@ def chat(request: ChatRequest):
         if not request.conversation_id:
             create_conversation(
                 conversation_id,
-                message[:100]
+                message[:100],
+                email
             )
 
         # Save the user's question
@@ -177,7 +244,8 @@ def chat(request: ChatRequest):
             "response": final_answer,
             "conversation_id": conversation_id,
             "message_id": assistant_message_id,
-            "evidence": get_evidence(assistant_message_id)
+            "evidence": get_evidence(assistant_message_id),
+            **usage_for(email)
         }
 
     except HTTPException:
@@ -193,24 +261,24 @@ def chat(request: ChatRequest):
 
 
 @app.post("/cancel")
-def cancel(request: CancelRequest):
+def cancel(request: CancelRequest, email: str = Depends(require_user)):
     # Stop a question the agents are still working on
     cancel_request(request.request_id)
     return {"stopped": True}
 
 
 @app.get("/conversations")
-def list_conversations():
-    # Return all saved conversations
-    return get_conversations()
+def list_conversations(email: str = Depends(require_user)):
+    # Return the signed-in person's saved conversations
+    return get_conversations(email)
 
 
 @app.get("/conversations/{conversation_id}")
-def retrieve_conversation(conversation_id: str):
-    # Find the requested conversation
+def retrieve_conversation(conversation_id: str, email: str = Depends(require_user)):
+    # Find the requested conversation (only its owner can open it)
     conversation = get_conversation(conversation_id)
 
-    if conversation is None:
+    if conversation is None or conversation.pop("user_email", None) != email:
         raise HTTPException(
             status_code=404,
             detail="Conversation not found."

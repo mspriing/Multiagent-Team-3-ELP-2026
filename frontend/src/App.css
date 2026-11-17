@@ -32,7 +32,13 @@
 .shell { display: grid; grid-template-columns: 18rem minmax(0, 1fr); min-height: calc(100dvh - var(--nav-h)); }
 .app.sb-closed .shell { grid-template-columns: minmax(0, 1fr); }
 .app.sb-closed .side { display: none; }
-.side { position: sticky; top: var(--nav-h); height: calc(100dvh - var(--nav-h)); background: var(--deep); padding: 1.25rem clamp(1rem, 1.7vw, 2rem) 1.5rem; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 1.1rem; overflow: hidden; z-index: 20; }
+.side { position: sticky; top: var(--nav-h); height: calc(100dvh - var(--nav-h)); background: var(--deep); padding: 1.25rem clamp(1rem, 1.7vw, 2rem) 1.5rem; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: 1.1rem; overflow: hidden; z-index: 20; }
+/* Signed in as, questions left today, and Sign out, at the foot of the sidebar */
+.acct { display: grid; gap: .3rem; justify-items: start; padding: 1rem .75rem 0; border-top: 1px solid rgb(252 255 255 / .1); }
+.acct .who { color: var(--white); font-weight: 500; font-size: .9375rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct .left { color: var(--w-72); font-size: .875rem; }
+.acct .pill { margin-top: .5rem; }
+.empty.signedout { align-self: start; }
 .dhead { display: none; }
 .side .newchat { width: 100%; }
 .side h2 { font-size: .8125rem; font-weight: 600; color: var(--w-72); letter-spacing: -.005em; padding-left: .75rem; }
@@ -70,6 +76,21 @@
 .status { display: flex; align-items: center; gap: .55rem; color: var(--mid); font-size: .875rem; font-weight: 500; padding-left: .45rem; }
 .dot { width: .55rem; height: .55rem; border-radius: 999px; background: var(--lime); flex: none; animation: pulse 1.4s var(--ease) infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
+/* Sign-in card: same white card as the question box */
+.signin .slabel { font-size: var(--t-lead); line-height: 1.4; color: var(--deep); font-weight: 500; padding: .35rem .45rem 0; overflow-wrap: anywhere; }
+.signin .slabel b { font-weight: 600; }
+.signin .sfield { width: 100%; border: 0; outline: 0; background: var(--mid-8); border-radius: 14px; padding: .9rem 1rem; font: inherit; font-size: 1.0625rem; color: var(--deep); }
+.signin .sfield:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.signin .sfield::placeholder { color: rgb(52 54 69 / .5); }
+.signin .sfield.code { font-size: 1.5rem; letter-spacing: .35em; font-variant-numeric: tabular-nums; }
+.signin .snote { background: var(--mid-8); border-radius: 14px; padding: .75rem 1rem; color: var(--deep); font-size: .9375rem; line-height: 1.45; margin: 0; }
+.signin .serror, .signin .sok { display: flex; gap: .5rem; align-items: flex-start; color: var(--deep); font-size: .9375rem; line-height: 1.45; margin: 0; padding: 0 .45rem; }
+.signin .serror .icon { flex: none; margin-top: .2em; color: var(--mid); }
+.signin .slinks { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding-left: .45rem; }
+.signin .slink { font-size: .875rem; font-weight: 500; color: var(--mid); text-decoration: underline; text-underline-offset: 3px; }
+.signin .slink:disabled { opacity: .5; }
+@media (hover: hover) { .signin .slink:hover { color: var(--deep); } }
+.qwrap > .loadpill { display: flex; width: fit-content; margin-inline: auto; }
 .chips { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0 .35rem; }
 .chip { background: var(--mid-8); color: var(--deep); border-radius: 999px; padding: .55rem .95rem; font-size: .875rem; font-weight: 500; text-align: left; line-height: 1.3; transition: background .15s; }
 @media (hover: hover) { .chip:hover { background: var(--mid-14); } }
@@ -232,7 +253,7 @@
 /* ---------- Phone: the sidebar becomes a drawer over the page ---------- */
 @media (max-width: 767px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
-  .side { position: fixed; inset: 0 auto 0 0; top: 0; width: min(86vw, 20rem); height: 100dvh; z-index: 40; transform: translateX(-105%); visibility: hidden; transition: transform .35s var(--ease), visibility .35s; grid-template-rows: auto auto auto minmax(0, 1fr); padding-top: 1rem; }
+  .side { position: fixed; inset: 0 auto 0 0; top: 0; width: min(86vw, 20rem); height: 100dvh; z-index: 40; transform: translateX(-105%); visibility: hidden; transition: transform .35s var(--ease), visibility .35s; grid-template-rows: auto auto auto minmax(0, 1fr) auto; padding-top: 1rem; }
   .app.drawer .side { transform: none; visibility: visible; }
   .app.sb-closed .side { display: grid; }
   .scrim { display: block; position: fixed; inset: 0; z-index: 35; background: rgb(16 17 24 / .62); opacity: 0; pointer-events: none; transition: opacity .3s; }
@@ -252,6 +273,8 @@
   .ag .more { grid-template-rows: 1fr; }
   .qrow.busy { flex-direction: column-reverse; align-items: stretch; gap: .8rem; }
   .qrow.busy .send { width: 100%; }
+  .signin .qrow { flex-direction: column-reverse; align-items: stretch; gap: .8rem; }
+  .signin .qrow .send { width: 100%; }
   .nav .cta { padding: .55rem .95rem; }
 }
 @media (max-width: 380px) {

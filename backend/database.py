@@ -119,16 +119,54 @@ def init_db():
             )
         """)
 
+        # Sign-in: the latest emailed code for each address (only its hash is kept)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS login_codes (
+                email TEXT PRIMARY KEY,
+                code_hash TEXT NOT NULL,
+                expires_at BIGINT NOT NULL,
+                sent_at BIGINT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0
+            )
+        """)
 
-def create_conversation(conversation_id, title):
-    # Create a new conversation
+        # Sign-in: who each session token belongs to (only the token's hash is kept)
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                expires_at BIGINT NOT NULL
+            )
+        """)
+
+        # How many questions each person asked on each day
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS usage (
+                email TEXT NOT NULL,
+                day TEXT NOT NULL,
+                questions INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (email, day)
+            )
+        """)
+
+        # Each conversation belongs to the person who started it
+        if USE_POSTGRES:
+            connection.execute("ALTER TABLE conversations ADD COLUMN IF NOT EXISTS user_email TEXT")
+        else:
+            columns = [row["name"] for row in connection.execute("PRAGMA table_info(conversations)").fetchall()]
+            if "user_email" not in columns:
+                connection.execute("ALTER TABLE conversations ADD COLUMN user_email TEXT")
+
+
+def create_conversation(conversation_id, title, user_email=None):
+    # Create a new conversation for the person who asked
     with get_connection() as connection:
         connection.execute(
             _sql("""
-            INSERT INTO conversations (id, title)
-            VALUES (?, ?)
+            INSERT INTO conversations (id, title, user_email)
+            VALUES (?, ?, ?)
             """),
-            (conversation_id, title)
+            (conversation_id, title, user_email)
         )
 
 
@@ -214,18 +252,20 @@ def get_messages(conversation_id):
     return [_row(row) for row in rows]
 
 
-def get_conversations():
-    # Retrieve all conversations, newest first
+def get_conversations(user_email):
+    # Retrieve one person's conversations, newest first
     # SQLite saves times to the second, so its hidden rowid breaks ties; Postgres saves finer times
     order = "created_at DESC" if USE_POSTGRES else "created_at DESC, rowid DESC"
 
     with get_connection() as connection:
         rows = connection.execute(
-            f"""
+            _sql(f"""
             SELECT id, title, created_at
             FROM conversations
+            WHERE user_email = ?
             ORDER BY {order}
-            """
+            """),
+            (user_email,)
         ).fetchall()
 
     return [_row(row) for row in rows]
@@ -236,7 +276,7 @@ def get_conversation(conversation_id):
     with get_connection() as connection:
         row = connection.execute(
             _sql("""
-            SELECT id, title, created_at
+            SELECT id, title, created_at, user_email
             FROM conversations
             WHERE id = ?
             """),
@@ -271,6 +311,113 @@ def is_cancelled(request_id):
         ).fetchone()
 
     return row is not None
+
+
+# ---------- Sign-in ----------
+
+def save_login_code(email, code_hash, expires_at, sent_at):
+    # Keep only the newest code for an address
+    with get_connection() as connection:
+        connection.execute(
+            _sql("""
+            INSERT INTO login_codes (email, code_hash, expires_at, sent_at, attempts)
+            VALUES (?, ?, ?, ?, 0)
+            ON CONFLICT (email) DO UPDATE SET
+                code_hash = excluded.code_hash,
+                expires_at = excluded.expires_at,
+                sent_at = excluded.sent_at,
+                attempts = 0
+            """),
+            (email, code_hash, expires_at, sent_at)
+        )
+
+
+def get_login_code(email):
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("SELECT code_hash, expires_at, sent_at, attempts FROM login_codes WHERE email = ?"),
+            (email,)
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def count_codes_sent_since(since):
+    # How many addresses were sent a code recently (limits how much email the app can send)
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("SELECT COUNT(*) AS n FROM login_codes WHERE sent_at >= ?"),
+            (since,)
+        ).fetchone()
+    return row["n"]
+
+
+def add_code_attempt(email):
+    with get_connection() as connection:
+        connection.execute(
+            _sql("UPDATE login_codes SET attempts = attempts + 1 WHERE email = ?"),
+            (email,)
+        )
+
+
+def delete_login_code(email):
+    with get_connection() as connection:
+        connection.execute(_sql("DELETE FROM login_codes WHERE email = ?"), (email,))
+
+
+def create_session(token_hash, email, expires_at):
+    with get_connection() as connection:
+        connection.execute(
+            _sql("INSERT INTO sessions (token_hash, email, expires_at) VALUES (?, ?, ?)"),
+            (token_hash, email, expires_at)
+        )
+
+
+def get_session_email(token_hash, now):
+    # The signed-in address for a session token, or None if it is unknown or expired
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("SELECT email FROM sessions WHERE token_hash = ? AND expires_at > ?"),
+            (token_hash, now)
+        ).fetchone()
+    return row["email"] if row else None
+
+
+def delete_session(token_hash):
+    with get_connection() as connection:
+        connection.execute(_sql("DELETE FROM sessions WHERE token_hash = ?"), (token_hash,))
+
+
+# ---------- Daily question limits ----------
+
+def get_usage(email, day):
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("SELECT questions FROM usage WHERE email = ? AND day = ?"),
+            (email, day)
+        ).fetchone()
+    return row["questions"] if row else 0
+
+
+def get_total_usage(day):
+    with get_connection() as connection:
+        row = connection.execute(
+            _sql("SELECT COALESCE(SUM(questions), 0) AS n FROM usage WHERE day = ?"),
+            (day,)
+        ).fetchone()
+    return row["n"]
+
+
+def add_usage(email, day):
+    # Count one question for this person today
+    with get_connection() as connection:
+        connection.execute(
+            _sql("""
+            INSERT INTO usage (email, day, questions)
+            VALUES (?, ?, 1)
+            ON CONFLICT (email, day) DO UPDATE SET questions = usage.questions + 1
+            """),
+            (email, day)
+        )
 
 
 if __name__ == "__main__":

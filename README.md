@@ -71,11 +71,15 @@ You need Python 3.10 or newer (`python3 --version`; on a Mac, `brew install pyth
 
 4. Open http://localhost:5173. A new question takes about a minute: the Researcher runs three web searches before the Analyst and Writer answer. Conversations are saved in `backend/conversations.db`.
 
+## Sign-in and daily limits
+
+People sign in with their @psu.edu email. Until `SMTP_USER` and `SMTP_PASSWORD` are set, the address alone signs you in (anyone can type an address that isn't theirs). Once they are set, the backend emails a 6-digit code that works for 10 minutes, so only the inbox's owner gets in. Each person sees only their own conversations. Each person can ask 10 questions a day and the whole app 100, reset at midnight Eastern.
+
 ## Host it on Vercel
 
 The app runs as two Vercel projects from this repository.
 
-1. **Backend** (Root Directory `backend`). Vercel detects FastAPI from `main.py`; `backend/vercel.json` gives each research request up to 300 seconds. Add a Neon Postgres database from the project's Storage tab, which sets `DATABASE_URL`, so saved conversations persist. Then set `DEEPSEEK_API_KEY`, `TAVILY_API_KEY`, and `ALLOWED_ORIGINS` (the frontend's address, such as `https://your-site.vercel.app`).
+1. **Backend** (Root Directory `backend`). Vercel detects FastAPI from `main.py`; `backend/vercel.json` gives each research request up to 300 seconds. Add a Neon Postgres database from the project's Storage tab, which sets `DATABASE_URL`, so saved conversations persist. Then set `DEEPSEEK_API_KEY`, `TAVILY_API_KEY`, and `ALLOWED_ORIGINS` (the frontend's address, such as `https://your-site.vercel.app`). For sign-in, set `SMTP_USER` and `SMTP_PASSWORD` (the email account that sends the codes; for Gmail, an app password). Optional: `DAILY_LIMIT_PER_PERSON` (default 10) and `DAILY_LIMIT_TOTAL` (default 100).
 2. **Frontend** (Root Directory `frontend`). Set `VITE_API_URL` to the backend's address, then deploy.
 
 Without `DATABASE_URL`, the backend keeps using the local SQLite file, so running it on your own computer works the same as before.
